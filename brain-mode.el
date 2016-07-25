@@ -105,6 +105,7 @@
 (defun set-bufferlocal (context key value)
   (setcdr (assoc key (get-context context)) value))
 
+(defun get-action (&optional context) (get-bufferlocal context 'action))
 (defun get-atoms-by-id (&optional context) (get-bufferlocal context 'atoms-by-id))
 (defun get-default-sharability (&optional context) (get-bufferlocal context 'default-sharability))
 (defun get-default-weight (&optional context) (get-bufferlocal context 'default-weight))
@@ -128,6 +129,7 @@
 (defun get-view-properties (&optional context) (get-bufferlocal context 'view-properties))
 (defun get-view-style (&optional context) (get-bufferlocal context 'view-style))
 
+(defun set-action (action &optional context) (set-bufferlocal context 'action action))
 (defun set-atoms-by-id (atoms-by-id &optional context) (set-bufferlocal context 'atoms-by-id atoms-by-id))
 (defun set-file (file &optional context) (set-bufferlocal context 'file file))
 (defun set-format (format &optional context) (set-bufferlocal context 'format format))
@@ -154,6 +156,7 @@
 (defconst NIL "none")
 
 (defun default-context () (list
+  (cons 'action NIL)                         
   (cons 'atoms-by-id NIL)
   (cons 'default-sharability brain-const-sharability-personal)
   (cons 'default-weight brain-const-weight-default)
@@ -408,7 +411,7 @@
     "&"))
 
 (defun http-post (url params callback)
-  "Send PARAMS to URL as a POST request."
+  "Issue an HTTP POST request to URL with PARAMS"
   (let ((url-request-method "POST")
         (url-request-extra-headers
          '(("Content-Type" . "application/x-www-form-urlencoded;charset=UTF-8")))
@@ -417,6 +420,7 @@
     (url-retrieve url callback)))
 
 (defun http-get (url callback)
+  "Issue an HTTP GET request to URL"
   (url-retrieve url callback))
 
 (defun strip-http-headers (entity)
@@ -516,6 +520,7 @@
 
 (defun to-query-list (&optional context)
   (list
+    :action (get-action context)
     :root (get-root-id context)
     :height (get-height context)
     :style (get-style context)
@@ -545,14 +550,7 @@
       (entity-for-request params)
       nil)))
 
-(defun url-for-view-request (&optional context)
-  (url-for-request "view?request=" (to-query-list context)))
-
-(defun http-get-and-receive (url &optional context handler)
-  (http-get url
-    (if handler handler (receive-view context))))
-
-(defun http-post-and-receive (url params &optional handler context)
+(defun http-post-and-receive (url params &optional context handler)
   (http-post url params
     (if handler handler (receive-view context))))
 
@@ -560,81 +558,79 @@
   (if params params
     (to-query-list (if context context (get-context)))))
     
-(defun fetch-path (path context params &optional handler)
-  (http-get-and-receive (url-for-request path (to-params context params)) context handler))
-
-(defun fetch-path-post (path context params &optional handler)
-  (http-post-and-receive (url-for-request path)
-    (to-params context params) handler context))
+(defun fetch-path (action context params &optional handler)
+  (set-action action context)
+  (http-post-and-receive (url-for-request "brain")
+    (to-params context params) context handler))
 
 (defun fetch-view (&optional context handler)
-  (http-get-and-receive (url-for-view-request context) context handler))
+  (fetch-path "view" context handler))
 
 (defun fetch-history ()
   (let ((context (create-search-context)))
-    (fetch-path "history?request=" context nil)))
+    (fetch-path "history" context nil)))
 
 (defun fetch-events (height)
   (let ((context (create-search-context)))
-    (fetch-path "get-events?request=" context nil)))
+    (fetch-path "get-events" context nil)))
 
 (defun fetch-duplicates ()
   (let ((context (create-search-context)))
-    (fetch-path "duplicates?request=" context nil)))
+    (fetch-path "duplicates" context nil)))
 
 (defun fetch-query (query query-type)
   (let ((context (create-search-context)))
     (set-query query context)
     (set-query-type query-type context)
-    (fetch-path "search?request=" context nil)))
+    (fetch-path "search" context nil)))
 
 (defun fetch-priorities ()
   (let ((context (create-search-context)))
-    (fetch-path "priorities?request=" context nil)))
+    (fetch-path "priorities" context nil)))
 
 (defun fetch-find-isolated-atoms ()
   (let ((context (create-search-context)))
-    (fetch-path "find-isolated-atoms?request=" context nil)))
+    (fetch-path "find-isolated-atoms" context nil)))
 
 (defun fetch-find-roots ()
   (let ((context (create-search-context)))
-    (fetch-path "find-roots?request=" context nil)))
+    (fetch-path "find-roots" context nil)))
 
 (defun fetch-remove-isolated-atoms ()
-  (fetch-path "remove-isolated-atoms?request=" nil nil 'receive-remove-isolated-atoms-response))
+  (fetch-path "remove-isolated-atoms" nil nil 'receive-remove-isolated-atoms-response))
 
 (defun fetch-ripple-results (query)
   (let ((context (create-search-context)))
     (set-query query context)
-    (fetch-path "ripple?request=" context nil)))
+    (fetch-path "ripple" context nil)))
 
 (defun do-export (format file)
   (let ((context (clone-context)))
     (set-format format context)
     (set-file file context)
     ;;(set-context context)))
-    (fetch-path "export?request=" context nil 'receive-export-results)))
+    (fetch-path "export" context nil 'receive-export-results)))
 
 (defun do-import (format file)
   (let ((context (clone-context)))
     (set-format format context)
     (set-file file context)
-    (fetch-path "import?request=" context nil 'receive-import-results)))
+    (fetch-path "import" context nil 'receive-import-results)))
 
 (defun set-property (id name value)
   (if (in-setproperties-mode)
-    (let ((params (list :id id :name name :value value)))
-       (fetch-path "set?request=" nil params 'receive-set-properties-response))))
+    ;; TODO: this is redundant
+    (let ((params (list :action "set" :id id :name name :value value)))
+       (fetch-path "set" nil params 'receive-set-properties-response))))
 
 (defun push-view ()
   (let ((context (clone-context)) (entity (buffer-string)))
     (set-view entity context)
     (set-mode brain-const-edit-mode context)
-    (fetch-path-post "update" context nil)))
+    (fetch-path "update" context nil)))
 
 (defun do-infer-types ()
-  (http-get
-   (concat (base-url) "infer-types") 'receive-inference-results))
+  (fetch-path "infer-types" context nil 'receive-inference-results))
 
 
 ;; VIEWS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
