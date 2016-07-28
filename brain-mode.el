@@ -425,7 +425,9 @@
 
 (defun strip-http-headers (entity)
   (let ((i (string-match "\n\n" entity)))
-    (decode-coding-string (substring entity (+ i 2)) 'utf-8)))
+    (if i
+        (decode-coding-string (substring entity (+ i 2)) 'utf-8)
+        "{}")))
 
 (defun base-url ()
   (concat brain-rexster-url "/graphs/" brain-rexster-graph "/smsn/"))
@@ -435,13 +437,16 @@
         (error (get-value 'error json)))
     (if error
         (error-message error)
-      (error-message msg))))
+        (if msg
+            (error-message msg)
+          (error-message (concat "request failed: "
+                                 (json-encode status)))))))
 
 (defun acknowledge-http-response (status success-message)
-  (let ((json (json-read-from-string (strip-http-headers (buffer-string)))))
-    (if status
-        (show-http-response-status status json)
-      (info-message success-message))))
+  (if status
+      (let ((json (json-read-from-string (strip-http-headers (buffer-string)))))
+        (show-http-response-status status json))
+    (info-message success-message)))
 
 (defun switch-to-buffer-context (name context)
   "activate Brain-mode in all new view buffers created by Brain-mode"
