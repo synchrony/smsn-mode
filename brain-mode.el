@@ -336,6 +336,11 @@
           (clipboard-kill-ring-save beg end))
         (kill-buffer buffer)))))
 
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
+  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+
 
 ;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -383,6 +388,7 @@
         (if value
             (browse-url (funcall vu value))
           (no-target))))))
+
 
 
 ;; COMMUNICATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1469,6 +1475,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
     (define-key brain-mode-map (kbd "C-c s")           'brain-fulltext-query-prompt)
     (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
+    (define-key brain-mode-map (kbd "C-x C-k o") 'kill-other-buffers)
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
     (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)))
       ;; likely not the greatest shortcut -- w just stands for weird
