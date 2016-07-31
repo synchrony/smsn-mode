@@ -1274,7 +1274,7 @@ a type has been assigned to it by the inference engine."
     (if id
         (let ((context (clone-context)))
           (set-root-id id context)
-          (set-mode brain-const-readonly-mode context)
+          (set-mode brain-const-edit-mode context)
           (fetch-view context))
       (no-target))))
 
@@ -1409,6 +1409,25 @@ a type has been assigned to it by the inference engine."
     (prompt-for-string 'brain-fulltext-query "full-text search for: ")
     (set-face-foreground 'minibuffer-prompt oldcol)))
 
+;; >>>
+(defun brain-use-move-submode ()
+  (define-key brain-mode-map (kbd "k")       'kill-buffer)
+  )
+(defun brain-use-edit-submode ()
+  (define-key brain-mode-map (kbd "k")       'nil)
+  )
+(defvar brain-move-submode nil)
+(defun brain-toggle-move-or-edit-submode ()
+  (interactive)
+  (if brain-move-submode
+    (progn (setq brain-move-submode 'nil)
+           (brain-use-edit-submode)
+	   )
+    (progn (setq brain-move-submode t)
+           (brain-use-move-submode)
+	   )
+    ))
+
 (defvar brain-mode-map nil)
 (if brain-mode-map ()
   (progn
@@ -1422,7 +1441,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-d")         'brain-set-view-height-prompt)
     (define-key brain-mode-map (kbd "C-c C-i f")       'brain-find-isolated-atoms)
     (define-key brain-mode-map (kbd "C-c C-i r")       'brain-remove-isolated-atoms)
-    (define-key brain-mode-map (kbd "C-c l")           'brain-goto-line-prompt)
+    (define-key brain-mode-map (kbd "C-c l")           'brain-goto-line-prompt) ;; this duplicates M-g g = goto-line
     (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
     (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)
@@ -1477,8 +1496,11 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
     (define-key brain-mode-map (kbd "C-x C-k o") 'kill-other-buffers)
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
-    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)))
+    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)
       ;; likely not the greatest shortcut -- w just stands for weird
+    (define-key brain-mode-map (kbd "C-m")             'brain-toggle-move-or-edit-submode)
+      ;; supposedly bad form, but in Emacs on my machine C-m is just Enter
+))
 
 ;; special mappings reserved for use through emacsclient
 ;; C-c c  --  atom-id-at-point
