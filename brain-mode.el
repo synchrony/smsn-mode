@@ -1409,13 +1409,38 @@ a type has been assigned to it by the inference engine."
     (prompt-for-string 'brain-fulltext-query "full-text search for: ")
     (set-face-foreground 'minibuffer-prompt oldcol)))
 
-;; >>>
+;; "edit" and "move" submodes
+    ;; editing is still possible in move-mode,
+    ;; but some keys will not print to screen
+
 (defun brain-use-move-submode ()
-  (define-key brain-mode-map (kbd "k")       'kill-buffer)
+  (define-key brain-mode-map (kbd "k")       'next-line) ;; up
+  (define-key brain-mode-map (kbd "i")       'previous-line) ;; down
+  (define-key brain-mode-map (kbd "l")       'forward-char) ;; right
+  (define-key brain-mode-map (kbd "j")       'backward-char) ;; left
+  (define-key brain-mode-map (kbd "w")       'kill-buffer)
+  (define-key brain-mode-map (kbd "t")       'brain-navigate-to-target-atom)
+  (define-key brain-mode-map (kbd "f")       'brain-update-to-forward-view)
+  (define-key brain-mode-map (kbd "b")       'brain-update-to-backward-view)
+  (define-key brain-mode-map (kbd "h")       'brain-set-view-height-prompt)
+  (define-key brain-mode-map (kbd "g")       'brain-update-view) ;; ala dired-mode
+  (define-key brain-mode-map (kbd "p")       'brain-push-view)
   )
+
 (defun brain-use-edit-submode ()
   (define-key brain-mode-map (kbd "k")       'nil)
+  (define-key brain-mode-map (kbd "i")       'nil)
+  (define-key brain-mode-map (kbd "l")       'nil)
+  (define-key brain-mode-map (kbd "j")       'nil)
+  (define-key brain-mode-map (kbd "w")       'nil)
+  (define-key brain-mode-map (kbd "t")       'nil)
+  (define-key brain-mode-map (kbd "f")       'nil)
+  (define-key brain-mode-map (kbd "b")       'nil)
+  (define-key brain-mode-map (kbd "h")       'nil)
+  (define-key brain-mode-map (kbd "g")       'nil)
+  (define-key brain-mode-map (kbd "p")       'nil)
   )
+
 (defvar brain-move-submode nil)
 (defun brain-toggle-move-or-edit-submode ()
   (interactive)
@@ -1498,8 +1523,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
     (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)
       ;; likely not the greatest shortcut -- w just stands for weird
-    (define-key brain-mode-map (kbd "C-m")             'brain-toggle-move-or-edit-submode)
-      ;; supposedly bad form, but in Emacs on my machine C-m is just Enter
+    (define-key brain-mode-map (kbd "C-c m")             'brain-toggle-move-or-edit-submode)
 ))
 
 ;; special mappings reserved for use through emacsclient
