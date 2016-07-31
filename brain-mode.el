@@ -1447,11 +1447,14 @@ a type has been assigned to it by the inference engine."
   (if brain-move-submode
     (progn (setq brain-move-submode 'nil)
            (brain-use-edit-submode)
+	   (message "submode: edit")
 	   )
     (progn (setq brain-move-submode t)
            (brain-use-move-submode)
+	   (message "submode: move")
 	   )
-    ))
+    )
+  )
 
 (defvar brain-mode-map nil)
 (if brain-mode-map ()
