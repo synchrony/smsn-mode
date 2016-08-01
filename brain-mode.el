@@ -56,7 +56,7 @@
 (defconst brain-const-max-height 7)
 
 (defconst brain-const-readonly-mode "readonly")
-(defconst brain-const-edit-mode "readwrite")
+(defconst brain-const-readwrite-mode "readwrite")
 (defconst brain-const-search-mode "search")
 
 (defconst brain-const-color-by-sharability "sharability")
@@ -75,6 +75,20 @@
 (defconst brain-const-date-format "%Y-%m-%d")
 (defconst brain-const-time-format "%H:%M")
 (defconst brain-const-time-with-seconds-format "%H:%M:%S")
+
+(if (boundp 'brain-move-submode-map) ()
+  (defconst brain-move-submode-map '(
+    ("k" . next-line)  ;; up
+    ("i" . previous-line)  ;; down
+    ("l" . forward-char)  ;; right
+    ("j" . backward-char)  ;; left
+    ("w" . kill-buffer)
+    ("t" . brain-navigate-to-target-atom)
+    ("f" . brain-update-to-forward-view)
+    ("b" . brain-update-to-backward-view)
+    ("h" . brain-set-view-height-prompt)
+    ("g" . brain-update-view)
+    ("p" . brain-push-view))))
 
 
 ;; BUFFER-LOCAL CONTEXT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -390,7 +404,6 @@
           (no-target))))))
 
 
-
 ;; COMMUNICATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; from Emacs-w3m w3m-url-encode-string
@@ -637,7 +650,7 @@
 (defun push-view ()
   (let ((context (clone-context)) (entity (buffer-string)))
     (set-view entity context)
-    (set-mode brain-const-edit-mode context)
+    (set-mode brain-const-readwrite-mode context)
     (fetch-path "update" context nil)))
 
 (defun do-infer-types ()
@@ -811,7 +824,7 @@
    " :value \"" (get-title) "\")")) ;; TODO: actually escape the title string
 
 (defun mode-for-visit ()
-  (if (or (equal (get-mode) brain-const-edit-mode) (equal (get-mode) brain-const-readonly-mode))
+  (if (or (equal (get-mode) brain-const-readwrite-mode) (equal (get-mode) brain-const-readonly-mode))
       (get-mode)
     brain-const-readonly-mode))
 
@@ -819,7 +832,7 @@
   (let ((mode (get-mode)))
     (if (or
         (equal mode brain-const-readonly-mode)
-        (equal mode brain-const-edit-mode))
+        (equal mode brain-const-readwrite-mode))
       t
     (and (error-message (concat "cannot create tree view in mode '" mode "'")) nil))))
 
@@ -828,14 +841,14 @@
   (if (or
        (equal (get-mode) brain-const-search-mode)
        (equal (get-mode) brain-const-readonly-mode)
-       (equal (get-mode) brain-const-edit-mode))
+       (equal (get-mode) brain-const-readwrite-mode))
       t
     (and (error-message "cannot set properties in current mode") nil)))
 
 (defun is-readwrite-context (&optional context)
   (let ((mode (get-mode context)))
     (and mode
-      (equal mode brain-const-edit-mode))))
+      (equal mode brain-const-readwrite-mode))))
 
 (defun assert-readwrite-context ()
   (if (is-readwrite-context)
@@ -927,18 +940,18 @@
   (interactive)
   (fetch-duplicates))
 
-(defun brain-enter-edit-view ()
+(defun brain-enter-readwrite-view ()
   "enter edit (read/write) mode in the current view"
   (interactive)
   (if (equal (get-mode) brain-const-readonly-mode)
     (let ((context (clone-context)))
-      (set-mode brain-const-edit-mode context)
+      (set-mode brain-const-readwrite-mode context)
       (fetch-view context))))
 
 (defun brain-enter-readonly-view ()
   "enter read-only mode in the current view"
   (interactive)
-  (if (equal (get-mode) brain-const-edit-mode)
+  (if (equal (get-mode) brain-const-readwrite-mode)
     (let ((context (clone-context)))
       (set-mode brain-const-readonly-mode context)
       (fetch-view context))))
@@ -1017,13 +1030,6 @@
   (interactive)
   (fetch-find-roots))
 
-(defun brain-goto-line (address)
-  "move point to the line represented by ADDRESS"
-  (interactive)
-  (let ((line (address-to-lineno (handle-changewindow address))))
-    (if line
-        (goto-line line)
-      (error-message "invalid line address"))))
 
 (defun brain-history ()
   "retrieve a list of the most recently viewed or updated atoms, in decreasing order of recency"
@@ -1274,7 +1280,8 @@ a type has been assigned to it by the inference engine."
     (if id
         (let ((context (clone-context)))
           (set-root-id id context)
-          (set-mode brain-const-edit-mode context)
+          (debug-message (concat "mode (before): " (get-mode)))
+          (set-mode brain-const-readwrite-mode context)
           (fetch-view context))
       (no-target))))
 
@@ -1360,10 +1367,6 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'brain-import-graphml "import GraphML from file: " brain-default-graphml-file))
 
-(defun brain-goto-line-prompt ()
-  (interactive)
-  (prompt-for-string 'brain-goto-line "line: "))
-
 (defun brain-set-min-sharability-prompt ()
   (interactive)
   (prompt-for-char 'brain-set-min-sharability "minimum sharability = ?"))
@@ -1414,32 +1417,14 @@ a type has been assigned to it by the inference engine."
     ;; but some keys will not print to screen
 
 (defun brain-use-move-submode ()
-  (define-key brain-mode-map (kbd "k")       'next-line) ;; up
-  (define-key brain-mode-map (kbd "i")       'previous-line) ;; down
-  (define-key brain-mode-map (kbd "l")       'forward-char) ;; right
-  (define-key brain-mode-map (kbd "j")       'backward-char) ;; left
-  (define-key brain-mode-map (kbd "w")       'kill-buffer)
-  (define-key brain-mode-map (kbd "t")       'brain-navigate-to-target-atom)
-  (define-key brain-mode-map (kbd "f")       'brain-update-to-forward-view)
-  (define-key brain-mode-map (kbd "b")       'brain-update-to-backward-view)
-  (define-key brain-mode-map (kbd "h")       'brain-set-view-height-prompt)
-  (define-key brain-mode-map (kbd "g")       'brain-update-view) ;; ala dired-mode
-  (define-key brain-mode-map (kbd "p")       'brain-push-view)
-  )
+  (dolist (m brain-move-submode-map)
+    (let ((key (car m)) (symbol (cdr m)))
+     (define-key brain-mode-map (kbd key) symbol))))
 
 (defun brain-use-edit-submode ()
-  (define-key brain-mode-map (kbd "k")       'nil)
-  (define-key brain-mode-map (kbd "i")       'nil)
-  (define-key brain-mode-map (kbd "l")       'nil)
-  (define-key brain-mode-map (kbd "j")       'nil)
-  (define-key brain-mode-map (kbd "w")       'nil)
-  (define-key brain-mode-map (kbd "t")       'nil)
-  (define-key brain-mode-map (kbd "f")       'nil)
-  (define-key brain-mode-map (kbd "b")       'nil)
-  (define-key brain-mode-map (kbd "h")       'nil)
-  (define-key brain-mode-map (kbd "g")       'nil)
-  (define-key brain-mode-map (kbd "p")       'nil)
-  )
+  (dolist (m brain-move-submode-map)
+    (let ((key (car m)) (symbol (cdr m)))
+     (define-key brain-mode-map (kbd key) 'nil))))
 
 (defvar brain-move-submode nil)
 (defun brain-toggle-move-or-edit-submode ()
@@ -1469,7 +1454,6 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-d")         'brain-set-view-height-prompt)
     (define-key brain-mode-map (kbd "C-c C-i f")       'brain-find-isolated-atoms)
     (define-key brain-mode-map (kbd "C-c C-i r")       'brain-remove-isolated-atoms)
-    (define-key brain-mode-map (kbd "C-c l")           'brain-goto-line-prompt) ;; this duplicates M-g g = goto-line
     (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
     (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)
@@ -1493,7 +1477,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c r")           'brain-copy-target-reference-to-clipboard)
     (define-key brain-mode-map (kbd "C-c C-v ;")       'brain-toggle-truncate-lines)
     (define-key brain-mode-map (kbd "C-c b")           'brain-update-to-backward-view)
-    (define-key brain-mode-map (kbd "C-c C-v e")       'brain-enter-edit-view)
+    (define-key brain-mode-map (kbd "C-c C-v e")       'brain-enter-readwrite-view)
     (define-key brain-mode-map (kbd "C-c f")           'brain-update-to-forward-view)
     (define-key brain-mode-map (kbd "C-c C-v i")       'brain-toggle-inference-viewstyle)
     (define-key brain-mode-map (kbd "C-c C-v p")       'brain-toggle-properties-view)
@@ -1502,8 +1486,6 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-v t")       'brain-set-value-truncation-length-prompt)
     (define-key brain-mode-map (kbd "C-c C-v v")       'brain-toggle-minimize-verbatim-blocks)
     (define-key brain-mode-map (kbd "C-c C-w C-m")     'brain-set-min-weight-prompt)
-     ;; likely not the greatest shortcut -- w just stands for weird
-    (define-key brain-mode-map (kbd "C-c C-w r")       'brain-ripple-query-prompt)
     (define-key brain-mode-map (kbd "C-c C-w e")       'brain-export-edges-prompt)
     (define-key brain-mode-map (kbd "C-c C-w g")       'brain-export-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-w l")       'brain-export-latex-prompt)
@@ -1511,6 +1493,11 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-w r")       'brain-export-rdf-prompt)
     (define-key brain-mode-map (kbd "C-c C-w v")       'brain-export-vertices-prompt)
     (define-key brain-mode-map (kbd "C-c C-w w")       'brain-export-webrdf-prompt)
+    
+    ;; likely not the greatest shortcuts -- w just stands for weird
+    (define-key brain-mode-map (kbd "C-c C-w r")       'brain-ripple-query-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)
+    
     (define-key brain-mode-map (kbd "C-c a")           'brain-acronym-query-prompt)
     (define-key brain-mode-map (kbd "C-c C-b")         'brain-visit-url-at-point)
     (define-key brain-mode-map (kbd "C-c d")           'brain-duplicates)
@@ -1522,11 +1509,10 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
     (define-key brain-mode-map (kbd "C-c s")           'brain-fulltext-query-prompt)
     (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
-    (define-key brain-mode-map (kbd "C-x C-k o") 'kill-other-buffers)
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
-    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-events)
-      ;; likely not the greatest shortcut -- w just stands for weird
-    (define-key brain-mode-map (kbd "C-c m")             'brain-toggle-move-or-edit-submode)
+    (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
+    ;; convenience functions
+    (define-key brain-mode-map (kbd "C-x C-k o")       'kill-other-buffers)
 ))
 
 ;; special mappings reserved for use through emacsclient
