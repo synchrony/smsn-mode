@@ -1,4 +1,4 @@
-;; Brain-mode: the MyOtherBrain Emacs library
+;; Brain-mode: the Extend-o-Brain Emacs library
 ;;
 ;; Copyright (C) 2011-2016 Joshua Shinavier
 ;;
@@ -47,7 +47,7 @@
 ;; for LaTeX views (nice-to-have, but not essential)
 (require 'latex-math-preview)
 
-;; TODO: experimental
+;; a visual aid to consistent indentation
 (require 'indent-guide)
 
 
@@ -96,6 +96,12 @@
 (defun get-context (&optional context)
   (if context context brain-bufferlocal-context))
 
+(defun context-for-request (&optional context)
+  (let ((ctx (if context context (get-context))))
+    (set-view nil ctx)
+    (set-atoms-by-id nil ctx)
+    ctx))
+
 (defun set-context (context)
   (setq brain-bufferlocal-context context)
   (make-local-variable 'brain-bufferlocal-context))
@@ -113,8 +119,7 @@
   (cdr (assoc key json)))
 
 (defun get-bufferlocal (context key)
-  (let ((value (get-value key (get-context context))))
-    (if (equal NIL value) nil value)))
+  (get-value key (get-context context)))
 
 (defun set-bufferlocal (context key value)
   (setcdr (assoc key (get-context context)) value))
@@ -167,31 +172,29 @@
 (defun set-view-properties (view-properties &optional context) (set-bufferlocal context 'view-properties view-properties))
 (defun set-view-style (view-style &optional context) (set-bufferlocal context 'view-style view-style))
 
-(defconst NIL "none")
-
 (defun default-context () (list
-  (cons 'action NIL)                         
-  (cons 'atoms-by-id NIL)
+  (cons 'action 'nil)
+  (cons 'atoms-by-id 'nil)
   (cons 'default-sharability brain-const-sharability-personal)
   (cons 'default-weight brain-const-weight-default)
-  (cons 'file NIL)
-  (cons 'format NIL)
+  (cons 'file 'nil)
+  (cons 'format 'nil)
   (cons 'height 2)
   (cons 'line 1)
   (cons 'max-sharability brain-const-sharability-universal)
   (cons 'max-weight brain-const-weight-all)
   (cons 'min-sharability brain-const-sharability-private)
   (cons 'min-weight brain-const-weight-none)
-  (cons 'minimize-verbatim-blocks NIL)
+  (cons 'minimize-verbatim-blocks 'nil)
   (cons 'mode brain-const-readonly-mode)
-  (cons 'query NIL)
-  (cons 'query-type NIL)
-  (cons 'root-id NIL)
+  (cons 'query 'nil)
+  (cons 'query-type 'nil)
+  (cons 'root-id 'nil)
   (cons 'style brain-const-forward-style)
-  (cons 'title NIL)
+  (cons 'title 'nil)
   (cons 'value-length-cutoff 100)
-  (cons 'view NIL)
-  (cons 'view-properties NIL)
+  (cons 'view 'nil)
+  (cons 'view-properties 'nil)
   (cons 'view-style brain-const-color-by-sharability)))
 
 (defun define-buffer-local-variables ()
@@ -475,7 +478,7 @@
   (set-context context))
 
 (defun receive-view (&optional context)
-  (lexical-let ((context (get-context context)))
+  (lexical-let ((context (context-for-request context)))
     (lambda (status) (receive-view-internal status context))))
 
 (defun receive-view-internal (status context)
@@ -504,7 +507,8 @@
           (setq buffer-read-only (not editable))
           ;; always include line numbers in views
           (linum-mode t)
-          (info-message (concat "updated to view " (view-info)))))))
+          ;;(info-message (concat "updated to view " (view-info)))
+          ))))
 
 (defun receive-context (json context)
   (set-min-sharability (numeric-value json 'minSharability (get-min-sharability context)))
@@ -575,6 +579,7 @@
       nil)))
 
 (defun http-post-and-receive (url params &optional context handler)
+  ;;(debug-message (concat "context: " (json-encode context)))
   (http-post url params
     (if handler handler (receive-view context))))
 
@@ -587,8 +592,8 @@
   (http-post-and-receive (url-for-request "brain")
     (to-params context params) context handler))
 
-(defun fetch-view (&optional context handler)
-  (fetch-path "view" context handler))
+(defun fetch-view (&optional context)
+  (fetch-path "view" context nil))
 
 (defun fetch-history ()
   (let ((context (create-search-context)))
@@ -659,7 +664,7 @@
 
 ;; VIEWS ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; unused colors: make-black/gray, orange
+;; unused colors: black/gray, orange
 (defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
 (defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
 (defconst sharability-reduced-colors '("red" "red" "blue" "blue"))
@@ -731,23 +736,11 @@
 (defun light-gray ()
   (if full-colors-supported
     (list :foreground "grey80" :background "white")
-    (list :foreground "make-black")))
-
-(defun dark-gray ()
-  (if full-colors-supported
-    (list :foreground "grey50" :background background)
-    (list :foreground "make-black")))
-
-(defun make-black (text)
-  (propertize text 'face (list :foreground "make-black")))
+    (list :foreground "black")))
 
 (defun make-light-gray (text)
   (propertize text
               'face (light-gray)))
-
-(defun make-dark-gray (text background)
-  (propertize text
-              'face (dark-gray)))
 
 (defun create-id-infix (id)
   (propertize (concat " :" id ":") 'invisible t))
@@ -946,6 +939,7 @@
   (if (equal (get-mode) brain-const-readonly-mode)
     (let ((context (clone-context)))
       (set-mode brain-const-readwrite-mode context)
+      (debug-message (concat "context before: " (json-encode context)))
       (fetch-view context))))
 
 (defun brain-enter-readonly-view ()
@@ -1280,7 +1274,6 @@ a type has been assigned to it by the inference engine."
     (if id
         (let ((context (clone-context)))
           (set-root-id id context)
-          (debug-message (concat "mode (before): " (get-mode)))
           (set-mode brain-const-readwrite-mode context)
           (fetch-view context))
       (no-target))))
