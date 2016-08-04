@@ -80,6 +80,7 @@
 (if (boundp 'brain-move-submode-map) ()
   (defconst brain-move-submode-map '(
     ("b" . brain-update-to-backward-view)
+    ("c" . kill-ring-save)
     ("f" . brain-update-to-forward-view)
     ("g" . brain-update-view)
     ("h" . brain-set-view-height-prompt)
@@ -91,9 +92,13 @@
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
+    ("m" . set-mark-command)
+    ("n" . brain-navigate-to-target-atom-and-kill-buffer)
     ("p" . brain-push-view)
     ("t" . brain-navigate-to-target-atom)
     ("w" . kill-buffer)
+    ("x" . kill-region)
+    ("y" . yank)
 )))
 
 
@@ -1424,6 +1429,13 @@ a type has been assigned to it by the inference engine."
   (dolist (m brain-move-submode-map)
     (let ((key (car m)) (symbol (cdr m)))
      (define-key brain-mode-map (kbd key) 'nil))))
+
+(defun brain-navigate-to-target-atom-and-kill-buffer ()
+  (interactive)
+  (let ((bname (buffer-name)))
+    (progn (brain-navigate-to-target-atom)
+	   (kill-buffer bname)
+	   )))
 
 (defvar brain-move-submode nil)
 (defun brain-toggle-move-or-edit-submode ()
