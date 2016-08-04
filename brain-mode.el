@@ -96,9 +96,9 @@
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
     ("p" . brain-push-view)
     ("t" . brain-navigate-to-target-atom)
+    ("v" . yank)
     ("w" . kill-buffer)
     ("x" . kill-region)
-    ("y" . yank)
 )))
 
 
