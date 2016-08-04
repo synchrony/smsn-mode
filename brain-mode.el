@@ -94,7 +94,7 @@
     ("L" . move-end-of-line)
     ("m" . set-mark-command)
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
-    ("p" . brain-push-view-prompt)
+    ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
     ("t" . brain-navigate-to-target-atom)
     ("v" . yank)
     ("w" . kill-buffer)
