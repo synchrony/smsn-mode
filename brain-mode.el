@@ -29,6 +29,7 @@
 ;;     (defvar brain-default-edges-file "/tmp/joshkb-edges.tsv")
 ;;     (defvar brain-default-pagerank-file "/tmp/joshkb-pagerank.tsv")
 
+(defvar brain-default-freeplane-file "/home/jeff/work/mm/tf.mm")
 
 ;; DEPENDENCIES ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -1433,10 +1434,12 @@ a type has been assigned to it by the inference engine."
     (progn (setq brain-move-submode 'nil)
            (brain-use-edit-submode)
 	   (message "submode: edit")
+	   (set-cursor-color "#000000")
 	   )
     (progn (setq brain-move-submode t)
            (brain-use-move-submode)
 	   (message "submode: move")
+	   (set-cursor-color "#00ff00")
 	   )
     )
   )
