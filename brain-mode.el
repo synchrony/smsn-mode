@@ -79,17 +79,22 @@
 
 (if (boundp 'brain-move-submode-map) ()
   (defconst brain-move-submode-map '(
-    ("k" . next-line)  ;; up
-    ("i" . previous-line)  ;; down
-    ("l" . forward-char)  ;; right
-    ("j" . backward-char)  ;; left
-    ("w" . kill-buffer)
-    ("t" . brain-navigate-to-target-atom)
-    ("f" . brain-update-to-forward-view)
     ("b" . brain-update-to-backward-view)
-    ("h" . brain-set-view-height-prompt)
+    ("f" . brain-update-to-forward-view)
     ("g" . brain-update-view)
-    ("p" . brain-push-view))))
+    ("h" . brain-set-view-height-prompt)
+    ("i" . previous-line)  ;; up
+    ("I" . scroll-down-command)
+    ("j" . backward-char)  ;; left
+    ("J" . move-beginning-of-line)
+    ("k" . next-line)  ;; down
+    ("K" . scroll-up-command)
+    ("l" . forward-char)  ;; right
+    ("L" . move-end-of-line)
+    ("p" . brain-push-view)
+    ("t" . brain-navigate-to-target-atom)
+    ("w" . kill-buffer)
+)))
 
 
 ;; BUFFER-LOCAL CONTEXT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
