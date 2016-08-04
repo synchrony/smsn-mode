@@ -94,13 +94,19 @@
     ("L" . move-end-of-line)
     ("m" . set-mark-command)
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
-    ("p q" . brain-push-view)
+    ("p" . brain-push-view-prompt)
     ("t" . brain-navigate-to-target-atom)
     ("v" . yank)
     ("w" . kill-buffer)
     ("x" . kill-region)
 )))
 
+(defun brain-push-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
+      (brain-push-view)
+      nil
+    ))
 
 ;; BUFFER-LOCAL CONTEXT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
