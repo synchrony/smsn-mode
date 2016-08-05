@@ -1,8 +1,9 @@
-;; Brain-mode: the Extend-o-Brain Emacs library
-;;
-;; Copyright (C) 2011-2016 Joshua Shinavier
-;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; brain-mode.el -- Extend-o-Brain client and user interface
 ;; This major mode allows you to view, edit, search, and process an Extend-o-Brain personal knowledge base.
+;;
+;; Part of the Brain-mode package for Emacs:
+;;   https://github.com/joshsh/brain-mode
 ;;
 ;; Dependencies:
 ;;
@@ -28,6 +29,12 @@
 ;;     (defvar brain-default-vertices-file "/tmp/joshkb-vertices.tsv")
 ;;     (defvar brain-default-edges-file "/tmp/joshkb-edges.tsv")
 ;;     (defvar brain-default-pagerank-file "/tmp/joshkb-pagerank.tsv")
+;;
+;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 ;; for JSON-formatted messages to and from Semantic Synchrony services (see json-read-from-string, json-encode)

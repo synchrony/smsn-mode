@@ -1,3 +1,15 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; brain-env.el -- Constants, state, and buffer-local variables
+;;
+;; Part of the Brain-mode package for Emacs:
+;;   https://github.com/joshsh/brain-mode
+;;
+;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 (defconst brain-const-max-height 7)
 
