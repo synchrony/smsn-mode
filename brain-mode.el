@@ -370,10 +370,21 @@
           (clipboard-kill-ring-save beg end))
         (kill-buffer buffer)))))
 
-(defun kill-other-buffers ()
-  "Kill all other buffers."
+(defun brain-kill-other-buffers ()
+  "Kill all other brain-mode buffers."
   (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  (mapc 'kill-buffer
+	(my-filter
+	 (lambda (bname)
+	   (eq (buffer-local-value 'major-mode (get-buffer bname))
+	       'brain-mode))
+	 (delq (current-buffer) (buffer-list))
+	 )))
+
+(defun my-filter (condp lst)
+  ;; https://www.emacswiki.org/emacs/ElispCookbook
+  (delq nil
+	(mapcar (lambda (x) (and (funcall condp x) x)) lst)))
 
 
 ;; NAVIGATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1531,7 +1542,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
     (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
     ;; convenience functions
-    (define-key brain-mode-map (kbd "C-x C-k o")       'kill-other-buffers)
+    (define-key brain-mode-map (kbd "C-x C-k o")       'brain-kill-other-buffers)
 ))
 
 ;; special mappings reserved for use through emacsclient
