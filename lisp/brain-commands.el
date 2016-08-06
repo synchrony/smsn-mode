@@ -37,10 +37,16 @@
           (clipboard-kill-ring-save beg end))
         (kill-buffer buffer)))))
 
-(defun kill-other-buffers ()
-  "Kill all other buffers."
+(defun brain-kill-other-buffers ()
+  "Kill all other brain-mode buffers."
   (interactive)
-  (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  (mapc 'kill-buffer
+	(my-filter
+	 (lambda (bname)
+	   (eq (buffer-local-value 'major-mode (get-buffer bname))
+	       'brain-mode))
+	 (delq (current-buffer) (buffer-list))
+	 )))
 
 (defconst line-addr-keypairs
  (list
@@ -479,10 +485,16 @@ a type has been assigned to it by the inference engine."
   (if brain-move-submode
     (progn (setq brain-move-submode 'nil)
            (brain-use-edit-submode)
-	   (message "submode: edit"))
+	   (message "submode: edit")
+	   (set-cursor-color "#000000")
+	   )
     (progn (setq brain-move-submode t)
            (brain-use-move-submode)
-	   (message "submode: move"))))
+	   (message "submode: move")
+	   (set-cursor-color "#00ff00")
+	   )
+    )
+  )
 
 (defun prompt-for-string (function prompt &optional initial)
   ;; note: use of the INITIAL argument is discouraged, but here it makes sense
@@ -596,17 +608,46 @@ a type has been assigned to it by the inference engine."
 
 (if (boundp 'brain-move-submode-map) ()
   (defconst brain-move-submode-map '(
-    ("k" . next-line)  ;; up
-    ("i" . previous-line)  ;; down
-    ("l" . forward-char)  ;; right
-    ("j" . backward-char)  ;; left
-    ("w" . kill-buffer)
-    ("t" . brain-navigate-to-target-atom)
-    ("f" . brain-update-to-forward-view)
     ("b" . brain-update-to-backward-view)
-    ("h" . brain-set-view-height-prompt)
+    ("c" . kill-ring-save)
+    ("f" . brain-update-to-forward-view)
     ("g" . brain-update-view)
-    ("p" . brain-push-view))))
+    ("h" . brain-set-view-height-prompt)
+    ("i" . previous-line)  ;; up
+    ("I" . scroll-down-command)
+    ("j" . backward-char)  ;; left
+    ("J" . move-beginning-of-line)
+    ("k" . next-line)  ;; down
+    ("K" . scroll-up-command)
+    ("l" . forward-char)  ;; right
+    ("L" . move-end-of-line)
+    ("n" . brain-navigate-to-target-atom-and-kill-buffer)
+    ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
+    ("t" . brain-navigate-to-target-atom)
+    ("v" . yank)
+    ("w" . kill-buffer)
+    ("x" . kill-region)
+    ("z" . set-mark-command)
+)))
+
+(defun brain-push-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
+      (brain-push-view)
+      nil
+    ))
+
+(defun brain-navigate-to-target-atom-and-kill-buffer ()
+  (interactive)
+  (let ((bname (buffer-name)))
+    (progn (brain-navigate-to-target-atom)
+	   (kill-buffer bname)
+	   )))
+
+(defun my-filter (condp lst)
+  ;; https://www.emacswiki.org/emacs/ElispCookbook
+  (delq nil
+	(mapcar (lambda (x) (and (funcall condp x) x)) lst)))
 
 (defvar brain-mode-map nil)
 (if brain-mode-map ()
@@ -679,7 +720,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
     (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
     ;; convenience functions
-    (define-key brain-mode-map (kbd "C-x C-k o")       'kill-other-buffers)
+    (define-key brain-mode-map (kbd "C-x C-k o")       'brain-kill-other-buffers)
 ))
 
 ;; special mappings reserved for use through emacsclient
