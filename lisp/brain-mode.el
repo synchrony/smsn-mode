@@ -36,7 +36,6 @@
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 ;; for JSON-formatted messages to and from Semantic Synchrony services (see json-read-from-string, json-encode)
 (require 'json)
 
@@ -54,7 +53,6 @@
 
 ;; a visual aid to consistent indentation
 (require 'indent-guide)
-
 
 (require 'brain-client)
 (require 'brain-commands)
