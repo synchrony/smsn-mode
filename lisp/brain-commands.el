@@ -624,6 +624,7 @@ a type has been assigned to it by the inference engine."
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
     ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
     ("t" . brain-navigate-to-target-atom)
+    ("u" . undo)
     ("v" . yank)
     ("w" . kill-buffer)
     ("x" . kill-region)
