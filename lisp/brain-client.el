@@ -15,6 +15,13 @@
 ;;(require 'brain-view)
 
 
+(defun create-search-context ()
+  (let ((context (brain-env-clone-context)))
+    (set-mode brain-const-search-mode context)
+    (set-height 1 context)
+    (set-line 1 context)
+    context))
+
 ;; from Emacs-w3m w3m-url-encode-string
 (defun brain-client-url-encode (str &optional coding)
   (apply (function concat)
@@ -135,7 +142,7 @@
 
 (defun to-params (context params)
   (if params params
-    (to-query-list (if context context (brain-env-context)))))
+    (to-query-list (if context context (brain-env-get-context)))))
 
 (defun execute-request (action context params &optional handler)
   (set-action action context)
@@ -146,40 +153,40 @@
   (execute-request "view" context nil))
 
 (defun brain-client-fetch-history ()
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "history" context nil)))
 
 (defun brain-client-fetch-events (height)
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "get-events" context nil)))
 
 (defun brain-client-fetch-duplicates ()
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "duplicates" context nil)))
 
 (defun brain-client-fetch-query (query query-type)
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (set-query query context)
     (set-query-type query-type context)
     (execute-request "search" context nil)))
 
 (defun brain-client-fetch-priorities ()
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "priorities" context nil)))
 
 (defun brain-client-fetch-find-isolated-atoms ()
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "find-isolated-atoms" context nil)))
 
 (defun brain-client-fetch-find-roots ()
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (execute-request "find-roots" context nil)))
 
 (defun brain-client-fetch-remove-isolated-atoms ()
   (execute-request "remove-isolated-atoms" nil nil 'receive-remove-isolated-atoms-response))
 
 (defun brain-client-fetch-ripple-results (query)
-  (let ((context (brain-env-create-search-context)))
+  (let ((context (create-search-context)))
     (set-query query context)
     (execute-request "ripple" context nil)))
 

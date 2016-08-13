@@ -13,6 +13,12 @@
 (require 'brain-env)
 
 
+(defun context-for-request (&optional context)
+  (let ((ctx (if context context (brain-env-get-context))))
+    (set-view nil ctx)
+    (set-atoms-by-id nil ctx)
+    ctx))
+
 ;; unused colors: black/gray, orange
 (defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
 (defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
@@ -194,7 +200,7 @@
 
 (defun brain-view-open (&optional context)
   "Callback to receive and display the data of a view"
-  (lexical-let ((context (brain-env-context-for-request context)))
+  (lexical-let ((context (context-for-request context)))
     (lambda (status) (open-internal status context))))
 
 (defun brain-view-color-at-min-sharability ()
