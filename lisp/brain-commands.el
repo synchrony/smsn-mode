@@ -21,32 +21,6 @@
     (?0 0) (?1 1) (?2 2) (?3 3) (?4 4) (?5 5) (?6 6) (?7 7) (?8 8) (?9 9)
     (?z 0) (?a 1) (?s 2) (?d 3) (?f 4) (?g 5) (?h 6) (?j 7) (?k 8) (?l 9) (?\; 10)))
 
-(defun number-shorthand-to-number (c)
-  (interactive)
-  (let ((l (assoc c fast-numbers)))
-    (if l (car (cdr l)) (brain-env-error-message (concat "no number associated with character " (char-to-string c))))))
-
-;; note: working in Aquamacs, but apparently not in the terminal Emacs 24 on Mac OS X
-(defun copy-to-clipboard (g)
-  (let ((buffer (get-buffer-create "*temp*")))
-    (with-current-buffer buffer
-      (unwind-protect
-          (insert g)
-        (let ((beg 1) (end (+ (length g) 1)))
-          (clipboard-kill-ring-save beg end))
-        (kill-buffer buffer)))))
-
-(defun brain-kill-other-buffers ()
-  "Kill all other brain-mode buffers."
-  (interactive)
-  (mapc 'kill-buffer
-	(my-filter
-	 (lambda (bname)
-	   (eq (buffer-local-value 'major-mode (get-buffer bname))
-	       'brain-mode))
-	 (delq (current-buffer) (buffer-list))
-	 )))
-
 (defconst line-addr-keypairs
  (list
   '(?0 ?0) '(?1 ?1) '(?2 ?2) '(?3 ?3) '(?4 ?4) '(?5 ?5) '(?6 ?6) '(?7 ?7) '(?8 ?8) '(?9 ?9)
@@ -58,29 +32,17 @@
 (dolist (pair line-addr-keypairs)
   (puthash (car pair) (car (cdr pair)) line-addr-keymap))
 
-(defun mapkey (c)
-  (gethash c line-addr-keymap))
 
-(defun address-to-lineno (address)
-  (if (string-match "[0-9asdfghjkl;]+" address)
-      (string-to-number (coerce (mapcar 'mapkey (coerce address 'list)) 'string))
-    nil))
-
-(defun handle-changewindow (address)
-  (let ((c (car (coerce address 'list))))
-    (if (string-match "[uiop]" (string c))
-        (let ((n (string-to-number (string (gethash c line-addr-keymap)))))
-          (other-window n)
-          (coerce (cdr (coerce address 'list)) 'string))
-      address)))
-
-(defun visit-target-value (value-selector value-to-url)
-  (lexical-let ((vs value-selector) (vu value-to-url))
-    (lambda () (interactive)
-      (let ((value (funcall vs)))
-        (if value
-            (browse-url (funcall vu value))
-          (brain-env-error-no-target))))))
+(defun brain-kill-other-buffers ()
+  "Kill all other brain-mode buffers."
+  (interactive)
+  (mapc 'kill-buffer
+	(my-filter
+	 (lambda (bname)
+	   (eq (buffer-local-value 'major-mode (get-buffer bname))
+	       'brain-mode))
+	 (delq (current-buffer) (buffer-list))
+	 )))
 
 (defun brain-atom-info (selector)
   "display, in the minibuffer, information about an atom produced by SELECTOR"
@@ -495,15 +457,6 @@ a type has been assigned to it by the inference engine."
     )
   )
 
-(defun prompt-for-string (function prompt &optional initial)
-  ;; note: use of the INITIAL argument is discouraged, but here it makes sense
-  (let ((arg (read-from-minibuffer prompt initial)))
-    (if arg (funcall function arg))))
-
-(defun prompt-for-char (function prompt)
-  (let ((c (read-char prompt)))
-    (if c (funcall function c))))
-
 (defun brain-insert-attr-priority-prompt ()
   (interactive)
   (prompt-for-char 'brain-insert-attr-priority "priority = ?"))
@@ -601,6 +554,141 @@ a type has been assigned to it by the inference engine."
     (prompt-for-string 'brain-fulltext-query "full-text search for: ")
     (set-face-foreground 'minibuffer-prompt oldcol)))
 
+(defun brain-push-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
+      (brain-push-view)
+      nil
+    ))
+
+(defun brain-navigate-to-target-atom-and-kill-buffer ()
+  (interactive)
+  (let ((bname (buffer-name)))
+    (progn (brain-navigate-to-target-atom)
+	   (kill-buffer bname)
+	   )))
+
+(defvar brain-mode-map nil)
+(if brain-mode-map ()
+  (progn
+    (setq brain-mode-map (make-sparse-keymap))
+    (define-key brain-mode-map (kbd "C-c C-a C-p")     'brain-insert-attr-priority-prompt)
+    (define-key brain-mode-map (kbd "C-c C-a C-s")     'brain-insert-attr-sharability-prompt)
+    (define-key brain-mode-map (kbd "C-c C-a C-w")     'brain-insert-attr-weight-prompt)
+    (define-key brain-mode-map (kbd "C-c C-a d")       'brain-insert-current-date)
+    (define-key brain-mode-map (kbd "C-c C-a s")       'brain-insert-current-time-with-seconds)
+    (define-key brain-mode-map (kbd "C-c C-a t")       'brain-insert-current-time)
+    (define-key brain-mode-map (kbd "C-c C-b")         'brain-visit-url-at-point)
+    (define-key brain-mode-map (kbd "C-c C-d")         'brain-set-view-height-prompt)
+    (define-key brain-mode-map (kbd "C-c C-f")         'brain-find-roots)
+    (define-key brain-mode-map (kbd "C-c C-i f")       'brain-find-isolated-atoms)
+    (define-key brain-mode-map (kbd "C-c C-i r")       'brain-remove-isolated-atoms)
+    (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
+    (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
+    (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)
+    (define-key brain-mode-map (kbd "C-c C-t C-a b")   'brain-navigate-to-tarbrain-data-atom-alias)
+    (define-key brain-mode-map (kbd "C-c C-t C-b a")   (brain-visit-in-amazon 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b d")   (brain-visit-in-delicious 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b e")   (brain-visit-in-ebay 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b g")   (brain-visit-in-google 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b m")   (brain-visit-in-google-maps 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b s")   (brain-visit-in-google-scholar 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b t")   (brain-visit-in-twitter 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b w")   (brain-visit-in-wikipedia 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-b y")   (brain-visit-in-youtube 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t C-p")     'brain-brain-client-set-target-priority-prompt)
+    (define-key brain-mode-map (kbd "C-c C-t C-s")     'brain-brain-client-set-target-sharability-prompt)
+    (define-key brain-mode-map (kbd "C-c C-t C-w")     'brain-brain-client-set-target-weight-prompt)
+    (define-key brain-mode-map (kbd "C-c C-t a")       (brain-visit-as-url 'brain-data-target-value))
+    (define-key brain-mode-map (kbd "C-c C-t i")       (brain-atom-info 'brain-data-target))
+    (define-key brain-mode-map (kbd "C-c C-t l")       'brain-preview-target-latex-math)
+    (define-key brain-mode-map (kbd "C-c C-v ;")       'brain-toggle-truncate-lines)
+    (define-key brain-mode-map (kbd "C-c C-v e")       'brain-enter-readwrite-view)
+    (define-key brain-mode-map (kbd "C-c C-v i")       'brain-toggle-inference-viewstyle)
+    (define-key brain-mode-map (kbd "C-c C-v p")       'brain-toggle-properties-view)
+    (define-key brain-mode-map (kbd "C-c C-v r")       'brain-enter-readonly-view)
+    (define-key brain-mode-map (kbd "C-c C-v s")       'brain-toggle-emacspeak)
+    (define-key brain-mode-map (kbd "C-c C-v t")       'brain-set-value-truncation-length-prompt)
+    (define-key brain-mode-map (kbd "C-c C-v v")       'brain-toggle-minimize-verbatim-blocks)
+    (define-key brain-mode-map (kbd "C-c C-w C-m")     'brain-set-min-weight-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w e")       'brain-export-edges-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w g")       'brain-export-graphml-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w l")       'brain-export-latex-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w p")       'brain-export-pagerank-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w r")       'brain-export-rdf-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-export-vertices-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w w")       'brain-export-webrdf-prompt)
+    (define-key brain-mode-map (kbd "C-c P")           'brain-priorities)
+    (define-key brain-mode-map (kbd "C-c a")           'brain-acronym-query-prompt)
+    (define-key brain-mode-map (kbd "C-c b")           'brain-update-to-backward-view)
+    (define-key brain-mode-map (kbd "C-c d")           'brain-duplicates)
+    (define-key brain-mode-map (kbd "C-c e")           'brain-events)
+    (define-key brain-mode-map (kbd "C-c f")           'brain-update-to-forward-view)
+    (define-key brain-mode-map (kbd "C-c h")           'brain-history)
+    (define-key brain-mode-map (kbd "C-c i")           'brain-infer-types)
+    (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
+    (define-key brain-mode-map (kbd "C-c o")           'brain-shortcut-query-prompt)
+    (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
+    (define-key brain-mode-map (kbd "C-c r")           'brain-copy-target-reference-to-clipboard)
+    (define-key brain-mode-map (kbd "C-c r")           'brain-ripple-query-prompt)
+    (define-key brain-mode-map (kbd "C-c s")           'brain-fulltext-query-prompt)
+    (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
+    (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
+    (define-key brain-mode-map (kbd "C-c v")           'brain-copy-target-value-to-clipboard)
+    (define-key brain-mode-map (kbd "C-x C-k o")       'brain-kill-other-buffers)
+))
+
+;; special mappings reserved for use through emacsclient
+;; C-c c  --  brain-data-atom-id-at-point
+
+(defun number-shorthand-to-number (c)
+  (interactive)
+  (let ((l (assoc c fast-numbers)))
+    (if l (car (cdr l)) (brain-env-error-message (concat "no number associated with character " (char-to-string c))))))
+
+;; note: works in Aquamacs and MacPorts Emacs, but apparently not in the terminal Emacs 24 on Mac OS X
+ (defun copy-to-clipboard (g)
+  (let ((buffer (get-buffer-create "*temp*")))
+    (with-current-buffer buffer
+      (unwind-protect
+          (insert g)
+        (let ((beg 1) (end (+ (length g) 1)))
+          (clipboard-kill-ring-save beg end))
+        (kill-buffer buffer)))))
+
+(defun mapkey (c)
+  (gethash c line-addr-keymap))
+
+(defun address-to-lineno (address)
+  (if (string-match "[0-9asdfghjkl;]+" address)
+      (string-to-number (coerce (mapcar 'mapkey (coerce address 'list)) 'string))
+    nil))
+
+(defun handle-changewindow (address)
+  (let ((c (car (coerce address 'list))))
+    (if (string-match "[uiop]" (string c))
+        (let ((n (string-to-number (string (gethash c line-addr-keymap)))))
+          (other-window n)
+          (coerce (cdr (coerce address 'list)) 'string))
+      address)))
+
+(defun visit-target-value (value-selector value-to-url)
+  (lexical-let ((vs value-selector) (vu value-to-url))
+    (lambda () (interactive)
+      (let ((value (funcall vs)))
+        (if value
+            (browse-url (funcall vu value))
+          (brain-env-error-no-target))))))
+
+(defun prompt-for-string (function prompt &optional initial)
+  ;; note: use of the INITIAL argument is discouraged, but here it makes sense
+  (let ((arg (read-from-minibuffer prompt initial)))
+    (if arg (funcall function arg))))
+
+(defun prompt-for-char (function prompt)
+  (let ((c (read-char prompt)))
+    (if c (funcall function c))))
+
 ;; "edit" and "move" submodes
     ;; editing is still possible in move-mode,
     ;; but some keys will not print to screen
@@ -630,99 +718,10 @@ a type has been assigned to it by the inference engine."
     ("z" . set-mark-command)
 )))
 
-(defun brain-push-view-prompt ()
-  (interactive)
-  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
-      (brain-push-view)
-      nil
-    ))
-
-(defun brain-navigate-to-target-atom-and-kill-buffer ()
-  (interactive)
-  (let ((bname (buffer-name)))
-    (progn (brain-navigate-to-target-atom)
-	   (kill-buffer bname)
-	   )))
-
 (defun my-filter (condp lst)
   ;; https://www.emacswiki.org/emacs/ElispCookbook
   (delq nil
 	(mapcar (lambda (x) (and (funcall condp x) x)) lst)))
-
-(defvar brain-mode-map nil)
-(if brain-mode-map ()
-  (progn
-    (setq brain-mode-map (make-sparse-keymap))
-    (define-key brain-mode-map (kbd "C-c C-a C-p")     'brain-insert-attr-priority-prompt)
-    (define-key brain-mode-map (kbd "C-c C-a C-s")     'brain-insert-attr-sharability-prompt)
-    (define-key brain-mode-map (kbd "C-c C-a C-w")     'brain-insert-attr-weight-prompt)
-    (define-key brain-mode-map (kbd "C-c C-a d")       'brain-insert-current-date)
-    (define-key brain-mode-map (kbd "C-c C-a s")       'brain-insert-current-time-with-seconds)
-    (define-key brain-mode-map (kbd "C-c C-a t")       'brain-insert-current-time)
-    (define-key brain-mode-map (kbd "C-c C-d")         'brain-set-view-height-prompt)
-    (define-key brain-mode-map (kbd "C-c C-i f")       'brain-find-isolated-atoms)
-    (define-key brain-mode-map (kbd "C-c C-i r")       'brain-remove-isolated-atoms)
-    (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
-    (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
-    (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)
-    (define-key brain-mode-map (kbd "C-c C-t C-a b")   'brain-navigate-to-tarbrain-data-atom-alias)
-    (define-key brain-mode-map (kbd "C-c C-t C-b a")   (brain-visit-in-amazon 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b e")   (brain-visit-in-ebay 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b d")   (brain-visit-in-delicious 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b g")   (brain-visit-in-google 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b m")   (brain-visit-in-google-maps 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b s")   (brain-visit-in-google-scholar 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b t")   (brain-visit-in-twitter 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b w")   (brain-visit-in-wikipedia 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-b y")   (brain-visit-in-youtube 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c C-t C-p")     'brain-brain-client-set-target-priority-prompt)
-    (define-key brain-mode-map (kbd "C-c C-t C-s")     'brain-brain-client-set-target-sharability-prompt)
-    (define-key brain-mode-map (kbd "C-c C-t C-w")     'brain-brain-client-set-target-weight-prompt)
-    (define-key brain-mode-map (kbd "C-c C-t a")       (brain-visit-as-url 'brain-data-target-value))
-    (define-key brain-mode-map (kbd "C-c v")           'brain-copy-target-value-to-clipboard)
-    (define-key brain-mode-map (kbd "C-c C-t i")       (brain-atom-info 'brain-data-target))
-    (define-key brain-mode-map (kbd "C-c C-t l")       'brain-preview-target-latex-math)
-    (define-key brain-mode-map (kbd "C-c r")           'brain-copy-target-reference-to-clipboard)
-    (define-key brain-mode-map (kbd "C-c C-v ;")       'brain-toggle-truncate-lines)
-    (define-key brain-mode-map (kbd "C-c b")           'brain-update-to-backward-view)
-    (define-key brain-mode-map (kbd "C-c C-v e")       'brain-enter-readwrite-view)
-    (define-key brain-mode-map (kbd "C-c f")           'brain-update-to-forward-view)
-    (define-key brain-mode-map (kbd "C-c C-v i")       'brain-toggle-inference-viewstyle)
-    (define-key brain-mode-map (kbd "C-c C-v p")       'brain-toggle-properties-view)
-    (define-key brain-mode-map (kbd "C-c C-v r")       'brain-enter-readonly-view)
-    (define-key brain-mode-map (kbd "C-c C-v s")       'brain-toggle-emacspeak)
-    (define-key brain-mode-map (kbd "C-c C-v t")       'brain-set-value-truncation-length-prompt)
-    (define-key brain-mode-map (kbd "C-c C-v v")       'brain-toggle-minimize-verbatim-blocks)
-    (define-key brain-mode-map (kbd "C-c C-w C-m")     'brain-set-min-weight-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w e")       'brain-export-edges-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w g")       'brain-export-graphml-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w l")       'brain-export-latex-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w p")       'brain-export-pagerank-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w r")       'brain-export-rdf-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w v")       'brain-export-vertices-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w w")       'brain-export-webrdf-prompt)
-
-    (define-key brain-mode-map (kbd "C-c C-b")         'brain-visit-url-at-point)
-    (define-key brain-mode-map (kbd "C-c C-f")         'brain-find-roots)
-    (define-key brain-mode-map (kbd "C-c P")           'brain-priorities)
-    (define-key brain-mode-map (kbd "C-c a")           'brain-acronym-query-prompt)
-    (define-key brain-mode-map (kbd "C-c d")           'brain-duplicates)
-    (define-key brain-mode-map (kbd "C-c e")           'brain-events)
-    (define-key brain-mode-map (kbd "C-c h")           'brain-history)
-    (define-key brain-mode-map (kbd "C-c i")           'brain-infer-types)
-    (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
-    (define-key brain-mode-map (kbd "C-c o")           'brain-shortcut-query-prompt)
-    (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
-    (define-key brain-mode-map (kbd "C-c r")           'brain-ripple-query-prompt)
-    (define-key brain-mode-map (kbd "C-c s")           'brain-fulltext-query-prompt)
-    (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
-    (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
-    ;; convenience functions
-    (define-key brain-mode-map (kbd "C-x C-k o")       'brain-kill-other-buffers)
-))
-
-;; special mappings reserved for use through emacsclient
-;; C-c c  --  brain-data-atom-id-at-point
 
 (defun mode-define-key (key symbol)
    (define-key brain-mode-map (kbd key) symbol))
