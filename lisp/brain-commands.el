@@ -610,7 +610,7 @@ a type has been assigned to it by the inference engine."
     ("b" . brain-update-to-backward-view)
     ("c" . kill-ring-save)
     ("f" . brain-update-to-forward-view)
-    ("g" . brain-update-view)
+    ("g" . brain-update-view-prompt)
     ("h" . brain-set-view-height-prompt)
     ("i" . previous-line)  ;; up
     ("I" . scroll-down-command)
@@ -621,6 +621,7 @@ a type has been assigned to it by the inference engine."
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
+    ("o" . other-window)
     ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
     ("t" . brain-navigate-to-target-atom)
     ("u" . undo)
@@ -634,6 +635,13 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
       (brain-push-view)
+      nil
+    ))
+
+(defun brain-update-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
+      (brain-update-view)
       nil
     ))
 
