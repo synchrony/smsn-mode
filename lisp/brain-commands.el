@@ -122,15 +122,9 @@
   (brain-client-export "PageRank" file))
 
 (defun brain-export-rdf (file)
-  "export a complete RDF dump of the knowledge base (including personal and private data) to the file system"
+  "export an RDF dump of the knowledge base to the file system"
   (interactive)
   (brain-env-info-message (concat "exporting private N-Triples dump to " file))
-  (brain-client-export "RDF" file))
-
-(defun brain-export-webrdf (file)
-  "export a Web-friendly dump of the public portion of the knowledge base to the file system"
-  (interactive)
-  (brain-env-info-message (concat "exporting public Web RDF dump to " file))
   (brain-client-export "N-Triples" file))
 
 (defun brain-export-vertices (file)
@@ -492,15 +486,11 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-export-rdf-prompt ()
   (interactive)
-  (prompt-for-string 'brain-export-rdf "export private RDF dump to file: " brain-default-rdf-file))
+  (prompt-for-string 'brain-export-rdf "export N-Triples dump to file: " brain-default-rdf-file))
 
 (defun brain-export-vertices-prompt ()
   (interactive)
   (prompt-for-string 'brain-export-vertices "export vertices to file: " brain-default-vertices-file))
-
-(defun brain-export-webrdf-prompt ()
-  (interactive)
-  (prompt-for-string 'brain-export-webrdf "export public Web RDF dump to file: " brain-default-webrdf-file))
 
 (defun brain-import-freeplane-prompt ()
   (interactive)
@@ -703,7 +693,6 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-w p")       'brain-export-pagerank-prompt)
     (define-key brain-mode-map (kbd "C-c C-w r")       'brain-export-rdf-prompt)
     (define-key brain-mode-map (kbd "C-c C-w v")       'brain-export-vertices-prompt)
-    (define-key brain-mode-map (kbd "C-c C-w w")       'brain-export-webrdf-prompt)
     (define-key brain-mode-map (kbd "C-c P")           'brain-priorities)
     (define-key brain-mode-map (kbd "C-c a")           'brain-acronym-query-prompt)
     (define-key brain-mode-map (kbd "C-c b")           'brain-update-to-backward-view)
@@ -716,7 +705,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c o")           'brain-shortcut-query-prompt)
     (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
     (define-key brain-mode-map (kbd "C-c r")           'brain-copy-target-reference-to-clipboard)
-    (define-key brain-mode-map (kbd "C-c r")           'brain-ripple-query-prompt)
+    (define-key brain-mode-map (kbd "C-c R")           'brain-ripple-query-prompt)
     (define-key brain-mode-map (kbd "C-c s")           'brain-fulltext-query-prompt)
     (define-key brain-mode-map (kbd "C-c t")           'brain-navigate-to-target-atom)
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
