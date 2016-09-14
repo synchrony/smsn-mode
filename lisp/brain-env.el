@@ -244,6 +244,7 @@
   (cons 'root-id 'nil)
   (cons 'style brain-const-forward-style)
   (cons 'title 'nil)
+  (cons 'truncate-long-lines 'nil)
   (cons 'value-length-cutoff 100)
   (cons 'view 'nil)
   (cons 'view-properties 'nil)

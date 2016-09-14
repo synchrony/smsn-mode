@@ -326,7 +326,8 @@ a type has been assigned to it by the inference engine."
 (defun brain-toggle-truncate-lines ()
   "toggle line wrap mode"
   (interactive)
-  (toggle-truncate-lines))
+  (brain-env-context-set 'truncate-long-lines (not (brain-env-context-get 'truncate-long-lines)))
+  (brain-update-view))
 
 (defun brain-update-to-backward-view ()
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"

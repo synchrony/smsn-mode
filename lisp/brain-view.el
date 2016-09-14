@@ -186,6 +186,7 @@
               (setq brain-current-height 1)
               (if height (setq brain-current-height height)))
           (erase-buffer)
+          (if (not (brain-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
           (write-view editable (brain-env-json-get 'children view) 0)
           (beginning-of-buffer)
           (setq visible-cursor t)
