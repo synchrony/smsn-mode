@@ -17,9 +17,9 @@
 
 (defun create-search-context ()
   (let ((context (brain-env-clone-context)))
-    (set-mode brain-const-search-mode context)
-    (set-height 1 context)
-    (set-line 1 context)
+    (brain-env-context-set 'mode brain-const-search-mode context)
+    (brain-env-context-set 'height 1 context)
+    (brain-env-context-set 'line 1 context)
     context))
 
 ;; from Emacs-w3m w3m-url-encode-string
@@ -71,8 +71,8 @@
   (concat brain-rexster-url "/graphs/" brain-rexster-graph "/smsn/"))
 
 (defun brain-client-show-http-response-status (status json)
-  (let ((msg (get-value 'message json))
-        (error (get-value 'error json)))
+  (let ((msg (brain-env-json-get 'message json))
+        (error (brain-env-json-get 'error json)))
     (if error
         (brain-env-error-message error)
         (if msg
@@ -105,24 +105,24 @@
 
 (defun to-query-list (&optional context)
   (list
-    :action (get-action context)
-    :root (get-root-id context)
-    :height (get-height context)
-    :style (get-style context)
+    :action (brain-env-context-get 'action context)
+    :root (brain-env-context-get 'root-id context)
+    :height (brain-env-context-get 'height context)
+    :style (brain-env-context-get 'style context)
     :includeTypes (if (brain-env-using-inference) "true" "false")
-    :file (get-file context)
-    :format (get-format context)
-    :query (get-query context)
-    :queryType (get-query-type context)
-    :valueCutoff (get-value-length-cutoff)
-    :view (get-view context)
+    :file (brain-env-context-get 'file context)
+    :format (brain-env-context-get 'format context)
+    :query (brain-env-context-get 'query context)
+    :queryType (brain-env-context-get 'query-type context)
+    :valueCutoff (brain-env-context-get 'value-length-cutoff)
+    :view (brain-env-context-get 'view context)
     :filter (list
-      :minSharability (get-min-sharability context)
-      :maxSharability (get-max-sharability context)
-      :defaultSharability (get-default-sharability context)
-      :minWeight (get-min-weight context)
-      :maxWeight (get-max-weight context)
-      :defaultWeight (get-default-weight context))))
+      :minSharability (brain-env-context-get 'min-sharability context)
+      :maxSharability (brain-env-context-get 'max-sharability context)
+      :defaultSharability (brain-env-context-get 'default-sharability context)
+      :minWeight (brain-env-context-get 'min-weight context)
+      :maxWeight (brain-env-context-get 'max-weight context)
+      :defaultWeight (brain-env-context-get 'default-weight context))))
 
 (defun entity-for-request (params)
   (brain-client-url-encode (json-encode params)))
@@ -142,10 +142,10 @@
 
 (defun to-params (context params)
   (if params params
-    (to-query-list (if context context (brain-env-get-context)))))
+    (to-query-list (if context context (brain-env-context-get-context)))))
 
 (defun execute-request (action context params &optional handler)
-  (set-action action context)
+  (brain-env-context-set 'action action context)
   (http-post-and-receive (url-for-request "brain")
     (to-params context params) context handler))
 
@@ -166,8 +166,8 @@
 
 (defun brain-client-fetch-query (query query-type)
   (let ((context (create-search-context)))
-    (set-query query context)
-    (set-query-type query-type context)
+    (brain-env-context-set 'query query context)
+    (brain-env-context-set 'query-type query-type context)
     (execute-request "search" context nil)))
 
 (defun brain-client-fetch-priorities ()
@@ -187,19 +187,19 @@
 
 (defun brain-client-fetch-ripple-results (query)
   (let ((context (create-search-context)))
-    (set-query query context)
+    (brain-env-context-set 'query query context)
     (execute-request "ripple" context nil)))
 
 (defun brain-client-export (format file)
   (let ((context (brain-env-clone-context)))
-    (set-format format context)
-    (set-file file context)
+    (brain-env-context-set 'format format context)
+    (brain-env-context-set 'file file context)
     (execute-request "export" context nil 'receive-export-results)))
 
 (defun brain-client-import (format file)
   (let ((context (brain-env-clone-context)))
-    (set-format format context)
-    (set-file file context)
+    (brain-env-context-set 'format format context)
+    (brain-env-context-set 'file file context)
     (execute-request "import" context nil 'receive-import-results)))
 
 (defun brain-client-set-property (id name value)
@@ -210,8 +210,8 @@
 
 (defun brain-client-push-view ()
   (let ((context (brain-env-clone-context)) (entity (buffer-string)))
-    (set-view entity context)
-    (brain-env-set-readwrite context)
+    (brain-env-context-set 'view entity context)
+    (brain-env-context-set-readwrite context)
     (execute-request "update" context nil)))
 
 (defun brain-client-infer-types ()
@@ -220,7 +220,7 @@
 (defun brain-client-set-min-weight (s)
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ((context (brain-env-clone-context)))
-      (set-min-weight s context)
+      (brain-env-context-set 'min-weight s context)
       (brain-client-request context))
     (brain-env-error-message
      (concat "min weight " (number-to-string s) " is outside of range [0, 1]"))))
@@ -228,7 +228,7 @@
 (defun brain-client-set-min-sharability (s)
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ((context (brain-env-clone-context)))
-      (set-min-sharability s context)
+      (brain-env-context-set 'min-sharability s context)
       (brain-client-request context))
     (brain-env-error-message
      (concat "min sharability " (number-to-string s) " is outside of range [0, 1]"))))

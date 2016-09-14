@@ -14,9 +14,9 @@
 
 
 (defun context-for-request (&optional context)
-  (let ((ctx (if context context (brain-env-get-context))))
-    (set-view nil ctx)
-    (set-atoms-by-id nil ctx)
+  (let ((ctx (if context context (brain-env-context-get-context))))
+    (brain-env-context-set 'view nil ctx)
+    (brain-env-context-set 'atoms-by-id nil ctx)
     ctx))
 
 ;; unused colors: black/gray, orange
@@ -84,25 +84,25 @@
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
             (concat "{{{"
-                    (if (get-minimize-verbatim-blocks) (propertize content 'invisible t) content)
+                    (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
 
 (defun write-view (editable children tree-indent)
   (loop for json across children do
         (let (
-              (link (get-value 'link json))
-              (children (get-value 'children json)))
+              (link (brain-env-json-get 'link json))
+              (children (brain-env-json-get 'children json)))
           (let ((target-id (brain-data-atom-id json))
                 (target-value (let ((v (brain-data-atom-value json))) (if v v "")))
 		        (target-weight (brain-data-atom-weight json))
 		        (target-sharability (brain-data-atom-sharability json))
 		        (target-priority (brain-data-atom-priority json))
-                (target-has-children (not (equal json-false (get-value 'hasChildren json))))
+                (target-has-children (not (equal json-false (brain-env-json-get 'hasChildren json))))
 		        (target-alias (brain-data-atom-alias json))
 		        (target-shortcut (brain-data-atom-shortcut json))
 		        (target-meta (brain-data-atom-meta json)))
             (if target-id
-              (puthash target-id json (get-atoms-by-id))
+              (puthash target-id json (brain-env-context-get 'atoms-by-id))
               (error "missing target id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
@@ -122,7 +122,7 @@
               (insert (propertize line 'target-id target-id)))
             (if (brain-env-using-inference)
                 (loop for a across target-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
-            (if (get-view-properties) (let ()
+            (if (brain-env-context-get 'view-properties) (let ()
                                                 (insert (make-light-gray
                                                          (concat space "    @sharability " (number-to-string target-sharability) "\n")))
                                                 (insert (make-light-gray
@@ -138,18 +138,18 @@
 
 (defun view-info ()
   (concat
-   "(root: " (get-root-id)
-   " :height " (num-or-nil-to-string (get-height))
-   " :style " (get-style)
+   "(root: " (brain-env-context-get 'root-id)
+   " :height " (num-or-nil-to-string (brain-env-context-get 'height))
+   " :style " (brain-env-context-get 'style)
    " :sharability
-             [" (num-or-nil-to-string (get-min-sharability))
-   ", " (num-or-nil-to-string (get-default-sharability))
-   ", " (num-or-nil-to-string (get-max-sharability)) "]"
+             [" (num-or-nil-to-string (brain-env-context-get 'min-sharability))
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-sharability))
+   ", " (num-or-nil-to-string (brain-env-context-get 'max-sharability)) "]"
    " :weight
-             [" (num-or-nil-to-string (get-min-weight))
-   ", " (num-or-nil-to-string (get-default-weight))
-   ", " (num-or-nil-to-string (get-max-weight)) "]"
-   " :value \"" (get-title) "\")")) ;; TODO: actually escape the title string
+             [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
+   ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
+   " :value \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
@@ -157,7 +157,7 @@
     str))
 
 (defun name-for-view-buffer (root-id json)
-  (let ((title (get-value 'title json)))
+  (let ((title (brain-env-json-get 'title json)))
     (if root-id
       (concat (shorten-title title 20) " [" root-id "]")
       title)))
@@ -167,7 +167,7 @@
   (switch-to-buffer name)
   (setq buffer-read-only nil)
   (brain-mode)
-  (brain-env-set-context context))
+  (brain-env-context-set-context context))
 
 (defun open-internal (status context)
   (let ((json (brain-client-buffer-json))
@@ -175,8 +175,8 @@
     (if status
       (brain-client-show-http-response-status status json)
       (let (
-        (view (get-value 'view json))
-        (root-id (get-value 'root json))
+        (view (brain-env-json-get 'view json))
+        (root-id (brain-env-json-get 'root json))
         (height (brain-env-numeric-value json 'height nil)))
           (switch-to-buffer-context (name-for-view-buffer root-id json) context)
           (brain-env-parse-context json context)
@@ -186,12 +186,12 @@
               (setq brain-current-height 1)
               (if height (setq brain-current-height height)))
           (erase-buffer)
-          (write-view editable (get-value 'children view) 0)
+          (write-view editable (brain-env-json-get 'children view) 0)
           (beginning-of-buffer)
           (setq visible-cursor t)
           ;; Try to move to the corresponding line in the previous view.
           ;; This is not always possible and not always helpful, but it is often both.
-          (beginning-of-line (get-line))
+          (beginning-of-line (brain-env-context-get 'line))
           (setq buffer-read-only (not editable))
           ;; always include line numbers in views
           (linum-mode t)
@@ -205,7 +205,7 @@
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
-  (atom-color 0.75 (+ 0.25 (get-min-sharability)) nil nil))
+  (atom-color 0.75 (+ 0.25 (brain-env-context-get 'min-sharability)) nil nil))
 
 (defun brain-view-create-id-infix (id)
   "Creates a string of the form :0000000:, where 000000 is the id of an atom"

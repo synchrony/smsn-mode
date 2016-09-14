@@ -50,11 +50,11 @@
 (defconst brain-const-weight-all 1.0
   "A weight for the most important atoms")
 
-(defun brain-env-get-context (&optional context)
+(defun brain-env-context-get-context (&optional context)
   "Retrieves Brain-mode's buffer-local context"
   (if context context brain-bufferlocal-context))
 
-(defun brain-env-set-context (context)
+(defun brain-env-context-set-context (context)
   "Sets Brain-mode's buffer-local context"
   (setq brain-bufferlocal-context context)
   (make-local-variable 'brain-bufferlocal-context))
@@ -63,9 +63,9 @@
   "Creates a new buffer-local context by refreshing and copying another"
   (refresh-context context)
   (let (
-    (context (copy-alist (brain-env-get-context context)))
+    (context (copy-alist (brain-env-context-get-context context)))
     (sharability (brain-data-target-sharability)))
-      (set-default-sharability (adjust-default-sharability sharability) context)
+      (brain-env-context-set 'default-sharability (adjust-default-sharability sharability) context)
       context))
 
 (defun brain-env-define-buffer-local-variables ()
@@ -79,23 +79,23 @@
 
 (defun brain-env-parse-context (json context)
   "Sets variables of the buffer-local context according to a service response"
-  (set-min-sharability (brain-env-numeric-value json 'minSharability (get-min-sharability context)))
-  (set-max-sharability (brain-env-numeric-value json 'maxSharability (get-max-sharability context)))
-  (set-default-sharability (brain-env-numeric-value json 'defaultSharability (get-default-sharability context)))
-  (set-min-weight (brain-env-numeric-value json 'minWeight (get-min-weight context)))
-  (set-max-weight (brain-env-numeric-value json 'maxWeight (get-max-weight)))
-  (set-default-weight (brain-env-numeric-value json 'defaultWeight (get-default-weight)))
-  (set-root-id (get-value 'root json))
-  (set-height
+  (brain-env-context-set 'min-sharability (brain-env-numeric-value json 'minSharability (brain-env-context-get 'min-sharability context)))
+  (brain-env-context-set 'max-sharability (brain-env-numeric-value json 'maxSharability (brain-env-context-get 'max-sharability context)))
+  (brain-env-context-set 'default-sharability (brain-env-numeric-value json 'defaultSharability (brain-env-context-get 'default-sharability context)))
+  (brain-env-context-set 'min-weight (brain-env-numeric-value json 'minWeight (brain-env-context-get 'min-weight context)))
+  (brain-env-context-set 'max-weight (brain-env-numeric-value json 'maxWeight (brain-env-context-get 'max-weight)))
+  (brain-env-context-set 'default-weight (brain-env-numeric-value json 'defaultWeight (brain-env-context-get 'default-weight)))
+  (brain-env-context-set 'root-id (brain-env-json-get 'root json))
+  (brain-env-context-set 'height
     ;; Always leave a search view with height 1, rather than that of the last view.
     ;; The user experience is a little unpredictable otherwise.
-    (if (equal (get-mode) brain-const-search-mode)
+    (if (equal (brain-env-context-get 'mode) brain-const-search-mode)
       1
-      (brain-env-numeric-value json 'height (get-height context))))
-  (let ((style (get-value 'style json)))
-    (if style (set-style style)))
-  (set-title (get-value 'title json))
-  (set-atoms-by-id (make-hash-table :test 'equal)))
+      (brain-env-numeric-value json 'height (brain-env-context-get 'height context))))
+  (let ((style (brain-env-json-get 'style json)))
+    (if style (brain-env-context-set 'style style)))
+  (brain-env-context-set 'title (brain-env-json-get 'title json))
+  (brain-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
 
 (defun brain-env-debug-message (msg)
   "Outputs a debugging message"
@@ -115,7 +115,7 @@
 
 (defun brain-env-using-inference ()
   "Determines whether the current buffer is an inference-enabled view"
-  (equal (get-view-style) brain-const-color-by-class-inference))
+  (equal (brain-env-context-get 'view-style) brain-const-color-by-class-inference))
 
 (defun brain-env-succeed ()
   "Confirms an assertion"
@@ -127,35 +127,35 @@
 
 (defun brain-env-in-readonly-mode ()
   "Determines whether the current buffer is a read-only tree view"
-  (equal (get-mode) brain-const-readonly-mode))
+  (equal (brain-env-context-get 'mode) brain-const-readonly-mode))
 
 (defun brain-env-in-readwrite-mode ()
   "Determines whether the current buffer is an editable tree view"
-  (equal (get-mode) brain-const-readwrite-mode))
+  (equal (brain-env-context-get 'mode) brain-const-readwrite-mode))
 
 (defun brain-env-in-search-mode ()
   "Determines whether the current buffer is a page of search results"
-  (equal (get-mode) brain-const-search-mode))
+  (equal (brain-env-context-get 'mode) brain-const-search-mode))
 
-(defun brain-env-set-readonly (&optional context)
+(defun brain-env-context-set-readonly (&optional context)
   "Switches to a read-only tree view"
-  (set-mode brain-const-readonly-mode context))
+  (brain-env-context-set 'mode brain-const-readonly-mode context))
 
-(defun brain-env-set-readwrite (&optional context)
+(defun brain-env-context-set-readwrite (&optional context)
   "Switches to an editable tree view"
-  (set-mode brain-const-readwrite-mode context))
+  (brain-env-context-set 'mode brain-const-readwrite-mode context))
 
-(defun brain-env-set-forward-style (&optional context)
+(defun brain-env-context-set-forward-style (&optional context)
   "Switches to the default, parent-to-child style of tree view"
-  (set-style brain-const-forward-style context))
+  (brain-env-context-set 'style brain-const-forward-style context))
 
-(defun brain-env-set-backward-style (&optional context)
+(defun brain-env-context-set-backward-style (&optional context)
   "Switches to the inverse (child-to-parent) style of tree view"
-  (set-style brain-const-backward-style context))
+  (brain-env-context-set 'style brain-const-backward-style context))
 
 (defun brain-env-in-view-mode ()
   "Determines whether the current buffer is an atom's tree view, as opposed to a page of search results, etc."
-  (let ((mode (get-mode)))
+  (let ((mode (brain-env-context-get 'mode)))
     (if (or
         (equal mode brain-const-readonly-mode)
         (equal mode brain-const-readwrite-mode))
@@ -165,15 +165,15 @@
 (defun brain-env-in-setproperties-mode ()
   "Determines whether atom properties can be set in the current buffer"
   (if (or
-       (equal (get-mode) brain-const-search-mode)
-       (equal (get-mode) brain-const-readonly-mode)
-       (equal (get-mode) brain-const-readwrite-mode))
+       (equal (brain-env-context-get 'mode) brain-const-search-mode)
+       (equal (brain-env-context-get 'mode) brain-const-readonly-mode)
+       (equal (brain-env-context-get 'mode) brain-const-readwrite-mode))
       t
     (brain-env-fail "cannot set properties in current mode") nil))
 
 (defun brain-env-is-readwrite-context (&optional context)
   "Asserts that the current Brain-mode buffer is in a read-only state"
-  (let ((mode (get-mode context)))
+  (let ((mode (brain-env-context-get 'mode context)))
     (and mode
       (equal mode brain-const-readwrite-mode))))
 
@@ -181,7 +181,7 @@
   "Asserts that the current Brain-mode buffer is in a writable state"
   (if (brain-env-is-readwrite-context)
     (brain-env-succeed)
-    (brain-env-fail (concat "cannot update view in current mode: " (get-mode))) nil))
+    (brain-env-fail (concat "cannot update view in current mode: " (brain-env-context-get 'mode))) nil))
 
 (defun brain-env-assert-height-in-bounds (height)
   "Asserts that a view height is positive and not greater than the maximum allowed height"
@@ -194,8 +194,8 @@
 
 (defun brain-env-toggle-inference-viewstyle (&optional context)
   "Switches from the 'weight/sharability' view style to the 'type inference' style, or vice versa"
-  (set-view-style
-    (if (equal (get-view-style) brain-const-color-by-sharability)
+  (brain-env-context-set 'view-style
+    (if (equal (brain-env-context-get 'view-style) brain-const-color-by-sharability)
       brain-const-color-by-class-inference
       brain-const-color-by-sharability) context))
 
@@ -211,63 +211,18 @@
         const-time-format)
     time))
 
-(defun get-action (&optional context) (get-bufferlocal context 'action))
-(defun get-atoms-by-id (&optional context) (get-bufferlocal context 'atoms-by-id))
-(defun get-default-sharability (&optional context) (get-bufferlocal context 'default-sharability))
-(defun get-default-weight (&optional context) (get-bufferlocal context 'default-weight))
-(defun get-file (&optional context) (get-bufferlocal context 'file))
-(defun get-format (&optional context) (get-bufferlocal context 'format))
-(defun get-height (&optional context) (get-bufferlocal context 'height))
-(defun get-line (&optional context) (get-bufferlocal context 'line))
-(defun get-max-sharability (&optional context) (get-bufferlocal context 'max-sharability))
-(defun get-max-weight (&optional context) (get-bufferlocal context 'max-weight))
-(defun get-min-sharability (&optional context) (get-bufferlocal context 'min-sharability))
-(defun get-min-weight (&optional context) (get-bufferlocal context 'min-weight))
-(defun get-minimize-verbatim-blocks (&optional context) (get-bufferlocal context 'minimize-verbatim-blocks))
-(defun get-mode (&optional context) (get-bufferlocal context 'mode))
-(defun get-query (&optional context) (get-bufferlocal context 'query))
-(defun get-query-type (&optional context) (get-bufferlocal context 'query-type))
-(defun get-root-id (&optional context) (get-bufferlocal context 'root-id))
-(defun get-style (&optional context) (get-bufferlocal context 'style))
-(defun get-title (&optional context) (get-bufferlocal context 'title))
-(defun get-value-length-cutoff (&optional context) (get-bufferlocal context 'value-length-cutoff))
-(defun get-view (&optional context) (get-bufferlocal context 'view))
-(defun get-view-properties (&optional context) (get-bufferlocal context 'view-properties))
-(defun get-view-style (&optional context) (get-bufferlocal context 'view-style))
+(defun brain-env-context-get (key &optional context)
+  (brain-env-json-get key (brain-env-context-get-context context)))
 
-(defun set-action (action &optional context) (set-bufferlocal context 'action action))
-(defun set-atoms-by-id (atoms-by-id &optional context) (set-bufferlocal context 'atoms-by-id atoms-by-id))
-(defun set-file (file &optional context) (set-bufferlocal context 'file file))
-(defun set-format (format &optional context) (set-bufferlocal context 'format format))
-(defun set-default-sharability (sharability &optional context) (set-bufferlocal context 'default-sharability sharability))
-(defun set-default-weight (weight &optional context) (set-bufferlocal context 'default-weight weight))
-(defun set-height (height &optional context) (set-bufferlocal context 'height height))
-(defun set-line (line &optional context) (set-bufferlocal context 'line line))
-(defun set-max-sharability (sharability &optional context) (set-bufferlocal context 'max-sharability sharability))
-(defun set-max-weight (weight &optional context) (set-bufferlocal context 'max-weight weight))
-(defun set-min-sharability (sharability &optional context) (set-bufferlocal context 'min-sharability sharability))
-(defun set-min-weight (weight &optional context) (set-bufferlocal context 'min-weight weight))
-(defun set-minimize-verbatim-blocks (flag &optional context) (set-bufferlocal context 'minimize-verbatim-blocks flag))
-(defun set-mode (mode &optional context) (set-bufferlocal context 'mode mode))
-(defun set-query (query &optional context) (set-bufferlocal context 'query query))
-(defun set-query-type (type &optional context) (set-bufferlocal context 'query-type type))
-(defun set-root-id (root-id &optional context) (set-bufferlocal context 'root-id root-id))
-(defun set-style (style &optional context) (set-bufferlocal context 'style style))
-(defun set-title (title &optional context) (set-bufferlocal context 'title title))
-(defun set-value-length-cutoff (cutoff &optional context) (set-bufferlocal context 'value-length-cutoff cutoff))
-(defun set-view (view &optional context) (set-bufferlocal context 'view view))
-(defun set-view-properties (view-properties &optional context) (set-bufferlocal context 'view-properties view-properties))
-(defun set-view-style (view-style &optional context) (set-bufferlocal context 'view-style view-style))
+(defun brain-env-context-set (key value &optional context)
+  (setcdr (assoc key (brain-env-context-get-context context)) value))
+
+(defun brain-env-json-get (key json)
+  (cdr (assoc key json)))
 
 (defconst const-date-format "%Y-%m-%d")
 (defconst const-time-format "%H:%M")
 (defconst const-time-with-seconds-format "%H:%M:%S")
-
-(defun get-bufferlocal (context key)
-  (get-value key (brain-env-get-context context)))
-
-(defun set-bufferlocal (context key value)
-  (setcdr (assoc key (brain-env-get-context context)) value))
 
 (defun default-context () (list
   (cons 'action 'nil)
@@ -295,7 +250,7 @@
   (cons 'view-style brain-const-color-by-sharability)))
 
 (defun refresh-context (&optional context)
-  (set-line (line-number-at-pos) context))
+  (brain-env-context-set 'line (line-number-at-pos) context))
 
 ;; change the default sharability in the new view after a user visits a link or target
 ;; The default will never be greater than 0.75 unless explicitly set by the user.
@@ -304,12 +259,9 @@
       (if (<= sharability 0.75) sharability 0.75)
     0.5))
 
-(defun get-value (key json)
-  (cdr (assoc key json)))
-
 (defun mode-for-visit ()
-  (if (or (equal (get-mode) brain-const-readwrite-mode) (equal (get-mode) brain-const-readonly-mode))
-      (get-mode)
+  (if (or (equal (brain-env-context-get 'mode) brain-const-readwrite-mode) (equal (brain-env-context-get 'mode) brain-const-readonly-mode))
+      (brain-env-context-get 'mode)
     brain-const-readonly-mode))
 
 

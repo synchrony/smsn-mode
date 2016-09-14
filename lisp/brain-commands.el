@@ -80,7 +80,7 @@
   (interactive)
   (if (brain-env-in-readonly-mode)
     (let ((context (brain-env-clone-context)))
-      (brain-env-set-readwrite context)
+      (brain-env-context-set-readwrite context)
       (brain-env-debug-message (concat "context before: " (json-encode context)))
       (brain-client-request context))))
 
@@ -89,7 +89,7 @@
   (interactive)
   (if (brain-env-in-readwrite-mode)
     (let ((context (brain-env-clone-context)))
-      (brain-env-set-readonly context)
+      (brain-env-context-set-readonly context)
       (brain-client-request context))))
 
 (defun brain-events ()
@@ -282,7 +282,7 @@ Longer values are truncated, for efficiency and readability, when they appear in
 A value of -1 indicates that values should not be truncated."
   (interactive)
   (let ((n (string-to-number length-str)))
-    (set-value-length-cutoff n)))
+    (brain-env-context-set 'value-length-cutoff n)))
 
 (defun brain-set-view-height (expr)
   "set the height of the current view to the number of levels represented by EXPR"
@@ -290,7 +290,7 @@ A value of -1 indicates that values should not be truncated."
   (let ((height (number-shorthand-to-number expr)))
     (if (brain-env-assert-height-in-bounds  height)
       (let ((context (brain-env-clone-context)))
-        (set-height height context)
+        (brain-env-context-set 'height height context)
         (brain-client-request context)))))
 
 (defun brain-toggle-emacspeak ()
@@ -307,21 +307,21 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (brain-env-toggle-inference-viewstyle)
   (brain-update-view)
-  (brain-env-info-message (concat "switched to " (get-view-style) " view style")))
+  (brain-env-info-message (concat "switched to " (brain-env-context-get 'view-style) " view style")))
 
 (defun brain-toggle-minimize-verbatim-blocks ()
-  "enable or disable the hiding of the contents of {{{verbatim blocks}}}, which may span multiple lines"
+  "enable or disable the hiding of the contents of {{{verbatim blocks}}}, which span multiple lines"
   (interactive)
-  (set-minimize-verbatim-blocks (not (get-minimize-verbatim-blocks)))
+  (brain-env-context-set 'minimize-verbatim-blocks (not (brain-env-context-get 'minimize-verbatim-blocks)))
   (brain-update-view)
-  (brain-env-info-message (concat (if (get-minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))
+  (brain-env-info-message (concat (if (brain-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))
 
 (defun brain-toggle-properties-view ()
   "enable or disable the explicit display of atom properties as extra lines within views"
   (interactive)
-  (set-view-properties (not (get-view-properties)))
+  (brain-env-context-set 'view-properties (not (brain-env-context-get 'view-properties)))
   (brain-update-view)
-  (brain-env-info-message (concat (if (get-view-properties) "enabled" "disabled") " property view")))
+  (brain-env-info-message (concat (if (brain-env-context-get 'view-properties) "enabled" "disabled") " property view")))
 
 (defun brain-toggle-truncate-lines ()
   "toggle line wrap mode"
@@ -333,7 +333,7 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (if (brain-env-in-view-mode)
     (let ((context (brain-env-clone-context)))
-      (brain-env-set-backward-style context)
+      (brain-env-context-set-backward-style context)
       (brain-client-request context))))
 
 (defun brain-update-to-forward-view ()
@@ -341,7 +341,7 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (if (brain-env-in-view-mode)
     (let ((context (brain-env-clone-context)))
-      (brain-env-set-forward-style context)
+      (brain-env-context-set-forward-style context)
       (brain-client-request context))))
 
 (defun brain-update-view ()
@@ -402,8 +402,8 @@ a type has been assigned to it by the inference engine."
   (let ((id (brain-data-atom-id-at-point)))
     (if id
         (let ((context (brain-env-clone-context)))
-          (set-root-id id context)
-          (brain-env-set-readwrite context)
+          (brain-env-context-set 'root-id id context)
+          (brain-env-context-set-readwrite context)
           (brain-client-request context))
       (brain-env-error-no-target))))
 
@@ -616,7 +616,7 @@ a type has been assigned to it by the inference engine."
     ("b" . brain-update-to-backward-view)
     ("c" . kill-ring-save)
     ("f" . brain-update-to-forward-view)
-    ("g" . brain-update-view)
+    ("g" . brain-update-view-prompt)
     ("h" . brain-set-view-height-prompt)
     ("i" . previous-line)  ;; up
     ("I" . scroll-down-command)
@@ -627,6 +627,7 @@ a type has been assigned to it by the inference engine."
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
+    ("o" . other-window)
     ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
     ("t" . brain-navigate-to-target-atom)
     ("u" . undo)
@@ -635,6 +636,27 @@ a type has been assigned to it by the inference engine."
     ("x" . kill-region)
     ("z" . set-mark-command)
 )))
+
+(defun brain-push-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
+      (brain-push-view)
+      nil
+    ))
+
+(defun brain-update-view-prompt ()
+  (interactive)
+  (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
+      (brain-update-view)
+      nil
+    ))
+
+(defun brain-navigate-to-target-atom-and-kill-buffer ()
+  (interactive)
+  (let ((bname (buffer-name)))
+    (progn (brain-navigate-to-target-atom)
+	   (kill-buffer bname)
+	   )))
 
 (defun my-filter (condp lst)
   ;; https://www.emacswiki.org/emacs/ElispCookbook
