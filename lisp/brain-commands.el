@@ -539,19 +539,15 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-fulltext-query-prompt ()
   (interactive)
-  (let (
-        (newcol (brain-view-color-at-min-sharability))
-        (oldcol (face-foreground 'minibuffer-prompt)))
-    (set-face-foreground 'minibuffer-prompt newcol)
-    (prompt-for-string 'brain-fulltext-query "full-text search for: ")
-    (set-face-foreground 'minibuffer-prompt oldcol)))
+  (prompt-for-string 'brain-fulltext-query "full-text search for: "))
 
 (defun brain-push-view-prompt ()
   (interactive)
-  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
+  (prompt-for-char (lambda (ch)
+    (if (eq ch 122)
       (brain-push-view)
       nil
-    ))
+    )) "really push view? (press 'z' to confirm)"))
 
 (defun brain-navigate-to-target-atom-and-kill-buffer ()
   (interactive)
@@ -599,14 +595,23 @@ a type has been assigned to it by the inference engine."
           (coerce (cdr (coerce address 'list)) 'string))
       address)))
 
+(defun color-prompt-by-min-sharability (callback)
+  (let ((newcol (brain-view-color-at-min-sharability))
+        (oldcol (face-foreground 'minibuffer-prompt)))
+    (set-face-foreground 'minibuffer-prompt newcol)
+    (funcall callback)
+    (set-face-foreground 'minibuffer-prompt oldcol)))
+
 (defun prompt-for-string (function prompt &optional initial)
-  ;; note: use of the INITIAL argument is discouraged, but here it makes sense
-  (let ((arg (read-from-minibuffer prompt initial)))
-    (if arg (funcall function arg))))
+  (color-prompt-by-min-sharability (lambda ()
+    ;; note: use of the INITIAL argument is discouraged, but here it makes sense
+    (let ((arg (read-from-minibuffer prompt initial)))
+      (if arg (funcall function arg))))))
 
 (defun prompt-for-char (function prompt)
-  (let ((c (read-char prompt)))
-    (if c (funcall function c))))
+  (color-prompt-by-min-sharability (lambda ()
+    (let ((c (read-char prompt)))
+      (if c (funcall function c))))))
 
 ;; "edit" and "move" submodes
     ;; editing is still possible in move-mode,
