@@ -13,12 +13,6 @@
 (require 'brain-env)
 
 
-(defun context-for-request (&optional context)
-  (let ((ctx (if context context (brain-env-context-get-context))))
-    (brain-env-context-set 'view nil ctx)
-    (brain-env-context-set 'atoms-by-id nil ctx)
-    ctx))
-
 ;; unused colors: black/gray, orange
 (defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
 (defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
@@ -169,12 +163,9 @@
   (brain-mode)
   (brain-env-context-set-context context))
 
-(defun open-internal (status context)
-  (let ((json (brain-client-buffer-json))
-      (editable (brain-env-is-readwrite-context context)))
-    (if status
-      (brain-client-show-http-response-status status json)
-      (let (
+(defun open-internal (context json)
+  (let ((editable (brain-env-is-readwrite-context context)))
+    (let (
         (view (brain-env-json-get 'view json))
         (root-id (brain-env-json-get 'root json))
         (height (brain-env-numeric-value json 'height nil)))
@@ -197,12 +188,11 @@
           ;; always include line numbers in views
           (linum-mode t)
           ;;(brain-env-info-message (concat "updated to view " (view-info)))
-          ))))
+          )))
 
-(defun brain-view-open (&optional context)
+(defun brain-view-open (json context)
   "Callback to receive and display the data of a view"
-  (lexical-let ((context (context-for-request context)))
-    (lambda (status) (open-internal status context))))
+  (open-internal context json))
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"

@@ -12,8 +12,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Rexster URL and Extend-o-Brain graph (essential)
 
-(defvar brain-rexster-url "http://localhost:8182")
-(defvar brain-rexster-graph "joshkb")
+(defvar brain-server-url "http://localhost:8182")
+(defvar brain-server-graph "joshkb")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

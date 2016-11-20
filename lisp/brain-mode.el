@@ -11,8 +11,8 @@
 ;;
 ;; Required global variables:
 ;;
-;;     brain-rexster-url: IP, port, and local path to the rexster server
-;;     brain-rexster-graph: name of MyOtherBrain graph served by Rexster
+;;     brain-server-url: IP, port, and local path to the rexster server
+;;     brain-server-graph: name of MyOtherBrain graph served by Rexster
 ;;
 ;; Optional global variables:
 ;;
@@ -23,8 +23,8 @@
 ;;
 ;; For example:
 ;;
-;;     (defvar brain-rexster-url "http://localhost:8182")
-;;     (defvar brain-rexster-graph "joshkb")
+;;     (defvar brain-server-url "http://localhost:8182")
+;;     (defvar brain-server-graph "joshkb")
 ;;     (defvar brain-default-graphml-file "/tmp/joshkb-graphml.xml")
 ;;     (defvar brain-default-vertices-file "/tmp/joshkb-vertices.tsv")
 ;;     (defvar brain-default-edges-file "/tmp/joshkb-edges.tsv")

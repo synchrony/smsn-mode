@@ -218,7 +218,9 @@
   (setcdr (assoc key (brain-env-context-get-context context)) value))
 
 (defun brain-env-json-get (key json)
-  (cdr (assoc key json)))
+  (if json
+    (cdr (assoc key json))
+    nil))
 
 (defconst const-date-format "%Y-%m-%d")
 (defconst const-time-format "%H:%M")

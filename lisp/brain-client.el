@@ -36,22 +36,16 @@
                          nil))))
 
 (defun format-request-data (params)
-  (mapconcat
-    (lambda (arg)
-      (concat
-        (brain-client-url-encode (car arg))
-        "="
-        (brain-client-url-encode (car (last arg)))))
-    params
-    "&"))
+  (json-encode (list
+    (cons 'language "smsn")
+    (cons 'gremlin (json-encode params)))))
 
 (defun http-post (url params callback)
   "Issue an HTTP POST request to URL with PARAMS"
   (let ((url-request-method "POST")
-        (url-request-extra-headers
-         '(("Content-Type" . "application/x-www-form-urlencoded;charset=UTF-8")))
+        (url-request-extra-headers '(("Content-Type" . "application/json;charset=UTF-8")))
         (url-request-data
-          (format-request-data (list (list "request" (json-encode params))))))
+          (format-request-data params)))
     (url-retrieve url callback)))
 
 (defun http-get (url callback)
@@ -64,44 +58,38 @@
         (decode-coding-string (substring entity (+ i 2)) 'utf-8)
         "{}")))
 
-(defun brain-client-buffer-json ()
+(defun get-buffer-json ()
   (json-read-from-string (strip-http-headers (buffer-string))))
 
-(defun base-url ()
-  (concat brain-rexster-url "/graphs/" brain-rexster-graph "/smsn/"))
+(defun get-response-error (json)
+  (brain-env-json-get 'error json))
 
-(defun brain-client-show-http-response-status (status json)
-  (let ((msg (brain-env-json-get 'message json))
-        (error (brain-env-json-get 'error json)))
-    (if error
-        (brain-env-error-message error)
-        (if msg
-            (brain-env-error-message msg)
-          (brain-env-error-message (concat "request failed: "
-                                 (json-encode status)))))))
+(defun get-response-message (json)
+  (brain-env-json-get 'message
+    (brain-env-json-get 'status json)))
 
-(defun acknowledge-http-response (status success-message)
-  (if status
-      (let ((json (brain-client-buffer-json)))
-        (brain-client-show-http-response-status status json))
-    (brain-env-info-message success-message)))
+(defun get-response-payload (json)
+  (car
+    (brain-env-json-get 'data
+      (brain-env-json-get 'result json))))
 
-(defun receive-export-results (status)
-  (acknowledge-http-response status "exported successfully"))
+(defun acknowledge-success (success-message)
+    (brain-env-info-message success-message))
 
-(defun receive-import-results (status)
-  (acknowledge-http-response status "imported successfully"))
+(defun receive-export-results (json context)
+  (acknowledge-success "exported successfully"))
 
-(defun receive-inference-results (status)
-  (acknowledge-http-response status "type inference completed successfully"))
+(defun receive-import-results (json context)
+  (acknowledge-success "imported successfully"))
 
-(defun receive-remove-isolated-atoms-response (status)
-  (acknowledge-http-response status "removed isolated atoms"))
+(defun receive-inference-results (json context)
+  (acknowledge-success "type inference completed successfully"))
 
-(defun receive-set-properties-response (status)
-  (if status
-    (brain-client-show-http-response-status status json)
-    (brain-client-request)))
+(defun receive-remove-isolated-atoms-response (json context)
+  (acknowledge-success "removed isolated atoms"))
+
+(defun receive-set-properties-response (json context)
+  (brain-client-request))
 
 (defun to-query-list (&optional context)
   (list
@@ -124,21 +112,45 @@
       :maxWeight (brain-env-context-get 'max-weight context)
       :defaultWeight (brain-env-context-get 'default-weight context))))
 
-(defun entity-for-request (params)
-  (brain-client-url-encode (json-encode params)))
-
-(defun url-for-request (path &optional params)
-  (concat
-    (base-url)
-    path
-    (if params
-      (entity-for-request params)
-      nil)))
-
 (defun http-post-and-receive (url params &optional context handler)
   ;;(brain-env-debug-message (concat "context: " (json-encode context)))
   (http-post url params
-    (if handler handler (brain-view-open context))))
+    (http-callback context handler)))
+
+(defun http-callback (&optional context handler)
+  (lexical-let
+    ((context (context-for-response context))
+     (handler (if handler handler 'brain-view-open)))
+    (lambda (status)
+      (handle-response status context handler))))
+
+(defun handle-response (http-status context handler)
+  (if http-status
+    (brain-env-error-message (concat "HTTP request failed: " (json-encode http-status)))
+    (let ((json (get-buffer-json)))
+      (let ((message (brain-env-json-get 'message (brain-env-json-get 'status json)))
+            (payload (get-payload json)))
+        (if (and message (> (length message) 0))
+          (brain-env-error-message (concat "request failed: " message))
+          (if payload
+            (funcall handler payload context)
+            (brain-env-error-message "no response data")))))))
+
+(defun get-payload (json)
+  (if json
+    (let ((data-array (brain-env-json-get 'data (brain-env-json-get 'result json))))
+      (if data-array
+        (if (= 1 (length data-array))
+          (json-read-from-string (aref data-array 0))
+          (brain-env-error-message "unexpected data array length"))
+        nil))
+    nil))
+
+(defun context-for-response (&optional context)
+  (let ((ctx (if context context (brain-env-context-get-context))))
+;;    (brain-env-context-set 'view nil ctx)
+;;    (brain-env-context-set 'atoms-by-id nil ctx)
+    ctx))
 
 (defun to-params (context params)
   (if params params
@@ -146,7 +158,7 @@
 
 (defun execute-request (action context params &optional handler)
   (brain-env-context-set 'action action context)
-  (http-post-and-receive (url-for-request "brain")
+  (http-post-and-receive brain-server-url
     (to-params context params) context handler))
 
 (defun brain-client-request (&optional context)
