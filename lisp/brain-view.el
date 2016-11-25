@@ -116,15 +116,18 @@
               (insert (propertize line 'target-id target-id)))
             (if (brain-env-using-inference)
                 (loop for a across target-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
-            (if (brain-env-context-get 'view-properties) (let ()
-                                                (insert (make-light-gray
-                                                         (concat space "    @sharability " (number-to-string target-sharability) "\n")))
-                                                (insert (make-light-gray
-                                                         (concat space "    @weight      " (number-to-string target-weight) "\n")))
-                                                (if target-shortcut
-                                                    (insert (make-light-gray (concat space "    @shortcut    " target-shortcut "\n"))))
-                                                (if target-alias
-                                                    (insert (make-light-gray (concat space "    @alias       " target-alias "\n"))))))
+            (if (brain-env-context-get 'view-properties)
+              (let ()
+                (insert (make-light-gray
+                         (concat space "    @sharability " (number-to-string target-sharability) "\n")))
+                (insert (make-light-gray
+                         (concat space "    @weight      " (number-to-string target-weight) "\n")))
+                (if target-priority
+                    (insert (make-light-gray (concat space "    @priority    " (number-to-string target-priority) "\n"))))
+                (if target-shortcut
+                    (insert (make-light-gray (concat space "    @shortcut    " target-shortcut "\n"))))
+                (if target-alias
+                    (insert (make-light-gray (concat space "    @alias       " target-alias "\n"))))))
             (write-view editable children (+ tree-indent 4))))))
 
 (defun num-or-nil-to-string (n)

@@ -408,7 +408,7 @@ a type has been assigned to it by the inference engine."
           (brain-client-request context))
       (brain-env-error-no-target))))
 
-(defun brain-navigate-to-tarbrain-data-atom-alias ()
+(defun brain-navigate-to-target-alias ()
   "visit the @alias of the atom at point (normally a URL) in a browser"
   (interactive)
   (let ((alias (brain-data-target-alias)))
@@ -690,7 +690,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
     (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)
-    (define-key brain-mode-map (kbd "C-c C-t C-a b")   'brain-navigate-to-tarbrain-data-atom-alias)
+    (define-key brain-mode-map (kbd "C-c C-t C-a b")   'brain-navigate-to-target-alias)
     (define-key brain-mode-map (kbd "C-c C-t C-b a")   (brain-visit-in-amazon 'brain-data-target-value))
     (define-key brain-mode-map (kbd "C-c C-t C-b d")   (brain-visit-in-delicious 'brain-data-target-value))
     (define-key brain-mode-map (kbd "C-c C-t C-b e")   (brain-visit-in-ebay 'brain-data-target-value))
