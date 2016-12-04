@@ -635,13 +635,31 @@ a type has been assigned to it by the inference engine."
     ("n" . brain-navigate-to-target-atom-and-kill-buffer)
     ("o" . other-window)
     ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
+    ("P" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
+    ("S" . brain-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . brain-navigate-to-target-atom)
     ("u" . undo)
     ("v" . yank)
     ("w" . kill-buffer)
+    ("W" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
     ("x" . kill-region)
     ("z" . set-mark-command)
 )))
+
+(defun brain-set-priority-and-drop-cursor ()
+  (interactive)
+  (progn (brain-insert-attr-priority-prompt)
+        (next-line)))
+
+(defun brain-set-sharability-and-drop-cursor ()
+  (interactive)
+  (progn (brain-insert-attr-sharability-prompt)
+        (next-line)))
+
+(defun brain-set-weight-and-drop-cursor ()
+  (interactive)
+  (progn (brain-insert-attr-weight-prompt)
+        (next-line)))
 
 (defun brain-push-view-prompt ()
   (interactive)
