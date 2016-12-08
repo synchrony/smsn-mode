@@ -13,7 +13,7 @@
 ;; optional settings
 
 ;; overrride default Gremlin Server URL
-(defvar brain-server-url "http://localhost:8182")
+(defvar brain-server-url "http://127.0.0.1:8182")
 
 ;; export the graph to here, or populate an empty graph from here
 (defvar brain-default-graphml-file "/tmp/arthurdent.xml")
