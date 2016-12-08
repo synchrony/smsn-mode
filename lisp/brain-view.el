@@ -20,7 +20,7 @@
 (defconst inference-base-colors '("#660066" "#006666"))
 (defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
 
-(defvar full-colors-supported (> (length (defined-colors)) 8))
+(defvar brain-view-full-colors-supported (> (length (defined-colors)) 8))
 
 (defun color-part-red (color)
   (string-to-number (substring color 1 3) 16))
@@ -53,7 +53,7 @@
      (fade-color (color-part-blue s) weight))))
 
 (defun colorize (text weight sharability priority-bg priority-fg bright has-meta)
-  (let ((color (if full-colors-supported
+  (let ((color (if brain-view-full-colors-supported
                    (atom-color weight sharability bright has-meta)
                  (elt sharability-reduced-colors (- (ceiling (* sharability 4)) 1)))))
     (setq l (list
@@ -66,7 +66,7 @@
     (propertize text 'face l)))
 
 (defun light-gray ()
-  (if full-colors-supported
+  (if brain-view-full-colors-supported
     (list :foreground "grey80" :background "white")
     (list :foreground "black")))
 
