@@ -157,7 +157,7 @@
     (to-query-list (if context context (brain-env-context-get-context)))))
 
 (defun find-server-url ()
-  (if (boundp 'brain-server-url) brain-server-url "http://localhost:8182"))
+  (if (boundp 'brain-server-url) brain-server-url "http://127.0.0.1:8182"))
 
 (defun execute-request (action context params &optional handler)
   (brain-env-context-set 'action action context)
