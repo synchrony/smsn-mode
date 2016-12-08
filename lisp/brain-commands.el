@@ -397,15 +397,23 @@ a type has been assigned to it by the inference engine."
   (visit-target-value value-selector (lambda (value)
                                        (concat "http://www.youtube.com/results?search_query=" (brain-client-url-encode value)))))
 
+(defun navigate-to-atom (id)
+  (let ((context (brain-env-clone-context)))
+            (brain-env-context-set 'root-id id context)
+            (brain-env-context-set-readwrite context)
+            (brain-client-request context)))
+
+(defun brain-navigate-to-new-atom ()
+  "create a new atom and navigate to that atom, opening a new (empty) view with the atom as root"
+  (interactive)
+  (navigate-to-atom "create-new-atom"))
+
 (defun brain-navigate-to-target-atom ()
   "navigate to the atom at point, opening a new view with that atom as root"
   (interactive)
   (let ((id (brain-data-atom-id-at-point)))
     (if id
-        (let ((context (brain-env-clone-context)))
-          (brain-env-context-set 'root-id id context)
-          (brain-env-context-set-readwrite context)
-          (brain-client-request context))
+      (navigate-to-atom id)
       (brain-env-error-no-target))))
 
 (defun brain-navigate-to-target-alias ()
@@ -748,6 +756,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c h")           'brain-history)
     (define-key brain-mode-map (kbd "C-c i")           'brain-infer-types)
     (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
+    (define-key brain-mode-map (kbd "C-c n")           'brain-navigate-to-new-atom)
     (define-key brain-mode-map (kbd "C-c o")           'brain-shortcut-query-prompt)
     (define-key brain-mode-map (kbd "C-c p")           'brain-push-view)
     (define-key brain-mode-map (kbd "C-c r")           'brain-copy-target-reference-to-clipboard)
