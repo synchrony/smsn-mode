@@ -166,14 +166,14 @@
   (brain-mode)
   (brain-env-context-set-context context))
 
-(defun open-internal (context json)
+(defun open-internal (payload context)
   (let ((editable (brain-env-is-readwrite-context context)))
     (let (
-        (view (brain-env-json-get 'view json))
-        (root-id (brain-env-json-get 'root json))
-        (height (brain-env-numeric-value json 'height nil)))
-          (switch-to-buffer-context (name-for-view-buffer root-id json) context)
-          (brain-env-parse-context json context)
+        (view (brain-env-json-get 'view payload))
+        (root-id (brain-env-json-get 'root payload))
+        (height (brain-env-numeric-value payload 'height nil)))
+          (switch-to-buffer-context (name-for-view-buffer root-id payload) context)
+          (brain-env-parse-context payload context)
           (if (brain-env-in-search-mode)
               ;; Always leave a search view with height 1, rather than that of the last view.
               ;; The user experience is a little unpredictable otherwise.
@@ -193,9 +193,9 @@
           ;;(brain-env-info-message (concat "updated to view " (view-info)))
           )))
 
-(defun brain-view-open (json context)
+(defun brain-view-open (payload context)
   "Callback to receive and display the data of a view"
-  (open-internal context json))
+  (open-internal payload context))
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"

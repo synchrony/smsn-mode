@@ -79,18 +79,18 @@
   "enter edit (read/write) mode in the current view"
   (interactive)
   (if (brain-env-in-readonly-mode)
-    (let ((context (brain-env-clone-context)))
-      (brain-env-context-set-readwrite context)
-      (brain-env-debug-message (concat "context before: " (json-encode context)))
-      (brain-client-request context))))
+    (let ()
+      (brain-env-context-set-readwrite)
+      ;;(brain-env-debug-message (concat "context before: " (json-encode context)))
+      (brain-client-request))))
 
 (defun brain-enter-readonly-view ()
   "enter read-only mode in the current view"
   (interactive)
   (if (brain-env-in-readwrite-mode)
-    (let ((context (brain-env-clone-context)))
-      (brain-env-context-set-readonly context)
-      (brain-client-request context))))
+    (let ()
+      (brain-env-context-set-readonly)
+      (brain-client-request))))
 
 (defun brain-events ()
   "retrieve the MyOtherBrain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
@@ -289,9 +289,9 @@ A value of -1 indicates that values should not be truncated."
   (interactive)
   (let ((height (number-shorthand-to-number expr)))
     (if (brain-env-assert-height-in-bounds  height)
-      (let ((context (brain-env-clone-context)))
-        (brain-env-context-set 'height height context)
-        (brain-client-request context)))))
+      (let ()
+        (brain-env-context-set 'height height)
+        (brain-client-request)))))
 
 (defun brain-toggle-emacspeak ()
   "turn Emacspeak on or off"
@@ -333,17 +333,17 @@ a type has been assigned to it by the inference engine."
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
   (interactive)
   (if (brain-env-in-view-mode)
-    (let ((context (brain-env-clone-context)))
-      (brain-env-context-set-backward-style context)
-      (brain-client-request context))))
+    (let ()
+      (brain-env-context-set-backward-style)
+      (brain-client-request))))
 
 (defun brain-update-to-forward-view ()
   "switch to a 'forward' view (the default), i.e. a view in which an atom's children appear as list items beneath it"
   (interactive)
   (if (brain-env-in-view-mode)
-    (let ((context (brain-env-clone-context)))
-      (brain-env-context-set-forward-style context)
-      (brain-client-request context))))
+    (let ()
+      (brain-env-context-set-forward-style)
+      (brain-client-request))))
 
 (defun brain-update-view ()
   "refresh the current view from the data store"
@@ -397,23 +397,17 @@ a type has been assigned to it by the inference engine."
   (visit-target-value value-selector (lambda (value)
                                        (concat "http://www.youtube.com/results?search_query=" (brain-client-url-encode value)))))
 
-(defun navigate-to-atom (id)
-  (let ((context (brain-env-clone-context)))
-            (brain-env-context-set 'root-id id context)
-            (brain-env-context-set-readwrite context)
-            (brain-client-request context)))
-
 (defun brain-navigate-to-new-atom ()
   "create a new atom and navigate to that atom, opening a new (empty) view with the atom as root"
   (interactive)
-  (navigate-to-atom "create-new-atom"))
+  (brain-client-navigate-to-atom "create-new-atom"))
 
 (defun brain-navigate-to-target-atom ()
   "navigate to the atom at point, opening a new view with that atom as root"
   (interactive)
   (let ((id (brain-data-atom-id-at-point)))
     (if id
-      (navigate-to-atom id)
+      (brain-client-navigate-to-atom id)
       (brain-env-error-no-target))))
 
 (defun brain-navigate-to-target-alias ()

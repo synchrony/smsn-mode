@@ -59,15 +59,6 @@
   (setq brain-bufferlocal-context context)
   (make-local-variable 'brain-bufferlocal-context))
 
-(defun brain-env-clone-context (&optional context)
-  "Creates a new buffer-local context by refreshing and copying another"
-  (refresh-context context)
-  (let (
-    (context (copy-alist (brain-env-context-get-context context)))
-    (sharability (brain-data-target-sharability)))
-      (brain-env-context-set 'default-sharability (adjust-default-sharability sharability) context)
-      context))
-
 (defun brain-env-define-buffer-local-variables ()
   "Populates a first definition of buffer-local context with default values"
   (defvar brain-bufferlocal-context (default-context)))
