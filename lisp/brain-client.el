@@ -67,6 +67,7 @@
   (let ((request (create-search-request query-type query))
         (callback
           (lambda (payload context)
+            (brain-env-context-set 'root-id nil context)
             (brain-env-context-set 'line 1 context)
             (funcall 'brain-view-open payload context))))
     (issue-request request callback)))
@@ -200,7 +201,7 @@
 
 (defun http-callback (&optional callback)
   (lexical-let
-    ((context (brain-env-context-get-context))
+    ((context (brain-env-get-context))
      (callback (if callback callback 'brain-view-open)))
     (lambda (status)
       (handle-response status context callback))))
@@ -230,20 +231,20 @@
 (defun find-server-url ()
   (if (boundp 'brain-server-url) brain-server-url "http://127.0.0.1:8182"))
 
-(defun brain-client-navigate-to-atom (atom-id &optional context)
+(defun brain-client-navigate-to-atom (atom-id)
   (issue-request (create-view-request atom-id)))
 
-(defun brain-client-request (&optional context)
-  (brain-client-navigate-to-atom (brain-env-context-get 'root-id context)))
+(defun brain-client-request ()
+  (brain-client-navigate-to-atom (brain-env-context-get 'root-id)))
 
 (defun brain-client-fetch-history ()
-  (issue-request (to-query-request get-history-request)))
+  (issue-request (to-filter-request get-history-request)))
 
 (defun brain-client-fetch-events (height)
   (issue-request (to-query-request get-events-request)))
 
 (defun brain-client-fetch-duplicates ()
-  (issue-request (to-query-request find-duplicates-request)))
+  (issue-request (to-filter-request find-duplicates-request)))
 
 (defun brain-client-fetch-query (query query-type)
   (do-search query-type query))
@@ -295,35 +296,35 @@
     (brain-env-error-message
      (concat "min sharability " (number-to-string s) " is outside of range [0, 1]"))))
 
-(defun brain-client-set-target-priority (v)
+(defun brain-client-set-focus-priority (v)
   (if (and (>= v 0) (<= v 1))
-      (let ((target (brain-data-target)))
-        (if target
+      (let ((focus (brain-data-focus)))
+        (if focus
             (let (
-                  (id (brain-data-atom-id target)))
+                  (id (brain-data-atom-id focus)))
               (brain-client-set-property id "priority" v))
-          (brain-env-error-no-target)))
+          (brain-env-error-no-focus)))
     (brain-env-error-message
      (concat "priority " (number-to-string v) " is outside of range [0, 1]"))))
 
-(defun brain-client-set-target-sharability (v)
+(defun brain-client-set-focus-sharability (v)
   (if (and (> v 0) (<= v 1))
-      (let ((target (brain-data-target)))
-        (if target
-            (let ((id (brain-data-atom-id target)))
+      (let ((focus (brain-data-focus)))
+        (if focus
+            (let ((id (brain-data-atom-id focus)))
               (brain-client-set-property id "sharability" v))
-          (brain-env-error-no-target)))
+          (brain-env-error-no-focus)))
     (brain-env-error-message
      (concat "sharability " (number-to-string v) " is outside of range (0, 1]"))))
 
-(defun brain-client-set-target-weight (v)
+(defun brain-client-set-focus-weight (v)
   (if (and (> v 0) (<= v 1))
-      (let ((target (brain-data-target)))
-        (if target
+      (let ((focus (brain-data-focus)))
+        (if focus
             (let (
-                  (id (brain-data-atom-id target)))
+                  (id (brain-data-atom-id focus)))
               (brain-client-set-property id "weight" v))
-          (brain-env-error-no-target)))
+          (brain-env-error-no-focus)))
     (brain-env-error-message
      (concat "weight " (number-to-string v) " is outside of range (0, 1]"))))
 

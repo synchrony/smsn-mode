@@ -17,13 +17,16 @@
   (interactive)
   (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
 
+(defun brain-data-root-id ()
+  (brain-env-context-get 'root-id))
+
 (defun brain-data-atom-id-at-point ()
   (let ((line (current-line)))
     (if (string-match "^[0-9A-Za-z@&]*: " line)
         (let ((i3 (string-match ": " line)))
           (let ((s2 (substring line 0 i3)))
             (if (< 0 (length s2)) s2 nil)))
-      (get-text-property (line-beginning-position) 'target-id))))
+      (get-text-property (line-beginning-position) 'id))))
 
 (defun brain-data-atom-id (atom)
   (brain-env-json-get 'id atom))
@@ -64,19 +67,19 @@
         (if atoms (gethash id atoms) nil))
     nil))
 
-(defun brain-data-target ()
+(defun brain-data-focus ()
   (brain-data-atom (brain-data-atom-id-at-point)))
 
-(defun brain-data-target-value ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-value ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-value g))))
 
-(defun brain-data-target-alias ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-alias ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-alias g))))
 
-(defun brain-data-target-sharability ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-sharability ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-sharability g))))
 
 (defun brain-data-show (atom)

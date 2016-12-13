@@ -50,11 +50,11 @@
 (defconst brain-const-weight-all 1.0
   "A weight for the most important atoms")
 
-(defun brain-env-context-get-context (&optional context)
+(defun brain-env-get-context (&optional context)
   "Retrieves Brain-mode's buffer-local context"
   (if context context brain-bufferlocal-context))
 
-(defun brain-env-context-set-context (context)
+(defun brain-env-set-context (context)
   "Sets Brain-mode's buffer-local context"
   (setq brain-bufferlocal-context context)
   (make-local-variable 'brain-bufferlocal-context))
@@ -68,26 +68,6 @@
   (let ((v (assoc prop json)))
     (if v (string-to-number (cdr v)) default)))
 
-(defun brain-env-parse-context (json context)
-  "Sets variables of the buffer-local context according to a service response"
-  (brain-env-context-set 'min-sharability (brain-env-numeric-value json 'minSharability (brain-env-context-get 'min-sharability context)))
-  (brain-env-context-set 'max-sharability (brain-env-numeric-value json 'maxSharability (brain-env-context-get 'max-sharability context)))
-  (brain-env-context-set 'default-sharability (brain-env-numeric-value json 'defaultSharability (brain-env-context-get 'default-sharability context)))
-  (brain-env-context-set 'min-weight (brain-env-numeric-value json 'minWeight (brain-env-context-get 'min-weight context)))
-  (brain-env-context-set 'max-weight (brain-env-numeric-value json 'maxWeight (brain-env-context-get 'max-weight)))
-  (brain-env-context-set 'default-weight (brain-env-numeric-value json 'defaultWeight (brain-env-context-get 'default-weight)))
-  (brain-env-context-set 'root-id (brain-env-json-get 'root json))
-  (brain-env-context-set 'height
-    ;; Always leave a search view with height 1, rather than that of the last view.
-    ;; The user experience is a little unpredictable otherwise.
-    (if (equal (brain-env-context-get 'mode) brain-const-search-mode)
-      1
-      (brain-env-numeric-value json 'height (brain-env-context-get 'height context))))
-  (let ((style (brain-env-json-get 'style json)))
-    (if style (brain-env-context-set 'style style)))
-  (brain-env-context-set 'title (brain-env-json-get 'title json))
-  (brain-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
-
 (defun brain-env-debug-message (msg)
   "Outputs a debugging message"
   (message "%s" (concat "Debug: " msg)))
@@ -100,9 +80,13 @@
   "Outputs an error message"
   (message "%s" (concat "Error: " msg)))
 
-(defun brain-env-error-no-target ()
-  "Informs the user that an atom was not found"
-  (brain-env-error-message "there is no target associated with this line"))
+(defun brain-env-error-no-focus ()
+  "Informs the user that a focus atom was not found"
+  (brain-env-error-message "there is no atom associated with this line"))
+
+(defun brain-env-error-no-root ()
+  "Informs the user that a root atom was not found"
+  (brain-env-error-message "there is no root atom associated with this view"))
 
 (defun brain-env-using-inference ()
   "Determines whether the current buffer is an inference-enabled view"
@@ -203,10 +187,10 @@
     time))
 
 (defun brain-env-context-get (key &optional context)
-  (brain-env-json-get key (brain-env-context-get-context context)))
+  (brain-env-json-get key (brain-env-get-context context)))
 
 (defun brain-env-context-set (key value &optional context)
-  (setcdr (assoc key (brain-env-context-get-context context)) value))
+  (setcdr (assoc key (brain-env-get-context context)) value))
 
 (defun brain-env-json-get (key json)
   (if json
@@ -231,7 +215,7 @@
   (cons 'min-sharability brain-const-sharability-private)
   (cons 'min-weight brain-const-weight-none)
   (cons 'minimize-verbatim-blocks 'nil)
-  (cons 'mode brain-const-readonly-mode)
+  (cons 'mode brain-const-readwrite-mode)
   (cons 'query 'nil)
   (cons 'query-type 'nil)
   (cons 'root-id 'nil)
@@ -246,7 +230,7 @@
 (defun refresh-context (&optional context)
   (brain-env-context-set 'line (line-number-at-pos) context))
 
-;; change the default sharability in the new view after a user visits a link or target
+;; change the default sharability in the new view after a user visits a link or atom
 ;; The default will never be greater than 0.75 unless explicitly set by the user.
 (defun adjust-default-sharability (sharability)
   (if sharability
