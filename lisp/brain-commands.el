@@ -553,18 +553,17 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-push-view-prompt ()
   (interactive)
-  (prompt-for-char (lambda (ch)
-    (if (eq ch 122)
+  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
       (brain-push-view)
       nil
-    )) "really push view? (press 'z' to confirm)"))
+    ))
 
-(defun brain-navigate-to-focus-atom-and-kill-buffer ()
+(defun brain-update-view-prompt ()
   (interactive)
-  (let ((bname (buffer-name)))
-    (progn (brain-navigate-to-focus-atom)
-	   (kill-buffer bname)
-	   )))
+  (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
+      (brain-update-view)
+      nil
+    ))
 
 (defun visit-focus-value (value-selector value-to-url)
   (lexical-let ((vs value-selector) (vu value-to-url))
@@ -671,26 +670,11 @@ a type has been assigned to it by the inference engine."
   (progn (brain-insert-attr-weight-prompt)
         (next-line)))
 
-(defun brain-push-view-prompt ()
-  (interactive)
-  (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
-      (brain-push-view)
-      nil
-    ))
-
-(defun brain-update-view-prompt ()
-  (interactive)
-  (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
-      (brain-update-view)
-      nil
-    ))
-
 (defun brain-navigate-to-focus-atom-and-kill-buffer ()
   (interactive)
-  (let ((bname (buffer-name)))
+  (let ((name (buffer-name)))
     (progn (brain-navigate-to-focus-atom)
-	   (kill-buffer bname)
-	   )))
+	   (kill-buffer name))))
 
 (defun my-filter (condp lst)
   ;; https://www.emacswiki.org/emacs/ElispCookbook
