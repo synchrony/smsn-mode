@@ -36,9 +36,6 @@
 (defvar update-view-request (create-request "UpdateView"))
 (defvar write-graph-request (create-request "WriteGraph"))
 
-(defun issue-request (request &optional callback)
-  (http-post-and-receive (find-server-url) request callback))
-
 (defun add-to-request (request additional-params)
   (append request additional-params))
 
@@ -64,42 +61,40 @@
     :style (brain-env-context-get 'style))))
 
 (defun do-search (query-type query)
-  (let ((request (create-search-request query-type query))
-        (callback
-          (lambda (payload context)
-            (brain-env-context-set 'root-id nil context)
-            (brain-env-context-set 'line 1 context)
-            (funcall 'brain-view-open payload context))))
-    (issue-request request callback)))
+  (issue-request (create-search-request query-type query) 'search-view-callback))
 
 (defun do-write-graph (format file)
   (let ((request (add-to-request write-graph-request (list
         :format format
         :file file))))
-    (issue-request request 'receive-export-response)))
+    (issue-request request 'export-callback)))
 
 (defun do-read-graph (format file)
   (let ((request (add-to-request read-graph-request (list
         :format format
         :file file))))
-    (issue-request request 'receive-import-response)))
+    (issue-request request 'import-callback)))
 
 (defun do-set-property (id name value)
-  (let ((request (add-to-request set-properties-request (list
+  (brain-view-set-context-line)
+  (let ((request (add-to-request set-properties-request
+      (list
         :id id
         :name name
         :value value))))
-    (issue-request request 'receive-set-properties-response)))
+    (issue-request request (lambda (payload context)
+      (issue-request (create-view-request (brain-env-context-get 'root-id context)) 'brain-view-open)))))
 
 (defun do-push-view ()
-  (let ((request (add-to-request update-view-request (list
+  (let ((request (add-to-request update-view-request
+      (list
         :view (buffer-string)
         :viewFormat "wiki"
         :filter (to-filter)
         :root (brain-env-context-get 'root-id)
         :height (brain-env-context-get 'height)
         :style (brain-env-context-get 'style)))))
-    (issue-request request)))
+    (issue-request request 'brain-view-open)))
 
 ;; from Emacs-w3m w3m-url-encode-string
 (defun brain-client-url-encode (str &optional coding)
@@ -155,21 +150,6 @@
 (defun acknowledge-success (success-message)
     (brain-env-info-message success-message))
 
-(defun receive-export-response (payload context)
-  (acknowledge-success "exported successfully"))
-
-(defun receive-import-response (payload context)
-  (acknowledge-success "imported successfully"))
-
-(defun receive-inference-response (payload context)
-  (acknowledge-success "type inference completed successfully"))
-
-(defun receive-remove-isolated-atoms-response (payload context)
-  (acknowledge-success "removed isolated atoms"))
-
-(defun receive-set-properties-response (payload context)
-  (brain-client-request))
-
 (defun to-filter (&optional context)
   (list
       :minSharability (brain-env-context-get 'min-sharability context)
@@ -179,30 +159,39 @@
       :maxWeight (brain-env-context-get 'max-weight context)
       :defaultWeight (brain-env-context-get 'default-weight context)))
 
-(defun to-query-list (&optional context)
-  (list
-    :action (brain-env-context-get 'action context)
-    :root (brain-env-context-get 'root-id context)
-    :height (brain-env-context-get 'height context)
-    :style (brain-env-context-get 'style context)
-    :includeTypes (if (brain-env-using-inference) "true" "false")
-    :file (brain-env-context-get 'file context)
-    :format (brain-env-context-get 'format context)
-    :query (brain-env-context-get 'query context)
-    :queryType (brain-env-context-get 'query-type context)
-    :valueCutoff (brain-env-context-get 'value-length-cutoff)
-    :view (brain-env-context-get 'view context)
-    :filter (to-filter context)))
+(defun export-callback (payload context)
+  (acknowledge-success "exported successfully"))
 
-(defun http-post-and-receive (url params &optional callback)
+(defun import-callback (payload context)
+  (acknowledge-success "imported successfully"))
+
+(defun inference-callback (payload context)
+  (acknowledge-success "type inference completed successfully"))
+
+(defun remove-isolated-atoms-callback (payload context)
+  (acknowledge-success "removed isolated atoms"))
+
+(defun treeview-callback (payload context)
+  (brain-env-to-treeview-mode context)
+  (brain-view-open payload context))
+
+(defun search-view-callback (payload context)
+  (brain-view-set-context-line 1)
+  (brain-env-to-search-mode context)
+  (brain-view-open payload context))
+
+(defun issue-request (request callback)
+  (http-post-and-receive (find-server-url) request callback))
+
+(defun http-post-and-receive (url request callback)
   ;;(brain-env-debug-message (concat "context: " (json-encode context)))
-  (http-post url params
+  (http-post url request
     (http-callback callback)))
 
-(defun http-callback (&optional callback)
+(defun http-callback (callback)
   (lexical-let
-    ((context (brain-env-get-context))
-     (callback (if callback callback 'brain-view-open)))
+    ((context (copy-alist (brain-env-get-context)))
+     (callback callback))
     (lambda (status)
       (handle-response status context callback))))
 
@@ -232,37 +221,39 @@
   (if (boundp 'brain-server-url) brain-server-url "http://127.0.0.1:8182"))
 
 (defun brain-client-navigate-to-atom (atom-id)
-  (issue-request (create-view-request atom-id)))
+  (brain-view-set-context-line 1)
+  (issue-request (create-view-request atom-id) 'treeview-callback))
 
-(defun brain-client-request ()
-  (brain-client-navigate-to-atom (brain-env-context-get 'root-id)))
+(defun brain-client-refresh-view ()
+  (brain-view-set-context-line)
+  (issue-request (create-view-request (brain-env-context-get 'root-id)) 'treeview-callback))
 
 (defun brain-client-fetch-history ()
-  (issue-request (to-filter-request get-history-request)))
+  (issue-request (to-filter-request get-history-request) 'search-view-callback))
 
 (defun brain-client-fetch-events (height)
-  (issue-request (to-query-request get-events-request)))
+  (issue-request (to-query-request get-events-request) 'search-view-callback))
 
 (defun brain-client-fetch-duplicates ()
-  (issue-request (to-filter-request find-duplicates-request)))
+  (issue-request (to-filter-request find-duplicates-request) 'search-view-callback))
 
 (defun brain-client-fetch-query (query query-type)
   (do-search query-type query))
 
-(defun brain-client-fetch-priorities ()
-  (issue-request (to-query-request get-priorities-request)))
-
-(defun brain-client-fetch-find-isolated-atoms ()
-  (issue-request (to-filter-request find-isolated-atoms-request)))
-
-(defun brain-client-fetch-find-roots ()
-  (issue-request (to-query-request find-roots-request)))
-
-(defun brain-client-fetch-remove-isolated-atoms ()
-  (issue-request (to-filter-request remove-isolated-atoms-request) 'receive-remove-isolated-atoms-response))
-
 (defun brain-client-fetch-ripple-response (query)
   (do-search "Ripple" query))
+
+(defun brain-client-fetch-priorities ()
+  (issue-request (to-query-request get-priorities-request) 'search-view-callback))
+
+(defun brain-client-fetch-find-isolated-atoms ()
+  (issue-request (to-filter-request find-isolated-atoms-request) 'search-view-callback))
+
+(defun brain-client-fetch-find-roots ()
+  (issue-request (to-query-request find-roots-request) 'search-view-callback))
+
+(defun brain-client-fetch-remove-isolated-atoms ()
+  (issue-request (to-filter-request remove-isolated-atoms-request) 'remove-isolated-atoms-callback))
 
 (defun brain-client-export (format file)
   (do-write-graph format file))
@@ -275,16 +266,17 @@
     (do-set-property id name value)))
 
 (defun brain-client-push-view ()
+  (brain-view-set-context-line)
   (do-push-view))
 
 (defun brain-client-infer-types ()
-  (issue-request infer-types-request 'receive-inference-response))
+  (issue-request infer-types-request 'inference-callback))
 
 (defun brain-client-set-min-weight (s)
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ()
       (brain-env-context-set 'min-weight s)
-      (brain-client-request))
+      (brain-client-refresh-view))
     (brain-env-error-message
      (concat "min weight " (number-to-string s) " is outside of range [0, 1]"))))
 
@@ -292,7 +284,7 @@
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ()
       (brain-env-context-set 'min-sharability s)
-      (brain-client-request))
+      (brain-client-refresh-view))
     (brain-env-error-message
      (concat "min sharability " (number-to-string s) " is outside of range [0, 1]"))))
 

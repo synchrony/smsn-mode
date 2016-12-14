@@ -32,17 +32,11 @@
 (dolist (pair line-addr-keypairs)
   (puthash (car pair) (car (cdr pair)) line-addr-keymap))
 
-
-(defun brain-kill-other-buffers ()
-  "Kill all other brain-mode buffers."
-  (interactive)
-  (mapc 'kill-buffer
-	(my-filter
-	 (lambda (bname)
-	   (eq (buffer-local-value 'major-mode (get-buffer bname))
-	       'brain-mode))
-	 (delq (current-buffer) (buffer-list))
-	 )))
+(defun assert-readwrite-context ()
+  "Asserts that the current Brain-mode buffer is in a writable state"
+  (if (brain-env-is-readonly)
+    (brain-env-fail (concat "cannot update view in current mode: " (brain-env-context-get 'mode))) nil)
+    (brain-env-succeed))
 
 (defun brain-atom-info (selector)
   "display, in the minibuffer, information about an atom produced by SELECTOR"
@@ -61,13 +55,6 @@
     (if id
         (copy-to-clipboard (concat "*" (brain-view-create-id-infix id)))
       (brain-env-error-no-focus))))
-(defun brain-copy-root-reference-to-clipboard ()
-  "copy a reference to the atom at point to the system clipboard"
-  (interactive)
-  (let ((id (brain-data-root-id)))
-    (if id
-        (copy-to-clipboard (concat "*" (brain-view-create-id-infix id)))
-      (brain-env-error-no-root))))
 
 (defun brain-copy-focus-value-to-clipboard ()
   "copy the value of the atom at point to the system clipboard"
@@ -77,6 +64,20 @@
         (copy-to-clipboard value)
       (brain-env-error-no-focus))))
 
+(defun brain-copy-root-reference-to-clipboard ()
+  "copy a reference to the atom at point to the system clipboard"
+  (interactive)
+  (let ((id (brain-data-root-id)))
+    (if id
+        (copy-to-clipboard (concat "*" (brain-view-create-id-infix id)))
+      (brain-env-error-no-root))))
+
+(defun brain-debug ()
+  "executes a debug action (by default a no-op)"
+  (interactive)
+  (brain-env-debug-message (concat "current mode: " (brain-env-context-get 'mode)))
+  )
+
 (defun brain-duplicates ()
   "retrieve a list of atoms with duplicate values"
   (interactive)
@@ -85,19 +86,18 @@
 (defun brain-enter-readwrite-view ()
   "enter edit (read/write) mode in the current view"
   (interactive)
-  (if (brain-env-in-readonly-mode)
+  (if (brain-env-is-readonly)
     (let ()
-      (brain-env-context-set-readwrite)
-      ;;(brain-env-debug-message (concat "context before: " (json-encode context)))
-      (brain-client-request))))
+      (brain-env-set-readonly nil)
+      (brain-client-refresh-view))))
 
 (defun brain-enter-readonly-view ()
   "enter read-only mode in the current view"
   (interactive)
-  (if (brain-env-in-readwrite-mode)
+  (if (not (brain-env-is-readonly))
     (let ()
-      (brain-env-context-set-readonly)
-      (brain-client-request))))
+      (brain-env-set-readonly t)
+      (brain-client-refresh-view))))
 
 (defun brain-events ()
   "retrieve the MyOtherBrain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
@@ -211,6 +211,17 @@
   (interactive)
   (insert (brain-env-format-time (current-time) t)))
 
+(defun brain-kill-other-buffers ()
+  "Kill all other brain-mode buffers."
+  (interactive)
+  (mapc 'kill-buffer
+	(my-filter
+	 (lambda (bname)
+	   (eq (buffer-local-value 'major-mode (get-buffer bname))
+	       'brain-mode))
+	 (delq (current-buffer) (buffer-list))
+	 )))
+
 (defun brain-preview-focus-latex-math ()
   "create a graphical preview of the value of the atom at point, which must be a LaTeX mathematical expression"
   (interactive)
@@ -226,7 +237,7 @@
 (defun brain-push-view ()
   "push an up-to-date view into the knowledge base"
   (interactive)
-  (if (brain-env-assert-readwrite-context)
+  (if (assert-readwrite-context)
     (brain-client-push-view)))
 
 (defun brain-ripple-query (query)
@@ -298,7 +309,7 @@ A value of -1 indicates that values should not be truncated."
     (if (brain-env-assert-height-in-bounds  height)
       (let ()
         (brain-env-context-set 'height height)
-        (brain-client-request)))))
+        (brain-client-refresh-view)))))
 
 (defun brain-toggle-emacspeak ()
   "turn Emacspeak on or off"
@@ -339,24 +350,24 @@ a type has been assigned to it by the inference engine."
 (defun brain-update-to-backward-view ()
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-view-mode)
+  (if (brain-env-in-treeview-mode)
     (let ()
       (brain-env-context-set-backward-style)
-      (brain-client-request))))
+      (brain-client-refresh-view))))
 
 (defun brain-update-to-forward-view ()
   "switch to a 'forward' view (the default), i.e. a view in which an atom's children appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-view-mode)
+  (if (brain-env-in-treeview-mode)
     (let ()
       (brain-env-context-set-forward-style)
-      (brain-client-request))))
+      (brain-client-refresh-view))))
 
 (defun brain-update-view ()
   "refresh the current view from the data store"
   (interactive)
-  (if (brain-env-in-view-mode)
-    (brain-client-request)))
+  (if (brain-env-in-treeview-mode)
+    (brain-client-refresh-view)))
 
 (defun brain-visit-in-amazon (value-selector)
   "search Amazon.com for the value generated by VALUE-SELECTOR and view the results in a browser"
@@ -752,6 +763,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c u")           'brain-update-view)
     (define-key brain-mode-map (kbd "C-c v")           'brain-copy-focus-value-to-clipboard)
     (define-key brain-mode-map (kbd "C-c .")           'brain-copy-root-reference-to-clipboard)
+    (define-key brain-mode-map (kbd "C-c C-c")         'brain-debug)
     (define-key brain-mode-map (kbd "C-x C-k o")       'brain-kill-other-buffers)
 ))
 

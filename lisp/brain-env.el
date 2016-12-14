@@ -14,11 +14,9 @@
 (defconst brain-const-max-height 7
   "The maximum allowed height of a view")
 
-(defconst brain-const-readonly-mode "readonly"
+(defconst brain-const-treeview-mode "treeview-mode"
   "A state in which view buffers are not editable")
-(defconst brain-const-readwrite-mode "readwrite"
-  "A state in which view buffers are editable")
-(defconst brain-const-search-mode "search"
+(defconst brain-const-search-mode "search-mode"
   "A state for immutable search results")
 
 (defconst brain-const-color-by-sharability "sharability"
@@ -63,11 +61,6 @@
   "Populates a first definition of buffer-local context with default values"
   (defvar brain-bufferlocal-context (default-context)))
 
-(defun brain-env-numeric-value (json prop default)
-  "Reads a numeric value from a map"
-  (let ((v (assoc prop json)))
-    (if v (string-to-number (cdr v)) default)))
-
 (defun brain-env-debug-message (msg)
   "Outputs a debugging message"
   (message "%s" (concat "Debug: " msg)))
@@ -100,25 +93,35 @@
   "Fails an assertion with the given message"
   (and (brain-env-error-message message) nil))
 
-(defun brain-env-in-readonly-mode ()
+(defun brain-env-is-readonly ()
   "Determines whether the current buffer is a read-only tree view"
-  (equal (brain-env-context-get 'mode) brain-const-readonly-mode))
+  (not (equal (brain-env-context-get 'readonly) 'nil)))
 
-(defun brain-env-in-readwrite-mode ()
-  "Determines whether the current buffer is an editable tree view"
-  (equal (brain-env-context-get 'mode) brain-const-readwrite-mode))
+(defun brain-env-set-treeview-mode ()
+  "Marks the current buffer as a tree view"
+  (brain-env-context-set 'mode brain-const-treeview-mode))
+
+(defun brain-env-set-search-mode ()
+  "Marks the current buffer as a search/other view"
+  (brain-env-context-set 'mode brain-const-search-mode))
+
+(defun brain-env-in-treeview-mode ()
+  "Determines whether the current buffer is a tree view"
+  (equal (brain-env-context-get 'mode) brain-const-treeview-mode))
 
 (defun brain-env-in-search-mode ()
   "Determines whether the current buffer is a page of search results"
   (equal (brain-env-context-get 'mode) brain-const-search-mode))
 
-(defun brain-env-context-set-readonly (&optional context)
-  "Switches to a read-only tree view"
-  (brain-env-context-set 'mode brain-const-readonly-mode context))
+(defun brain-env-to-treeview-mode (&optional context)
+  (brain-env-context-set 'mode brain-const-treeview-mode context))
 
-(defun brain-env-context-set-readwrite (&optional context)
-  "Switches to an editable tree view"
-  (brain-env-context-set 'mode brain-const-readwrite-mode context))
+(defun brain-env-to-search-mode (&optional context)
+  (brain-env-context-set 'mode brain-const-search-mode context))
+
+(defun brain-env-set-readonly (readonly &optional context)
+  "Switches to a read-only tree view"
+  (brain-env-context-set 'readonly (if readonly t 'nil) context))
 
 (defun brain-env-context-set-forward-style (&optional context)
   "Switches to the default, parent-to-child style of tree view"
@@ -128,35 +131,11 @@
   "Switches to the inverse (child-to-parent) style of tree view"
   (brain-env-context-set 'style brain-const-backward-style context))
 
-(defun brain-env-in-view-mode ()
-  "Determines whether the current buffer is an atom's tree view, as opposed to a page of search results, etc."
-  (let ((mode (brain-env-context-get 'mode)))
-    (if (or
-        (equal mode brain-const-readonly-mode)
-        (equal mode brain-const-readwrite-mode))
-      t
-    (brain-env-fail (concat "cannot create tree view in mode '" mode "'")) nil)))
-
 (defun brain-env-in-setproperties-mode ()
   "Determines whether atom properties can be set in the current buffer"
-  (if (or
-       (equal (brain-env-context-get 'mode) brain-const-search-mode)
-       (equal (brain-env-context-get 'mode) brain-const-readonly-mode)
-       (equal (brain-env-context-get 'mode) brain-const-readwrite-mode))
-      t
-    (brain-env-fail "cannot set properties in current mode") nil))
-
-(defun brain-env-is-readwrite-context (&optional context)
-  "Asserts that the current Brain-mode buffer is in a read-only state"
-  (let ((mode (brain-env-context-get 'mode context)))
-    (and mode
-      (equal mode brain-const-readwrite-mode))))
-
-(defun brain-env-assert-readwrite-context ()
-  "Asserts that the current Brain-mode buffer is in a writable state"
-  (if (brain-env-is-readwrite-context)
-    (brain-env-succeed)
-    (brain-env-fail (concat "cannot update view in current mode: " (brain-env-context-get 'mode))) nil))
+  (or
+     (brain-env-in-search-mode)
+     (brain-env-in-treeview-mode)))
 
 (defun brain-env-assert-height-in-bounds (height)
   "Asserts that a view height is positive and not greater than the maximum allowed height"
@@ -190,7 +169,8 @@
   (brain-env-json-get key (brain-env-get-context context)))
 
 (defun brain-env-context-set (key value &optional context)
-  (setcdr (assoc key (brain-env-get-context context)) value))
+  (setcdr (assoc key (brain-env-get-context context))
+          (if value value 'nil)))
 
 (defun brain-env-json-get (key json)
   (if json
@@ -215,10 +195,11 @@
   (cons 'min-sharability brain-const-sharability-private)
   (cons 'min-weight brain-const-weight-none)
   (cons 'minimize-verbatim-blocks 'nil)
-  (cons 'mode brain-const-readwrite-mode)
+  (cons 'mode brain-const-search-mode)
   (cons 'query 'nil)
   (cons 'query-type 'nil)
   (cons 'root-id 'nil)
+  (cons 'readonly 'nil)
   (cons 'style brain-const-forward-style)
   (cons 'title 'nil)
   (cons 'truncate-long-lines 'nil)
@@ -227,20 +208,12 @@
   (cons 'view-properties 'nil)
   (cons 'view-style brain-const-color-by-sharability)))
 
-(defun refresh-context (&optional context)
-  (brain-env-context-set 'line (line-number-at-pos) context))
-
 ;; change the default sharability in the new view after a user visits a link or atom
 ;; The default will never be greater than 0.75 unless explicitly set by the user.
 (defun adjust-default-sharability (sharability)
   (if sharability
       (if (<= sharability 0.75) sharability 0.75)
     0.5))
-
-(defun mode-for-visit ()
-  (if (or (equal (brain-env-context-get 'mode) brain-const-readwrite-mode) (equal (brain-env-context-get 'mode) brain-const-readonly-mode))
-      (brain-env-context-get 'mode)
-    brain-const-readonly-mode))
 
 
 (provide 'brain-env)

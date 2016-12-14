@@ -81,7 +81,7 @@
                     (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
 
-(defun write-view (editable children tree-indent)
+(defun write-view (children tree-indent)
   (loop for json across children do
         (let (
               (link (brain-env-json-get 'link json))
@@ -101,8 +101,6 @@
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
             (let ((line "") (id-infix (brain-view-create-id-infix focus-id)))
-              (if (not editable)
-                  (setq id-infix (propertize id-infix 'invisible t)))
               (setq line (concat line space))
               (let ((bullet (if focus-has-children "+" "\u00b7"))) ;; previously: "-" or "\u25ba"
                 (setq line (concat line
@@ -128,7 +126,7 @@
                     (insert (make-light-gray (concat space "    @shortcut    " focus-shortcut "\n"))))
                 (if focus-alias
                     (insert (make-light-gray (concat space "    @alias       " focus-alias "\n"))))))
-            (write-view editable children (+ tree-indent 4))))))
+            (write-view children (+ tree-indent 4))))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -159,64 +157,76 @@
       (concat (shorten-title title 20) " [" root-id "]")
       title)))
 
-(defun switch-to-buffer-context (name context)
-  "activate Brain-mode in all new view buffers created by Brain-mode"
+(defun switch-to-buffer-with-context (name context)
+  "activate Brain-mode in a new view buffer created by Brain-mode"
   (switch-to-buffer name)
   (setq buffer-read-only nil)
   (brain-mode)
   (brain-env-set-context context))
 
-(defun parse-to-context (payload)
+(defun read-string-value (context-variable payload-variable payload)
+  (let ((value (brain-env-json-get payload-variable payload)))
+    (if value (brain-env-context-set context-variable value))))
+
+(defun read-numeric-value (context-variable payload-variable payload)
+  (let ((value (brain-env-json-get payload-variable payload)))
+    (if value (brain-env-context-set context-variable (string-to-number value)))))
+
+(defun configure-context (payload)
   "Sets variables of the buffer-local context according to a service response"
-  (brain-env-context-set 'min-sharability (brain-env-numeric-value payload 'minSharability (brain-env-context-get 'min-sharability)))
-  (brain-env-context-set 'max-sharability (brain-env-numeric-value payload 'maxSharability (brain-env-context-get 'max-sharability)))
-  (brain-env-context-set 'default-sharability (brain-env-numeric-value payload 'defaultSharability (brain-env-context-get 'default-sharability)))
-  (brain-env-context-set 'min-weight (brain-env-numeric-value payload 'minWeight (brain-env-context-get 'min-weight)))
-  (brain-env-context-set 'max-weight (brain-env-numeric-value payload 'maxWeight (brain-env-context-get 'max-weight)))
-  (brain-env-context-set 'default-weight (brain-env-numeric-value payload 'defaultWeight (brain-env-context-get 'default-weight)))
-  (brain-env-context-set 'root-id (brain-env-json-get 'root payload))
-  (brain-env-context-set 'height
-    ;; Always leave a search view with height 1, rather than that of the last view.
-    ;; The user experience is a little unpredictable otherwise.
-    (if (equal (brain-env-context-get 'mode) brain-const-search-mode)
-      1
-      (brain-env-numeric-value payload 'height (brain-env-context-get 'height))))
-  (let ((style (brain-env-json-get 'style payload)))
-    (if style (brain-env-context-set 'style style)))
-  (brain-env-context-set 'title (brain-env-json-get 'title payload))
+  (read-string-value 'root-id 'root payload)
+  (read-string-value 'style 'style payload)
+  (read-string-value 'title 'title payload)
+  (read-numeric-value 'height 'height payload)
+  (read-numeric-value 'min-sharability 'minSharability payload)
+  (read-numeric-value 'max-sharability 'maxSharability payload)
+  (read-numeric-value 'default-sharability 'defaultSharability payload)
+  (read-numeric-value 'min-weight 'minWeight payload)
+  (read-numeric-value 'max-weight 'maxWeight payload)
+  (read-numeric-value 'default-weight 'defaultWeight payload))
+
+(defun brain-view-set-context-line (&optional line)
+  (brain-env-context-set 'line
+    (if line line (line-number-at-pos))))
+
+;; Try to move to the corresponding line in the previous view.
+;; This is not always possible and not always helpful, but it is often both.
+(defun move-to-context-line ()
+  (let ((line (brain-env-context-get 'line)))
+    (if line
+      (beginning-of-line line)
+      (error "no line number"))))
+
+(defun create-atom-hashtable ()
   (brain-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
 
-(defun open-internal (payload prev-context)
-  (let ((context (copy-alist prev-context))
-        (editable (brain-env-is-readwrite-context prev-context)))
-    (let (
-        (view (brain-env-json-get 'view payload))
-        (root-id (brain-env-json-get 'root payload))
-        (height (brain-env-numeric-value payload 'height nil)))
-          (switch-to-buffer-context (name-for-view-buffer root-id payload) context)
-          (parse-to-context payload)
-          (if (brain-env-in-search-mode)
-              ;; Always leave a search view with height 1, rather than that of the last view.
-              ;; The user experience is a little unpredictable otherwise.
-              (setq brain-current-height 1)
-              (if height (setq brain-current-height height)))
-          (erase-buffer)
-          (if (not (brain-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
-          (write-view editable (brain-env-json-get 'children view) 0)
-          (beginning-of-buffer)
-          (setq visible-cursor t)
-          ;; Try to move to the corresponding line in the previous view.
-          ;; This is not always possible and not always helpful, but it is often both.
-          (beginning-of-line (brain-env-context-get 'line))
-          (setq buffer-read-only (not editable))
-          ;; always include line numbers in views
-          (linum-mode t)
-          ;;(brain-env-info-message (concat "updated to view " (view-info)))
-          )))
+;; always include line numbers in views
+(defun show-line-numbers ()
+  (linum-mode t))
+
+(defun is-readonly ()
+  (or (brain-env-is-readonly)
+    (brain-env-in-search-mode)))
+
+(defun configure-buffer ()
+  (if (not (brain-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
+  (beginning-of-buffer)
+  (setq visible-cursor t)
+  (move-to-context-line)
+  (setq buffer-read-only (is-readonly))
+  (show-line-numbers))
+
+(defun write-to-buffer (payload)
+  (write-view (brain-env-json-get 'children (brain-env-json-get 'view payload)) 0))
 
 (defun brain-view-open (payload context)
   "Callback to receive and display the data of a view"
-  (open-internal payload context))
+  (switch-to-buffer-with-context (name-for-view-buffer (brain-env-json-get 'root payload) payload) context)
+  (configure-context payload)
+  (create-atom-hashtable)
+  (erase-buffer)
+  (write-to-buffer payload)
+  (configure-buffer))
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
