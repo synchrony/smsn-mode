@@ -633,12 +633,13 @@ a type has been assigned to it by the inference engine."
     (let ((c (read-char prompt)))
       (if c (funcall function c))))))
 
-;; "edit" and "move" submodes
-    ;; editing is still possible in move-mode,
-    ;; but some keys will not print to screen
+;; "edit"(default) and "move" submodes
+    ;; some editing (esp. cut|paste and of properties) is still
+    ;; possible in move-mode, but some keys do not print to screen
 
 (if (boundp 'brain-move-submode-map) ()
   (defconst brain-move-submode-map '(
+    (";" . brain-toggle-truncate-lines)
     ("b" . brain-update-to-backward-view)
     ("c" . kill-ring-save)
     ("f" . brain-update-to-forward-view)
