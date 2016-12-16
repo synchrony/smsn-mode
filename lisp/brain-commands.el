@@ -100,12 +100,18 @@
       (brain-client-refresh-view))))
 
 (defun brain-events ()
-  "retrieve the MyOtherBrain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
+  "retrieve the Extend-o-Brain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
   (interactive)
   (brain-client-fetch-events 2))
 
+(defun brain-export-vcs (file)
+  "export graph as version-controlled directory"
+  (interactive)
+  (brain-env-info-message (concat "exporting VCS dump to " file))
+  (brain-client-export "VCS" file))
+
 (defun brain-export-edges (file)
-  "export tab-separated dump of MyOtherBrain parent-child edges to the file system"
+  "export tab-separated dump of Extend-o-Brain parent-child edges to the file system"
   (interactive)
   (brain-env-info-message (concat "exporting edges to " file))
   (brain-client-export "Edges" file))
@@ -123,7 +129,7 @@
   (brain-client-export "LaTeX" file))
 
 (defun brain-export-pagerank (file)
-  "export a tab-separated PageRank ranking of MyOtherBrain atoms to the file system"
+  "export a tab-separated PageRank ranking of Extend-o-Brain atoms to the file system"
   (interactive)
   (brain-env-info-message (concat "computing and exporting PageRank to " file))
   (brain-client-export "PageRank" file))
@@ -135,7 +141,7 @@
   (brain-client-export "N-Triples" file))
 
 (defun brain-export-vertices (file)
-  "export tab-separated dump of MyOtherBrain vertices (atoms) to the file system"
+  "export tab-separated dump of Extend-o-Brain vertices (atoms) to the file system"
   (interactive)
   (brain-env-info-message (concat "exporting vertices to " file))
   (brain-client-export "Vertices" file))
@@ -173,7 +179,7 @@
   (brain-client-fetch-history))
 
 (defun brain-infer-types ()
-  "perform type inference on the MyOtherBrain knowledge base, adding type annotations"
+  "perform type inference on the Extend-o-Brain knowledge base, adding type annotations"
   (interactive)
   (brain-env-info-message "performing type inference")
   (brain-client-infer-types))
@@ -490,6 +496,10 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-char 'brain-set-view-height "height = ?"))
 
+(defun brain-export-vcs-prompt ()
+  (interactive)
+  (prompt-for-string 'brain-export-vcs "export version control dump to directory: " brain-default-vcs-file))
+
 (defun brain-export-edges-prompt ()
   (interactive)
   (prompt-for-string 'brain-export-edges "export edges to file: " brain-default-edges-file))
@@ -739,6 +749,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-v t")       'brain-set-value-truncation-length-prompt)
     (define-key brain-mode-map (kbd "C-c C-v v")       'brain-toggle-minimize-verbatim-blocks)
     (define-key brain-mode-map (kbd "C-c C-w C-m")     'brain-set-min-weight-prompt)
+    (define-key brain-mode-map (kbd "C-c C-w c")       'brain-export-vcs-prompt)
     (define-key brain-mode-map (kbd "C-c C-w e")       'brain-export-edges-prompt)
     (define-key brain-mode-map (kbd "C-c C-w g")       'brain-export-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-w l")       'brain-export-latex-prompt)
