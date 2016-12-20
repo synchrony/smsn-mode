@@ -18,10 +18,13 @@
   (let ((action-class (concat "net.fortytwo.smsn.server.actions." action-name)))
     (list :action action-class)))
 
+(defun add-to-request (request additional-params)
+  (append request additional-params))
+
 (defvar broadcast-rdf-request (create-request "BroadcastRDF"))
 (defvar find-duplicates-request (create-request "FindDuplicates"))
 (defvar find-isolated-atoms-request (create-request "FindIsolatedAtoms"))
-(defvar find-roots-request (create-request "FindRoots"))
+(defvar find-roots-request (add-to-request (create-request "FindRoots") (list :height 1)))
 (defvar get-events-request (create-request "GetEvents"))
 (defvar get-history-request (create-request "GetHistory"))
 (defvar get-priorities-request (create-request "GetPriorities"))
@@ -35,9 +38,6 @@
 (defvar set-properties-request (create-request "SetProperties"))
 (defvar update-view-request (create-request "UpdateView"))
 (defvar write-graph-request (create-request "WriteGraph"))
-
-(defun add-to-request (request additional-params)
-  (append request additional-params))
 
 (defun to-filter-request (base-request)
   (add-to-request base-request (list
@@ -249,7 +249,7 @@
 (defun brain-client-fetch-find-isolated-atoms ()
   (issue-request (to-filter-request find-isolated-atoms-request) 'search-view-callback))
 
-(defun brain-client-fetch-find-roots ()
+(defun brain-client-find-roots ()
   (issue-request (to-query-request find-roots-request) 'search-view-callback))
 
 (defun brain-client-fetch-remove-isolated-atoms ()

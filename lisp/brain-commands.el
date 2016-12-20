@@ -177,7 +177,7 @@
 (defun brain-find-roots ()
   "retrieve a list of roots (i.e. atoms with no parents) in the knowledge base"
   (interactive)
-  (brain-client-fetch-find-roots))
+  (brain-client-find-roots))
 
 (defun brain-history ()
   "retrieve a list of the most recently viewed or updated atoms, in decreasing order of recency"
