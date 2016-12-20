@@ -151,8 +151,8 @@
     (concat (substring str 0 maxlen) "...")
     str))
 
-(defun name-for-view-buffer (root-id json)
-  (let ((title (brain-env-json-get 'title json)))
+(defun name-for-view-buffer (root-id payload)
+  (let ((title (brain-env-json-get 'title payload)))
     (if root-id
       (concat (shorten-title title 20) " [" root-id "]")
       title)))
@@ -174,16 +174,18 @@
 
 (defun configure-context (payload)
   "Sets variables of the buffer-local context according to a service response"
-  (read-string-value 'root-id 'root payload)
-  (read-string-value 'style 'style payload)
-  (read-string-value 'title 'title payload)
-  (read-numeric-value 'height 'height payload)
-  (read-numeric-value 'min-sharability 'minSharability payload)
-  (read-numeric-value 'max-sharability 'maxSharability payload)
-  (read-numeric-value 'default-sharability 'defaultSharability payload)
-  (read-numeric-value 'min-weight 'minWeight payload)
-  (read-numeric-value 'max-weight 'maxWeight payload)
-  (read-numeric-value 'default-weight 'defaultWeight payload))
+  (let ((view (brain-data-payload-view payload)))
+    (read-string-value 'root-id 'root payload)
+    (read-string-value 'style 'style payload)
+    (read-string-value 'title 'title payload)
+    (read-numeric-value 'height 'height payload)
+    (read-numeric-value 'min-sharability 'minSharability payload)
+    (read-numeric-value 'max-sharability 'maxSharability payload)
+    (brain-env-context-set 'default-sharability (brain-data-atom-sharability view))
+    ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
+    (read-numeric-value 'min-weight 'minWeight payload)
+    (read-numeric-value 'max-weight 'maxWeight payload)
+    (read-numeric-value 'default-weight 'defaultWeight payload)))
 
 (defun brain-view-set-context-line (&optional line)
   (brain-env-context-set 'line
@@ -217,11 +219,12 @@
   (show-line-numbers))
 
 (defun write-to-buffer (payload)
-  (write-view (brain-env-json-get 'children (brain-env-json-get 'view payload)) 0))
+  (write-view (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
 
 (defun brain-view-open (payload context)
   "Callback to receive and display the data of a view"
-  (switch-to-buffer-with-context (name-for-view-buffer (brain-env-json-get 'root payload) payload) context)
+  (switch-to-buffer-with-context
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload) context)
   (configure-context payload)
   (create-atom-hashtable)
   (erase-buffer)

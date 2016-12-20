@@ -146,6 +146,12 @@
   (brain-env-info-message (concat "exporting vertices to " file))
   (brain-client-export "Vertices" file))
 
+(defun brain-import-vcs (file)
+  "import a graph from a set of version-controlled directories into the knowledge base"
+  (interactive)
+  (brain-env-info-message (concat "importing version-controlleg graph from " file))
+  (brain-client-import "VCS" file))
+
 (defun brain-import-freeplane (file)
   "import one or more Freeplane files into the knowledge base"
   (interactive)
@@ -498,7 +504,7 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-export-vcs-prompt ()
   (interactive)
-  (prompt-for-string 'brain-export-vcs "export version control dump to directory: " brain-default-vcs-file))
+  (prompt-for-string 'brain-export-vcs "export version-controlled graph to directory: " brain-default-vcs-file))
 
 (defun brain-export-edges-prompt ()
   (interactive)
@@ -523,6 +529,10 @@ a type has been assigned to it by the inference engine."
 (defun brain-export-vertices-prompt ()
   (interactive)
   (prompt-for-string 'brain-export-vertices "export vertices to file: " brain-default-vertices-file))
+
+(defun brain-import-vcs-prompt ()
+  (interactive)
+  (prompt-for-string 'brain-import-vcs "import version-controlled graph from directory: " brain-default-vcs-file))
 
 (defun brain-import-freeplane-prompt ()
   (interactive)
@@ -721,6 +731,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-f")         'brain-find-roots)
     (define-key brain-mode-map (kbd "C-c C-i f")       'brain-find-isolated-atoms)
     (define-key brain-mode-map (kbd "C-c C-i r")       'brain-remove-isolated-atoms)
+    (define-key brain-mode-map (kbd "C-c C-r c")       'brain-import-vcs-prompt)
     (define-key brain-mode-map (kbd "C-c C-r f")       'brain-import-freeplane-prompt)
     (define-key brain-mode-map (kbd "C-c C-r g")       'brain-import-graphml-prompt)
     (define-key brain-mode-map (kbd "C-c C-s C-m")     'brain-set-min-sharability-prompt)

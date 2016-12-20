@@ -17,6 +17,9 @@
   (interactive)
   (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
 
+(defun brain-data-payload-view (payload)
+  (brain-env-json-get 'view payload))
+
 (defun brain-data-root-id ()
   (brain-env-context-get 'root-id))
 
