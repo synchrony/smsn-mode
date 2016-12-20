@@ -675,7 +675,6 @@ a type has been assigned to it by the inference engine."
     ("L" . move-end-of-line)
     ("n" . brain-navigate-to-focus-atom-and-kill-buffer)
     ("o" . other-window)
-    ("P" . brain-push-view-prompt) ;; shortcut is effectively "p z"
     ("p" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
     ("s" . brain-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . brain-navigate-to-focus-atom)
