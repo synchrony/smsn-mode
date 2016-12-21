@@ -673,7 +673,7 @@ a type has been assigned to it by the inference engine."
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
-    ("m",  brain-push-view-prompt)
+    ("m" . brain-push-view-prompt) ;; shortcut is effectively "m z"
     ("n" . brain-navigate-to-focus-atom-and-kill-buffer)
     ("o" . other-window)
     ("p" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
