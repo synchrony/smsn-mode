@@ -673,14 +673,15 @@ a type has been assigned to it by the inference engine."
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
+    ("m",  brain-push-view-prompt)
     ("n" . brain-navigate-to-focus-atom-and-kill-buffer)
     ("o" . other-window)
     ("p" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
+    ("q" . kill-buffer)
     ("s" . brain-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . brain-navigate-to-focus-atom)
     ("u" . undo)
     ("v" . yank)
-    ("W" . kill-buffer)
     ("w" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
     ("x" . kill-region)
     ("z" . set-mark-command)
