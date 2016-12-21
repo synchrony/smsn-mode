@@ -172,6 +172,9 @@
   (let ((value (brain-env-json-get payload-variable payload)))
     (if value (brain-env-context-set context-variable (string-to-number value)))))
 
+(defun find-default-sharability (root-sharability)
+  (min brain-const-sharability-public root-sharability))
+
 (defun configure-context (payload)
   "Sets variables of the buffer-local context according to a service response"
   (let ((view (brain-data-payload-view payload)))
@@ -181,7 +184,7 @@
     (read-numeric-value 'height 'height payload)
     (read-numeric-value 'min-sharability 'minSharability payload)
     (read-numeric-value 'max-sharability 'maxSharability payload)
-    (brain-env-context-set 'default-sharability (brain-data-atom-sharability view))
+    (brain-env-context-set 'default-sharability (find-default-sharability (brain-data-atom-sharability view)))
     ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
     (read-numeric-value 'min-weight 'minWeight payload)
     (read-numeric-value 'max-weight 'maxWeight payload)
