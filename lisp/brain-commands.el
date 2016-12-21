@@ -673,7 +673,6 @@ a type has been assigned to it by the inference engine."
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
-    ("m" . brain-push-view-prompt) ;; shortcut is effectively "m z"
     ("n" . brain-navigate-to-focus-atom-and-kill-buffer)
     ("o" . other-window)
     ("p" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
@@ -684,6 +683,7 @@ a type has been assigned to it by the inference engine."
     ("v" . yank)
     ("w" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
     ("x" . kill-region)
+    ("y" . brain-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
 
