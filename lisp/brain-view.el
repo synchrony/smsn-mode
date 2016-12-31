@@ -13,12 +13,6 @@
 (require 'brain-env)
 
 
-(defun context-for-request (&optional context)
-  (let ((ctx (if context context (brain-env-get-context))))
-    (set-view nil ctx)
-    (set-atoms-by-id nil ctx)
-    ctx))
-
 ;; unused colors: black/gray, orange
 (defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
 (defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
@@ -26,7 +20,7 @@
 (defconst inference-base-colors '("#660066" "#006666"))
 (defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
 
-(defvar full-colors-supported (> (length (defined-colors)) 8))
+(defvar brain-view-full-colors-supported (> (length (defined-colors)) 8))
 
 (defun color-part-red (color)
   (string-to-number (substring color 1 3) 16))
@@ -59,7 +53,7 @@
      (fade-color (color-part-blue s) weight))))
 
 (defun colorize (text weight sharability priority-bg priority-fg bright has-meta)
-  (let ((color (if full-colors-supported
+  (let ((color (if brain-view-full-colors-supported
                    (atom-color weight sharability bright has-meta)
                  (elt sharability-reduced-colors (- (ceiling (* sharability 4)) 1)))))
     (setq l (list
@@ -72,7 +66,7 @@
     (propertize text 'face l)))
 
 (defun light-gray ()
-  (if full-colors-supported
+  (if brain-view-full-colors-supported
     (list :foreground "grey80" :background "white")
     (list :foreground "black")))
 
@@ -84,128 +78,165 @@
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
             (concat "{{{"
-                    (if (get-minimize-verbatim-blocks) (propertize content 'invisible t) content)
+                    (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
 
-(defun write-view (editable children tree-indent)
+(defun write-view (children tree-indent)
   (loop for json across children do
         (let (
-              (link (get-value 'link json))
-              (children (get-value 'children json)))
-          (let ((target-id (brain-data-atom-id json))
-                (target-value (let ((v (brain-data-atom-value json))) (if v v "")))
-		        (target-weight (brain-data-atom-weight json))
-		        (target-sharability (brain-data-atom-sharability json))
-		        (target-priority (brain-data-atom-priority json))
-                (target-has-children (not (equal json-false (get-value 'hasChildren json))))
-		        (target-alias (brain-data-atom-alias json))
-		        (target-shortcut (brain-data-atom-shortcut json))
-		        (target-meta (brain-data-atom-meta json)))
-            (if target-id
-              (puthash target-id json (get-atoms-by-id))
-              (error "missing target id"))
+              (link (brain-env-json-get 'link json))
+              (children (brain-env-json-get 'children json)))
+          (let ((focus-id (brain-data-atom-id json))
+                (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
+		        (focus-weight (brain-data-atom-weight json))
+		        (focus-sharability (brain-data-atom-sharability json))
+		        (focus-priority (brain-data-atom-priority json))
+                (focus-has-children (not (equal json-false (brain-env-json-get 'hasChildren json))))
+		        (focus-alias (brain-data-atom-alias json))
+		        (focus-shortcut (brain-data-atom-shortcut json))
+		        (focus-meta (brain-data-atom-meta json)))
+            (if focus-id
+              (puthash focus-id json (brain-env-context-get 'atoms-by-id))
+              (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
-            (let ((line "") (id-infix (brain-view-create-id-infix target-id)))
-              (if (not editable)
-                  (setq id-infix (propertize id-infix 'invisible t)))
+            (let ((line "") (id-infix (brain-view-create-id-infix focus-id)))
               (setq line (concat line space))
-              (let ((bullet (if target-has-children "+" "\u00b7"))) ;; previously: "-" or "\u25ba"
+              (let ((bullet (if focus-has-children "+" "\u00b7"))) ;; previously: "-" or "\u25ba"
                 (setq line (concat line
                                    (colorize bullet
-                                             target-weight target-sharability target-priority nil target-alias target-meta)
+                                             focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
                                    id-infix
                                    " "
-                                   (colorize (delimit-value target-value)
-                                             target-weight target-sharability nil target-priority target-alias target-meta)
+                                   (colorize (delimit-value focus-value)
+                                             focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
                                    "\n")))
-              (insert (propertize line 'target-id target-id)))
+              (insert (propertize line 'id focus-id)))
             (if (brain-env-using-inference)
-                (loop for a across target-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
-            (if (get-view-properties) (let ()
-                                                (insert (make-light-gray
-                                                         (concat space "    @sharability " (number-to-string target-sharability) "\n")))
-                                                (insert (make-light-gray
-                                                         (concat space "    @weight      " (number-to-string target-weight) "\n")))
-                                                (if target-shortcut
-                                                    (insert (make-light-gray (concat space "    @shortcut    " target-shortcut "\n"))))
-                                                (if target-alias
-                                                    (insert (make-light-gray (concat space "    @alias       " target-alias "\n"))))))
-            (write-view editable children (+ tree-indent 4))))))
+                (loop for a across focus-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
+            (if (brain-env-context-get 'view-properties)
+              (let ()
+                (insert (make-light-gray
+                         (concat space "    @sharability " (number-to-string focus-sharability) "\n")))
+                (insert (make-light-gray
+                         (concat space "    @weight      " (number-to-string focus-weight) "\n")))
+                (if focus-priority
+                    (insert (make-light-gray (concat space "    @priority    " (number-to-string focus-priority) "\n"))))
+                (if focus-shortcut
+                    (insert (make-light-gray (concat space "    @shortcut    " focus-shortcut "\n"))))
+                (if focus-alias
+                    (insert (make-light-gray (concat space "    @alias       " focus-alias "\n"))))))
+            (write-view children (+ tree-indent 4))))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
 
 (defun view-info ()
   (concat
-   "(root: " (get-root-id)
-   " :height " (num-or-nil-to-string (get-height))
-   " :style " (get-style)
+   "(root: " (brain-env-context-get 'root-id)
+   " :height " (num-or-nil-to-string (brain-env-context-get 'height))
+   " :style " (brain-env-context-get 'style)
    " :sharability
-             [" (num-or-nil-to-string (get-min-sharability))
-   ", " (num-or-nil-to-string (get-default-sharability))
-   ", " (num-or-nil-to-string (get-max-sharability)) "]"
+             [" (num-or-nil-to-string (brain-env-context-get 'min-sharability))
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-sharability))
+   ", " (num-or-nil-to-string (brain-env-context-get 'max-sharability)) "]"
    " :weight
-             [" (num-or-nil-to-string (get-min-weight))
-   ", " (num-or-nil-to-string (get-default-weight))
-   ", " (num-or-nil-to-string (get-max-weight)) "]"
-   " :value \"" (get-title) "\")")) ;; TODO: actually escape the title string
+             [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
+   ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
+   " :value \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
     (concat (substring str 0 maxlen) "...")
     str))
 
-(defun name-for-view-buffer (root-id json)
-  (let ((title (get-value 'title json)))
+(defun name-for-view-buffer (root-id payload)
+  (let ((title (brain-env-json-get 'title payload)))
     (if root-id
       (concat (shorten-title title 20) " [" root-id "]")
       title)))
 
-(defun switch-to-buffer-context (name context)
-  "activate Brain-mode in all new view buffers created by Brain-mode"
+(defun switch-to-buffer-with-context (name context)
+  "activate Brain-mode in a new view buffer created by Brain-mode"
   (switch-to-buffer name)
   (setq buffer-read-only nil)
   (brain-mode)
   (brain-env-set-context context))
 
-(defun open-internal (status context)
-  (let ((json (brain-client-buffer-json))
-      (editable (brain-env-is-readwrite-context context)))
-    (if status
-      (brain-client-show-http-response-status status json)
-      (let (
-        (view (get-value 'view json))
-        (root-id (get-value 'root json))
-        (height (brain-env-numeric-value json 'height nil)))
-          (switch-to-buffer-context (name-for-view-buffer root-id json) context)
-          (brain-env-parse-context json context)
-          (if (brain-env-in-search-mode)
-              ;; Always leave a search view with height 1, rather than that of the last view.
-              ;; The user experience is a little unpredictable otherwise.
-              (setq brain-current-height 1)
-              (if height (setq brain-current-height height)))
-          (erase-buffer)
-          (write-view editable (get-value 'children view) 0)
-          (beginning-of-buffer)
-          (setq visible-cursor t)
-          ;; Try to move to the corresponding line in the previous view.
-          ;; This is not always possible and not always helpful, but it is often both.
-          (beginning-of-line (get-line))
-          (setq buffer-read-only (not editable))
-          ;; always include line numbers in views
-          (linum-mode t)
-          ;;(brain-env-info-message (concat "updated to view " (view-info)))
-          ))))
+(defun read-string-value (context-variable payload-variable payload)
+  (let ((value (brain-env-json-get payload-variable payload)))
+    (if value (brain-env-context-set context-variable value))))
 
-(defun brain-view-open (&optional context)
+(defun read-numeric-value (context-variable payload-variable payload)
+  (let ((value (brain-env-json-get payload-variable payload)))
+    (if value (brain-env-context-set context-variable (string-to-number value)))))
+
+(defun find-default-sharability (root-sharability)
+  (min brain-const-sharability-public root-sharability))
+
+(defun configure-context (payload)
+  "Sets variables of the buffer-local context according to a service response"
+  (let ((view (brain-data-payload-view payload)))
+    (read-string-value 'root-id 'root payload)
+    (read-string-value 'style 'style payload)
+    (read-string-value 'title 'title payload)
+    (read-numeric-value 'height 'height payload)
+    (read-numeric-value 'min-sharability 'minSharability payload)
+    (read-numeric-value 'max-sharability 'maxSharability payload)
+    (brain-env-context-set 'default-sharability (find-default-sharability (brain-data-atom-sharability view)))
+    ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
+    (read-numeric-value 'min-weight 'minWeight payload)
+    (read-numeric-value 'max-weight 'maxWeight payload)
+    (read-numeric-value 'default-weight 'defaultWeight payload)))
+
+(defun brain-view-set-context-line (&optional line)
+  (brain-env-context-set 'line
+    (if line line (line-number-at-pos))))
+
+;; Try to move to the corresponding line in the previous view.
+;; This is not always possible and not always helpful, but it is often both.
+(defun move-to-context-line ()
+  (let ((line (brain-env-context-get 'line)))
+    (if line
+      (beginning-of-line line)
+      (error "no line number"))))
+
+(defun create-atom-hashtable ()
+  (brain-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
+
+;; always include line numbers in views
+(defun show-line-numbers ()
+  (linum-mode t))
+
+(defun is-readonly ()
+  (or (brain-env-is-readonly)
+    (brain-env-in-search-mode)))
+
+(defun configure-buffer ()
+  (if (not (brain-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
+  (beginning-of-buffer)
+  (setq visible-cursor t)
+  (move-to-context-line)
+  (setq buffer-read-only (is-readonly))
+  (show-line-numbers))
+
+(defun write-to-buffer (payload)
+  (write-view (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
+
+(defun brain-view-open (payload context)
   "Callback to receive and display the data of a view"
-  (lexical-let ((context (context-for-request context)))
-    (lambda (status) (open-internal status context))))
+  (switch-to-buffer-with-context
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload) context)
+  (configure-context payload)
+  (create-atom-hashtable)
+  (erase-buffer)
+  (write-to-buffer payload)
+  (configure-buffer))
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
-  (atom-color 0.75 (+ 0.25 (get-min-sharability)) nil nil))
+  (atom-color 0.75 (+ 0.25 (brain-env-context-get 'min-sharability)) nil nil))
 
 (defun brain-view-create-id-infix (id)
   "Creates a string of the form :0000000:, where 000000 is the id of an atom"

@@ -7,28 +7,13 @@
 ;;
 ;; Dependencies:
 ;;
-;;     aes, indent-guide, goto-addr, json, latex-math-preview, and linum
+;;     aes, indent-guide, json, latex-math-preview, and linum
 ;;
 ;; Required global variables:
 ;;
-;;     brain-rexster-url: IP, port, and local path to the rexster server
-;;     brain-rexster-graph: name of MyOtherBrain graph served by Rexster
+;;     brain-server-url: IP and port Gremlin Server (defaults to "http://localhost:8182")
 ;;
-;; Optional global variables:
-;;
-;;     brain-default-graphml-file: file to which GraphML dumps will be exported by default
-;;     brain-default-vertices-file: file to which tab-separated vertex dumps will be exported by default
-;;     brain-default-edge-file: file to which tab-separated edge dumps will be exported by default
-;;     brain-default-pagerank-file: file to which PageRank results will be exported by default
-;;
-;; For example:
-;;
-;;     (defvar brain-rexster-url "http://localhost:8182")
-;;     (defvar brain-rexster-graph "joshkb")
-;;     (defvar brain-default-graphml-file "/tmp/joshkb-graphml.xml")
-;;     (defvar brain-default-vertices-file "/tmp/joshkb-vertices.tsv")
-;;     (defvar brain-default-edges-file "/tmp/joshkb-edges.tsv")
-;;     (defvar brain-default-pagerank-file "/tmp/joshkb-pagerank.tsv")
+;; See brain-mode-init-example.el for optional variables and example values.
 ;;
 ;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
 ;;
@@ -60,7 +45,6 @@
 (require 'brain-env)
 (require 'brain-view)
 (require 'brain-wrapper)
-
 
 (defvar brain-mode-syntax-table nil
   "Syntax table used while in Brain-mode.")

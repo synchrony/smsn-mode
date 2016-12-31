@@ -17,22 +17,28 @@
   (interactive)
   (buffer-substring-no-properties (line-beginning-position) (line-end-position)))
 
+(defun brain-data-payload-view (payload)
+  (brain-env-json-get 'view payload))
+
+(defun brain-data-root-id ()
+  (brain-env-context-get 'root-id))
+
 (defun brain-data-atom-id-at-point ()
   (let ((line (current-line)))
     (if (string-match "^[0-9A-Za-z@&]*: " line)
         (let ((i3 (string-match ": " line)))
           (let ((s2 (substring line 0 i3)))
             (if (< 0 (length s2)) s2 nil)))
-      (get-text-property (line-beginning-position) 'target-id))))
+      (get-text-property (line-beginning-position) 'id))))
 
 (defun brain-data-atom-id (atom)
-  (get-value 'id atom))
+  (brain-env-json-get 'id atom))
 
 (defun brain-data-atom-created (atom)
-  (get-value 'created atom))
+  (brain-env-json-get 'created atom))
 
 (defun brain-data-atom-value (atom)
-  (get-value 'value atom))
+  (brain-env-json-get 'value atom))
 
 (defun brain-data-atom-priority (atom)
   (let ((v (assoc 'priority atom)))
@@ -40,11 +46,11 @@
 
 (defun brain-data-atom-sharability (atom)
   (let ((v (assoc 'sharability atom)))
-    (if v (cdr v) (get-default-sharability))))
+    (if v (cdr v) (brain-env-context-get 'default-sharability))))
 
 (defun brain-data-atom-weight (atom)
   (let ((v (assoc 'weight atom)))
-    (if v (cdr v) (get-default-weight))))
+    (if v (cdr v) (brain-env-context-get 'default-weight))))
 
 (defun brain-data-atom-alias (atom)
   (let ((x (assoc 'alias atom)))
@@ -60,23 +66,23 @@
 
 (defun brain-data-atom (id)
   (if id
-      (let ((atoms (get-atoms-by-id)))
+      (let ((atoms (brain-env-context-get 'atoms-by-id)))
         (if atoms (gethash id atoms) nil))
     nil))
 
-(defun brain-data-target ()
+(defun brain-data-focus ()
   (brain-data-atom (brain-data-atom-id-at-point)))
 
-(defun brain-data-target-value ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-value ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-value g))))
 
-(defun brain-data-target-alias ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-alias ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-alias g))))
 
-(defun brain-data-target-sharability ()
-  (let ((g (brain-data-target)))
+(defun brain-data-focus-sharability ()
+  (let ((g (brain-data-focus)))
     (if g (brain-data-atom-sharability g))))
 
 (defun brain-data-show (atom)
@@ -88,7 +94,7 @@
         (priority (brain-data-atom-priority atom))
         (alias (brain-data-atom-alias atom))
         (meta (brain-data-atom-meta atom)))
-    ;;(type (get-atom-type atom)))
+    ;;(type (brain-env-context-get 'atom-type atom)))
     (brain-env-info-message (concat
               ;;(if type (concat "type: " type ", "))
               (if meta (concat "[meta], "))
