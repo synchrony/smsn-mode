@@ -592,15 +592,13 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
       (brain-push-view)
-      nil
-    ))
+      nil))
 
 (defun brain-update-view-prompt ()
   (interactive)
   (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
       (brain-update-view)
-      nil
-    ))
+      nil))
 
 (defun visit-focus-value (value-selector value-to-url)
   (lexical-let ((vs value-selector) (vu value-to-url))
