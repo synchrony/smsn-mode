@@ -75,8 +75,7 @@
 (defun brain-debug ()
   "executes a debug action (by default a no-op)"
   (interactive)
-  (brain-env-debug-message (concat "current mode: " (brain-env-context-get 'mode)))
-  )
+  (brain-env-debug-message (concat "current mode: " (brain-env-context-get 'mode))))
 
 (defun brain-duplicates ()
   "retrieve a list of atoms with duplicate values"
@@ -86,18 +85,16 @@
 (defun brain-enter-readwrite-view ()
   "enter edit (read/write) mode in the current view"
   (interactive)
-  (if (brain-env-is-readonly)
-    (let ()
-      (brain-env-set-readonly nil)
-      (brain-client-refresh-view))))
+  (if (and (brain-env-in-treeview-mode) (brain-env-is-readonly)) (progn
+    (brain-env-set-readonly nil)
+    (brain-client-refresh-view))))
 
 (defun brain-enter-readonly-view ()
   "enter read-only mode in the current view"
   (interactive)
-  (if (not (brain-env-is-readonly))
-    (let ()
-      (brain-env-set-readonly t)
-      (brain-client-refresh-view))))
+  (if (and (brain-env-in-treeview-mode) (not (brain-env-is-readonly))) (progn
+    (brain-env-set-readonly t)
+    (brain-client-refresh-view))))
 
 (defun brain-events ()
   "retrieve the Extend-o-Brain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
@@ -249,7 +246,7 @@
 (defun brain-push-view ()
   "push an up-to-date view into the knowledge base"
   (interactive)
-  (if (assert-readwrite-context)
+  (if (and (brain-env-in-treeview-mode) (assert-readwrite-context))
     (brain-client-push-view)))
 
 (defun brain-ripple-query (query)
@@ -279,32 +276,37 @@
 (defun brain-set-min-sharability (expr)
   "set the minimum @sharability (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-min-sharability (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-min-sharability (/ n 4.0))))))
 
 (defun brain-set-min-weight (expr)
   "set the minimum @weight (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-min-weight (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-min-weight (/ n 4.0))))))
 
 (defun brain-set-focus-priority (expr)
   "set the @priority of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-priority (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-priority (/ n 4.0))))))
 
 (defun brain-set-focus-sharability (expr)
   "set the @sharability of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-sharability (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-sharability (/ n 4.0))))))
 
 (defun brain-set-focus-weight (expr)
   "set the @weight of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-weight (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-weight (/ n 4.0))))))
 
 (defun brain-set-value-truncation-length (length-str)
   "set the value truncation length to the number represented by LENGTH-STR.
@@ -317,11 +319,12 @@ A value of -1 indicates that values should not be truncated."
 (defun brain-set-view-height (expr)
   "set the height of the current view to the number of levels represented by EXPR"
   (interactive)
-  (let ((height (number-shorthand-to-number expr)))
-    (if (brain-env-assert-height-in-bounds  height)
-      (let ()
-        (brain-env-context-set 'height height)
-        (brain-client-refresh-view)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((height (number-shorthand-to-number expr)))
+      (if (brain-env-assert-height-in-bounds  height)
+        (progn
+          (brain-env-context-set 'height height)
+          (brain-client-refresh-view))))))
 
 (defun brain-toggle-emacspeak ()
   "turn Emacspeak on or off"
@@ -335,43 +338,45 @@ In the sharability view style, colors are assigned to atoms based on the sharabi
 However, in the type inference view style, an atom is either cyan or magenta depending on whether
 a type has been assigned to it by the inference engine."
   (interactive)
-  (brain-env-toggle-inference-viewstyle)
-  (brain-update-view)
-  (brain-env-info-message (concat "switched to " (brain-env-context-get 'view-style) " view style")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-toggle-inference-viewstyle)
+    (brain-update-view)
+    (brain-env-info-message (concat "switched to " (brain-env-context-get 'view-style) " view style")))))
 
 (defun brain-toggle-minimize-verbatim-blocks ()
   "enable or disable the hiding of the contents of {{{verbatim blocks}}}, which span multiple lines"
   (interactive)
-  (brain-env-context-set 'minimize-verbatim-blocks (not (brain-env-context-get 'minimize-verbatim-blocks)))
-  (brain-update-view)
-  (brain-env-info-message (concat (if (brain-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'minimize-verbatim-blocks (not (brain-env-context-get 'minimize-verbatim-blocks)))
+    (brain-update-view)
+    (brain-env-info-message (concat (if (brain-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))))
 
 (defun brain-toggle-properties-view ()
   "enable or disable the explicit display of atom properties as extra lines within views"
   (interactive)
-  (brain-env-context-set 'view-properties (not (brain-env-context-get 'view-properties)))
-  (brain-update-view)
-  (brain-env-info-message (concat (if (brain-env-context-get 'view-properties) "enabled" "disabled") " property view")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'view-properties (not (brain-env-context-get 'view-properties)))
+    (brain-update-view)
+    (brain-env-info-message (concat (if (brain-env-context-get 'view-properties) "enabled" "disabled") " property view")))))
 
 (defun brain-toggle-truncate-lines ()
   "toggle line wrap mode"
   (interactive)
-  (brain-env-context-set 'truncate-long-lines (not (brain-env-context-get 'truncate-long-lines)))
-  (brain-update-view))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'truncate-long-lines (not (brain-env-context-get 'truncate-long-lines)))
+    (brain-update-view))))
 
 (defun brain-update-to-backward-view ()
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-treeview-mode)
-    (let ()
+  (if (brain-env-in-treeview-mode) (progn
       (brain-env-context-set-backward-style)
       (brain-client-refresh-view))))
 
 (defun brain-update-to-forward-view ()
   "switch to a 'forward' view (the default), i.e. a view in which an atom's children appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-treeview-mode)
-    (let ()
+  (if (brain-env-in-treeview-mode) (progn
       (brain-env-context-set-forward-style)
       (brain-client-refresh-view))))
 
@@ -383,10 +388,11 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-visit-in-amazon (value-selector)
   "search Amazon.com for the value generated by VALUE-SELECTOR and view the results in a browser"
-  (visit-focus-value value-selector (lambda (value)
-                                       (concat
-                                        "http://www.amazon.com/s?ie=UTF8&index=blended&link_code=qs&field-keywords="
-                                        (brain-client-url-encode value)))))
+  (visit-focus-value value-selector
+    (lambda (value)
+      (concat
+        "http://www.amazon.com/s?ie=UTF8&index=blended&link_code=qs&field-keywords="
+        (brain-client-url-encode value)))))
 
 (defun brain-visit-in-delicious (value-selector)
   "search delicious.com for the value generated by VALUE-SELECTOR and view the results in a browser"
