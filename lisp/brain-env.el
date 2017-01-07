@@ -61,25 +61,13 @@
   "Populates a first definition of buffer-local context with default values"
   (defvar brain-bufferlocal-context (default-context)))
 
-(defun brain-env-debug-message (msg)
-  "Outputs a debugging message"
-  (message "%s" (concat "Debug: " msg)))
-
-(defun brain-env-info-message (msg)
-  "Outputs an informational message"
-  (message "%s" (concat "Info: " msg)))
-
-(defun brain-env-error-message (msg)
-  "Outputs an error message"
-  (message "%s" (concat "Error: " msg)))
-
 (defun brain-env-error-no-focus ()
   "Informs the user that a focus atom was not found"
-  (brain-env-error-message "there is no atom associated with this line"))
+  (error "there is no atom associated with this line"))
 
 (defun brain-env-error-no-root ()
   "Informs the user that a root atom was not found"
-  (brain-env-error-message "there is no root atom associated with this view"))
+  (error "there is no root atom associated with this view"))
 
 (defun brain-env-using-inference ()
   "Determines whether the current buffer is an inference-enabled view"
@@ -91,7 +79,7 @@
 
 (defun brain-env-fail (message)
   "Fails an assertion with the given message"
-  (and (brain-env-error-message message) nil))
+  (and (error message) nil))
 
 (defun brain-env-is-readonly ()
   "Determines whether the current buffer is a read-only tree view"
@@ -201,6 +189,7 @@
   (cons 'root-id 'nil)
   (cons 'readonly 'nil)
   (cons 'style brain-const-forward-style)
+  (cons 'timestamp 'nil)
   (cons 'title 'nil)
   (cons 'truncate-long-lines 'nil)
   (cons 'value-length-cutoff 100)
