@@ -153,6 +153,16 @@
         const-time-format)
     time))
 
+(defun brain-env-set-timestamp ()
+  "Sets a context-local time stamp to the current time"
+  (brain-env-context-set 'timestamp (current-time)))
+
+(defun brain-env-response-time ()
+  "Finds the difference, in milliseconds, between the current time and the last recorded time stamp"
+  (* 1000.0 (float-time (time-subtract
+    (current-time)
+    (brain-env-context-get 'timestamp)))))
+
 (defun brain-env-context-get (key &optional context)
   (brain-env-json-get key (brain-env-get-context context)))
 

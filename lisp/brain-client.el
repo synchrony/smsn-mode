@@ -144,21 +144,19 @@
       :defaultWeight (brain-env-context-get 'default-weight context)))
 
 (defun export-callback (payload context)
-  (message "exported successfully"))
+  (message "exported successfully in %.0f ms" (brain-env-response-time)))
 
 (defun import-callback (payload context)
-  (message "imported successfully"))
+  (message "imported successfully in %.0f ms" (brain-env-response-time)))
 
 (defun inference-callback (payload context)
-  (message "type inference completed successfully"))
-
+  (message "type inference completed successfully in %.0f ms" (brain-env-response-time)))
+      
 (defun ping-callback (payload context)
-  (let ((elapsed
-    (float-time (time-subtract (current-time) (brain-env-context-get 'timestamp)))))
-      (message "ping completed in %.3fs" elapsed)))
+  (message "ping completed in %.0f ms" (brain-env-response-time)))
 
 (defun remove-isolated-atoms-callback (payload context)
-  (message "removed isolated atoms"))
+  (message "removed isolated atoms in %.0f ms" (brain-env-response-time)))
 
 (defun treeview-callback (payload context)
   (brain-env-to-treeview-mode context)
@@ -170,7 +168,7 @@
   (brain-view-open payload context))
 
 (defun issue-request (request callback)
-  (brain-env-context-set 'timestamp (current-time))
+  (brain-env-set-timestamp)
   (http-post-and-receive (find-server-url) request callback))
 
 (defun http-post-and-receive (url request callback)

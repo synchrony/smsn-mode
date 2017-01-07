@@ -232,7 +232,8 @@
   (create-atom-hashtable)
   (erase-buffer)
   (write-to-buffer payload)
-  (configure-buffer))
+  (configure-buffer)
+  (message "view updated in %.0f ms" (brain-env-response-time)))
 
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
