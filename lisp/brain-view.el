@@ -67,12 +67,19 @@
 
 (defun light-gray ()
   (if brain-view-full-colors-supported
-    (list :foreground "grey80" :background "white")
+    (list :foreground "gray" :background "white")
+    (list :foreground "black")))
+
+(defun dark-gray ()
+  (if brain-view-full-colors-supported
+    (list :foreground "dim gray" :background "white")
     (list :foreground "black")))
 
 (defun make-light-gray (text)
-  (propertize text
-              'face (light-gray)))
+  (propertize text 'face (light-gray)))
+
+(defun make-dark-gray (text)
+  (propertize text 'face (dark-gray)))
 
 (defun delimit-value (value)
   (let ((s (string-match "\n" value)))
@@ -80,6 +87,20 @@
             (concat "{{{"
                     (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
+
+(defun choose-bullet (n-children)
+  (if (> n-children 0) "+" "\u00b7"))
+
+(defun pad-to-length-2 (n)
+  (if (> n 99) "++"
+    (let ((s (number-to-string n)))
+      (if (> (length s) 1) s (concat " " s)))))
+
+(defun add-meta-columns (text n-children n-parents)
+  (let ((meta (concat
+      (make-light-gray (pad-to-length-2 n-parents)) " "
+      (make-dark-gray (pad-to-length-2 n-children)))))
+    (propertize text 'display `((margin right-margin),meta))))
 
 (defun write-view (children tree-indent)
   (loop for json across children do
@@ -92,6 +113,8 @@
 		        (focus-sharability (brain-data-atom-sharability json))
 		        (focus-priority (brain-data-atom-priority json))
                 (focus-has-children (not (equal json-false (brain-env-json-get 'hasChildren json))))
+                (focus-n-children (brain-env-json-get 'numberOfChildren json))
+                (focus-n-parents (brain-env-json-get 'numberOfParents json))
 		        (focus-alias (brain-data-atom-alias json))
 		        (focus-shortcut (brain-data-atom-shortcut json))
 		        (focus-meta (brain-data-atom-meta json)))
@@ -100,9 +123,9 @@
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
-            (let ((line "") (id-infix (brain-view-create-id-infix focus-id)))
+            (let ((line "") (id-infix (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents)))
               (setq line (concat line space))
-              (let ((bullet (if focus-has-children "+" "\u00b7"))) ;; previously: "-" or "\u25ba"
+              (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
                                    (colorize bullet
                                              focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
@@ -157,11 +180,15 @@
       (concat (shorten-title title 20) " [" root-id "]")
       title)))
 
+(defun prepare-right-margin ()
+  (set-window-margins (frame-selected-window) 0 5))
+
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
   (switch-to-buffer name)
   (setq buffer-read-only nil)
   (brain-mode)
+  (prepare-right-margin)
   (brain-env-set-context context))
 
 (defun read-string-value (context-variable payload-variable payload)
