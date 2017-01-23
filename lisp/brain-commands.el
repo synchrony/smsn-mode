@@ -38,6 +38,19 @@
     (brain-env-fail (concat "cannot update view in current mode: " (brain-env-context-get 'mode))) nil)
     (brain-env-succeed))
 
+;; from Emacs-w3m w3m-url-encode-string
+(defun url-encode (str &optional coding)
+  (apply (function concat)
+         (mapcar (lambda (ch)
+                   (cond
+                    ((string-match "[-a-zA-Z0-9_:/]" (char-to-string ch)) ; xxx?
+                     (char-to-string ch)) ; printable
+                    (t
+                     (format "%%%02X" ch)))) ; escape
+                 ;; Coerce a string to a list of chars.
+                 (append (encode-coding-string str (or coding 'utf-8))
+                         nil))))
+
 (defun brain-atom-info (selector)
   "display, in the minibuffer, information about an atom produced by SELECTOR"
   (lexical-let ((as selector))
@@ -75,8 +88,7 @@
 (defun brain-debug ()
   "executes a debug action (by default a no-op)"
   (interactive)
-  (brain-env-debug-message (concat "current mode: " (brain-env-context-get 'mode)))
-  )
+  (message (concat "current mode: " (brain-env-context-get 'mode))))
 
 (defun brain-duplicates ()
   "retrieve a list of atoms with duplicate values"
@@ -86,18 +98,16 @@
 (defun brain-enter-readwrite-view ()
   "enter edit (read/write) mode in the current view"
   (interactive)
-  (if (brain-env-is-readonly)
-    (let ()
-      (brain-env-set-readonly nil)
-      (brain-client-refresh-view))))
+  (if (and (brain-env-in-treeview-mode) (brain-env-is-readonly)) (progn
+    (brain-env-set-readonly nil)
+    (brain-client-refresh-view))))
 
 (defun brain-enter-readonly-view ()
   "enter read-only mode in the current view"
   (interactive)
-  (if (not (brain-env-is-readonly))
-    (let ()
-      (brain-env-set-readonly t)
-      (brain-client-refresh-view))))
+  (if (and (brain-env-in-treeview-mode) (not (brain-env-is-readonly))) (progn
+    (brain-env-set-readonly t)
+    (brain-client-refresh-view))))
 
 (defun brain-events ()
   "retrieve the Extend-o-Brain event stack (e.g. notifications of gestural events), ordered by decreasing time stamp"
@@ -107,61 +117,61 @@
 (defun brain-export-vcs (file)
   "export graph as version-controlled directory"
   (interactive)
-  (brain-env-info-message (concat "exporting VCS dump to " file))
+  (message (concat "exporting VCS dump to " file))
   (brain-client-export "VCS" file))
 
 (defun brain-export-edges (file)
   "export tab-separated dump of Extend-o-Brain parent-child edges to the file system"
   (interactive)
-  (brain-env-info-message (concat "exporting edges to " file))
+  (message (concat "exporting edges to " file))
   (brain-client-export "Edges" file))
 
 (defun brain-export-graphml (file)
   "export a GraphML dump of the knowledge base to the file system"
   (interactive)
-  (brain-env-info-message (concat "exporting GraphML to " file))
+  (message (concat "exporting GraphML to " file))
   (brain-client-export "GraphML" file))
 
 (defun brain-export-latex (file)
   "export a LaTeX-formatted view of a subtree of the knowledge base to the file system"
   (interactive)
-  (brain-env-info-message (concat "exporting LaTeX to " file))
+  (message (concat "exporting LaTeX to " file))
   (brain-client-export "LaTeX" file))
 
 (defun brain-export-pagerank (file)
   "export a tab-separated PageRank ranking of Extend-o-Brain atoms to the file system"
   (interactive)
-  (brain-env-info-message (concat "computing and exporting PageRank to " file))
+  (message (concat "computing and exporting PageRank to " file))
   (brain-client-export "PageRank" file))
 
 (defun brain-export-rdf (file)
   "export an RDF dump of the knowledge base to the file system"
   (interactive)
-  (brain-env-info-message (concat "exporting private N-Triples dump to " file))
+  (message (concat "exporting private N-Triples dump to " file))
   (brain-client-export "N-Triples" file))
 
 (defun brain-export-vertices (file)
   "export tab-separated dump of Extend-o-Brain vertices (atoms) to the file system"
   (interactive)
-  (brain-env-info-message (concat "exporting vertices to " file))
+  (message (concat "exporting vertices to " file))
   (brain-client-export "Vertices" file))
 
 (defun brain-import-vcs (file)
   "import a graph from a set of version-controlled directories into the knowledge base"
   (interactive)
-  (brain-env-info-message (concat "importing version-controlleg graph from " file))
+  (message (concat "importing version-controlleg graph from " file))
   (brain-client-import "VCS" file))
 
 (defun brain-import-freeplane (file)
   "import one or more Freeplane files into the knowledge base"
   (interactive)
-  (brain-env-info-message (concat "importing Freeplane nodes from " file))
+  (message (concat "importing Freeplane nodes from " file))
   (brain-client-import "Freeplane" file))
 
 (defun brain-import-graphml (file)
   "import a GraphML dump from the file system into the knowledge base"
   (interactive)
-  (brain-env-info-message (concat "importing GraphML from " file))
+  (message (concat "importing GraphML from " file))
   (brain-client-import "GraphML" file))
 
 (defun brain-find-isolated-atoms ()
@@ -187,7 +197,7 @@
 (defun brain-infer-types ()
   "perform type inference on the Extend-o-Brain knowledge base, adding type annotations"
   (interactive)
-  (brain-env-info-message "performing type inference")
+  (message "performing type inference")
   (brain-client-infer-types))
 
 (defun brain-insert-attr-priority (expr)
@@ -234,6 +244,11 @@
 	 (delq (current-buffer) (buffer-list))
 	 )))
 
+(defun brain-ping-server ()
+  "finds the response time of the server connection to a simple request"
+  (interactive)
+  (brain-client-ping-server))
+
 (defun brain-preview-focus-latex-math ()
   "create a graphical preview of the value of the atom at point, which must be a LaTeX mathematical expression"
   (interactive)
@@ -249,7 +264,7 @@
 (defun brain-push-view ()
   "push an up-to-date view into the knowledge base"
   (interactive)
-  (if (assert-readwrite-context)
+  (if (and (brain-env-in-treeview-mode) (assert-readwrite-context))
     (brain-client-push-view)))
 
 (defun brain-ripple-query (query)
@@ -279,32 +294,37 @@
 (defun brain-set-min-sharability (expr)
   "set the minimum @sharability (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-min-sharability (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-min-sharability (/ n 4.0))))))
 
 (defun brain-set-min-weight (expr)
   "set the minimum @weight (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-min-weight (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-min-weight (/ n 4.0))))))
 
 (defun brain-set-focus-priority (expr)
   "set the @priority of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-priority (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-priority (/ n 4.0))))))
 
 (defun brain-set-focus-sharability (expr)
   "set the @sharability of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-sharability (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-sharability (/ n 4.0))))))
 
 (defun brain-set-focus-weight (expr)
   "set the @weight of the atom at point to the number represented by EXPR"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (brain-client-set-focus-weight (/ n 4.0)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((n (number-shorthand-to-number expr)))
+      (if n (brain-client-set-focus-weight (/ n 4.0))))))
 
 (defun brain-set-value-truncation-length (length-str)
   "set the value truncation length to the number represented by LENGTH-STR.
@@ -317,11 +337,12 @@ A value of -1 indicates that values should not be truncated."
 (defun brain-set-view-height (expr)
   "set the height of the current view to the number of levels represented by EXPR"
   (interactive)
-  (let ((height (number-shorthand-to-number expr)))
-    (if (brain-env-assert-height-in-bounds  height)
-      (let ()
-        (brain-env-context-set 'height height)
-        (brain-client-refresh-view)))))
+  (if (brain-env-in-treeview-mode)
+    (let ((height (number-shorthand-to-number expr)))
+      (if (brain-env-assert-height-in-bounds  height)
+        (progn
+          (brain-env-context-set 'height height)
+          (brain-client-refresh-view))))))
 
 (defun brain-toggle-emacspeak ()
   "turn Emacspeak on or off"
@@ -335,43 +356,45 @@ In the sharability view style, colors are assigned to atoms based on the sharabi
 However, in the type inference view style, an atom is either cyan or magenta depending on whether
 a type has been assigned to it by the inference engine."
   (interactive)
-  (brain-env-toggle-inference-viewstyle)
-  (brain-update-view)
-  (brain-env-info-message (concat "switched to " (brain-env-context-get 'view-style) " view style")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-toggle-inference-viewstyle)
+    (brain-update-view)
+    (message (concat "switched to " (brain-env-context-get 'view-style) " view style")))))
 
 (defun brain-toggle-minimize-verbatim-blocks ()
   "enable or disable the hiding of the contents of {{{verbatim blocks}}}, which span multiple lines"
   (interactive)
-  (brain-env-context-set 'minimize-verbatim-blocks (not (brain-env-context-get 'minimize-verbatim-blocks)))
-  (brain-update-view)
-  (brain-env-info-message (concat (if (brain-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'minimize-verbatim-blocks (not (brain-env-context-get 'minimize-verbatim-blocks)))
+    (brain-update-view)
+    (message (concat (if (brain-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))))
 
 (defun brain-toggle-properties-view ()
   "enable or disable the explicit display of atom properties as extra lines within views"
   (interactive)
-  (brain-env-context-set 'view-properties (not (brain-env-context-get 'view-properties)))
-  (brain-update-view)
-  (brain-env-info-message (concat (if (brain-env-context-get 'view-properties) "enabled" "disabled") " property view")))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'view-properties (not (brain-env-context-get 'view-properties)))
+    (brain-update-view)
+    (message (concat (if (brain-env-context-get 'view-properties) "enabled" "disabled") " property view")))))
 
 (defun brain-toggle-truncate-lines ()
   "toggle line wrap mode"
   (interactive)
-  (brain-env-context-set 'truncate-long-lines (not (brain-env-context-get 'truncate-long-lines)))
-  (brain-update-view))
+  (if (brain-env-in-treeview-mode) (progn
+    (brain-env-context-set 'truncate-long-lines (not (brain-env-context-get 'truncate-long-lines)))
+    (brain-update-view))))
 
 (defun brain-update-to-backward-view ()
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-treeview-mode)
-    (let ()
+  (if (brain-env-in-treeview-mode) (progn
       (brain-env-context-set-backward-style)
       (brain-client-refresh-view))))
 
 (defun brain-update-to-forward-view ()
   "switch to a 'forward' view (the default), i.e. a view in which an atom's children appear as list items beneath it"
   (interactive)
-  (if (brain-env-in-treeview-mode)
-    (let ()
+  (if (brain-env-in-treeview-mode) (progn
       (brain-env-context-set-forward-style)
       (brain-client-refresh-view))))
 
@@ -383,50 +406,51 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-visit-in-amazon (value-selector)
   "search Amazon.com for the value generated by VALUE-SELECTOR and view the results in a browser"
-  (visit-focus-value value-selector (lambda (value)
-                                       (concat
-                                        "http://www.amazon.com/s?ie=UTF8&index=blended&link_code=qs&field-keywords="
-                                        (brain-client-url-encode value)))))
+  (visit-focus-value value-selector
+    (lambda (value)
+      (concat
+        "http://www.amazon.com/s?ie=UTF8&index=blended&link_code=qs&field-keywords="
+        (url-encode value)))))
 
 (defun brain-visit-in-delicious (value-selector)
   "search delicious.com for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://www.delicious.com/search?p=" (brain-client-url-encode value)))))
+                                       (concat "http://www.delicious.com/search?p=" (url-encode value)))))
 
 (defun brain-visit-in-ebay (value-selector)
   "search ebay.com for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://www.ebay.com/sch/i.html?_nkw=" (brain-client-url-encode value)))))
+                                       (concat "http://www.ebay.com/sch/i.html?_nkw=" (url-encode value)))))
 
 (defun brain-visit-in-google (value-selector)
   "search google.com for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://www.google.com/search?ie=UTF-8&q=" (brain-client-url-encode value)))))
+                                       (concat "http://www.google.com/search?ie=UTF-8&q=" (url-encode value)))))
 
 (defun brain-visit-in-google-maps (value-selector)
   "search Google Maps for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://maps.google.com/maps?q=" (brain-client-url-encode value)))))
+                                       (concat "http://maps.google.com/maps?q=" (url-encode value)))))
 
 (defun brain-visit-in-google-scholar (value-selector)
   "search Google Scholar for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://scholar.google.com/scholar?q=" (brain-client-url-encode value)))))
+                                       (concat "http://scholar.google.com/scholar?q=" (url-encode value)))))
 
 (defun brain-visit-in-twitter (value-selector)
   "search twitter.com for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://twitter.com/#!/search/" (brain-client-url-encode value)))))
+                                       (concat "http://twitter.com/#!/search/" (url-encode value)))))
 
 (defun brain-visit-in-wikipedia (value-selector)
   "search en.wikipedia.org for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://en.wikipedia.org/w/index.php?title=Special%3ASearch&search=" (brain-client-url-encode value)))))
+                                       (concat "http://en.wikipedia.org/w/index.php?title=Special%3ASearch&search=" (url-encode value)))))
 
 (defun brain-visit-in-youtube (value-selector)
   "search youtube.com for the value generated by VALUE-SELECTOR and view the results in a browser"
   (visit-focus-value value-selector (lambda (value)
-                                       (concat "http://www.youtube.com/results?search_query=" (brain-client-url-encode value)))))
+                                       (concat "http://www.youtube.com/results?search_query=" (url-encode value)))))
 
 (defun brain-navigate-to-new-atom ()
   "create a new atom and navigate to that atom, opening a new (empty) view with the atom as root"
@@ -586,15 +610,13 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
       (brain-push-view)
-      nil
-    ))
+      nil))
 
 (defun brain-update-view-prompt ()
   (interactive)
   (if (eq (read-char "really update view? (press 'm' to confirm)") 109)
       (brain-update-view)
-      nil
-    ))
+      nil))
 
 (defun visit-focus-value (value-selector value-to-url)
   (lexical-let ((vs value-selector) (vu value-to-url))
@@ -607,7 +629,9 @@ a type has been assigned to it by the inference engine."
 (defun number-shorthand-to-number (c)
   (interactive)
   (let ((l (assoc c fast-numbers)))
-    (if l (car (cdr l)) (brain-env-error-message (concat "no number associated with character " (char-to-string c))))))
+    (if l
+       (car (cdr l))
+       (error (concat "no number associated with character " (char-to-string c))))))
 
 ;; note: works in Aquamacs and MacPorts Emacs, but apparently not in the terminal Emacs 24 on Mac OS X
  (defun copy-to-clipboard (g)
@@ -773,6 +797,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c d")           'brain-duplicates)
     (define-key brain-mode-map (kbd "C-c e")           'brain-events)
     (define-key brain-mode-map (kbd "C-c f")           'brain-update-to-forward-view)
+    (define-key brain-mode-map (kbd "C-c g")           'brain-ping-server)
     (define-key brain-mode-map (kbd "C-c h")           'brain-history)
     (define-key brain-mode-map (kbd "C-c i")           'brain-infer-types)
     (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)

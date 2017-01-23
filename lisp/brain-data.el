@@ -95,7 +95,7 @@
         (alias (brain-data-atom-alias atom))
         (meta (brain-data-atom-meta atom)))
     ;;(type (brain-env-context-get 'atom-type atom)))
-    (brain-env-info-message (concat
+    (message (concat
               ;;(if type (concat "type: " type ", "))
               (if meta (concat "[meta], "))
               "weight: " (number-to-string weight)
