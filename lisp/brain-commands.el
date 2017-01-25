@@ -291,6 +291,12 @@
   (if (> (length query) 0)
     (brain-client-fetch-query query "Shortcut")))
 
+(defun brain-fulltext-query-on-focus-value ()
+  "evaluate a full-text query for the value of the atom at point"
+  (interactive)
+  (let ((value (brain-data-focus-value)))
+    (if value (brain-fulltext-query value))))
+
 (defun brain-set-min-sharability (expr)
   "set the minimum @sharability (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
@@ -775,6 +781,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c C-t a")       (brain-visit-as-url 'brain-data-focus-value))
     (define-key brain-mode-map (kbd "C-c C-t i")       (brain-atom-info 'brain-data-focus))
     (define-key brain-mode-map (kbd "C-c C-t l")       'brain-preview-focus-latex-math)
+    (define-key brain-mode-map (kbd "C-c C-t s")       'brain-fulltext-query-on-focus-value)
     (define-key brain-mode-map (kbd "C-c C-v ;")       'brain-toggle-truncate-lines)
     (define-key brain-mode-map (kbd "C-c C-v e")       'brain-enter-readwrite-view)
     (define-key brain-mode-map (kbd "C-c C-v i")       'brain-toggle-inference-viewstyle)
