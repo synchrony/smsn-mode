@@ -54,11 +54,16 @@
     :query query
     :height 1)))
 
-(defun create-view-request (root-id)
+(defun create-treeview-request (root-id)
   (add-to-request (to-filter-request get-view-request) (list
     :root root-id
     :height (brain-env-context-get 'height)
     :style (brain-env-context-get 'style))))
+
+(defun create-wikiview-request (root-id)
+  (add-to-request (to-filter-request get-view-request) (list
+    :root root-id
+    :height 1)))
 
 (defun do-search (query-type query)
   (issue-request (create-search-request query-type query) 'search-view-callback))
@@ -75,17 +80,26 @@
         :file file))))
     (issue-request request 'import-callback)))
 
-(defun do-set-property (id name value)
+(defun set-property (id name value callback)
   (brain-view-set-context-line)
   (let ((request (add-to-request set-properties-request
       (list
         :id id
         :name name
         :value value))))
-    (issue-request request (lambda (payload context)
-      (issue-request (create-view-request (brain-env-context-get 'root-id context)) 'brain-view-open)))))
+    (issue-request request callback)))
 
-(defun do-push-view ()
+(defun set-property-in-treeview (id name value)
+  (set-property id name value
+    (lambda (payload context)
+      (issue-request (create-treeview-request (brain-env-context-get 'root-id context)) 'brain-treeview-open))))
+
+(defun set-property-in-wikiview (name value)
+  (let ((id (brain-env-context-get 'root-id)))
+    (set-property id name value (lambda (payload context)
+    (issue-request (create-wikiview-request (brain-env-context-get 'root-id context)) 'brain-wikiview-open)))))
+
+(defun push-treeview ()
   (let ((request (add-to-request update-view-request
       (list
         :view (buffer-string)
@@ -94,7 +108,10 @@
         :root (brain-env-context-get 'root-id)
         :height (brain-env-context-get 'height)
         :style (brain-env-context-get 'style)))))
-    (issue-request request 'brain-view-open)))
+    (issue-request request 'brain-treeview-open)))
+
+(defun push-wikiview ()
+   (set-property-in-wikiview "value" (buffer-string)))
 
 (defun format-request-data (params)
   (json-encode (list
@@ -160,12 +177,16 @@
 
 (defun treeview-callback (payload context)
   (brain-env-to-treeview-mode context)
-  (brain-view-open payload context))
+  (brain-treeview-open payload context))
+
+(defun wikiview-callback (payload context)
+  (brain-env-to-wikiview-mode context)
+  (brain-wikiview-open payload context))
 
 (defun search-view-callback (payload context)
   (brain-view-set-context-line 1)
   (brain-env-to-search-mode context)
-  (brain-view-open payload context))
+  (brain-treeview-open payload context))
 
 (defun issue-request (request callback)
   (brain-env-set-timestamp)
@@ -246,18 +267,27 @@
 
 (defun brain-client-navigate-to-atom (atom-id)
   (brain-view-set-context-line 1)
-  (issue-request (create-view-request atom-id) 'treeview-callback))
+  (issue-request (create-treeview-request atom-id) 'treeview-callback))
 
+(defun brain-client-wikiview (atom-id)
+  (brain-view-set-context-line 1)
+  (issue-request (create-wikiview-request atom-id) 'wikiview-callback))
+  
 (defun brain-client-ping-server ()
   (issue-request ping-request 'ping-callback))
 
-(defun brain-client-push-view ()
+(defun brain-client-push-treeview ()
   (brain-view-set-context-line)
-  (do-push-view))
+  (push-treeview))
 
-(defun brain-client-refresh-view ()
+(defun brain-client-push-wikiview () (push-wikiview))
+
+(defun brain-client-refresh-treeview ()
   (brain-view-set-context-line)
-  (issue-request (create-view-request (brain-env-context-get 'root-id)) 'treeview-callback))
+  (issue-request (create-treeview-request (brain-env-context-get 'root-id)) 'treeview-callback))
+
+(defun brain-client-refresh-wikiview ()
+  (issue-request (create-wikiview-request (brain-env-context-get 'root-id)) 'wikiview-callback))
 
 (defun brain-client-set-focus-priority (v)
   (if (and (>= v 0) (<= v 1))
@@ -295,7 +325,7 @@
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ()
       (brain-env-context-set 'min-sharability s)
-      (brain-client-refresh-view))
+      (brain-client-refresh-treeview))
     (error 
      (concat "min sharability " (number-to-string s) " is outside of range [0, 1]"))))
 
@@ -303,13 +333,13 @@
   (if (and (brain-env-in-setproperties-mode) (>= s 0) (<= s 1))
     (let ()
       (brain-env-context-set 'min-weight s)
-      (brain-client-refresh-view))
+      (brain-client-refresh-treeview))
     (error 
      (concat "min weight " (number-to-string s) " is outside of range [0, 1]"))))
 
 (defun brain-client-set-property (id name value)
   (if (brain-env-in-setproperties-mode)
-    (do-set-property id name value)))
+    (set-property-in-treeview id name value)))
 
 
 (provide 'brain-client)

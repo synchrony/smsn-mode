@@ -15,7 +15,9 @@
   "The maximum allowed height of a view")
 
 (defconst brain-const-treeview-mode "treeview-mode"
-  "A state in which view buffers are not editable")
+  "A state for viewing and editing tree views of graph data")
+(defconst brain-const-wikiview-mode "wikiview-mode"
+  "A state for viewing and editing the value/page of an atom")
 (defconst brain-const-search-mode "search-mode"
   "A state for immutable search results")
 
@@ -85,17 +87,13 @@
   "Determines whether the current buffer is a read-only tree view"
   (not (equal (brain-env-context-get 'readonly) 'nil)))
 
-(defun brain-env-set-treeview-mode ()
-  "Marks the current buffer as a tree view"
-  (brain-env-context-set 'mode brain-const-treeview-mode))
-
-(defun brain-env-set-search-mode ()
-  "Marks the current buffer as a search/other view"
-  (brain-env-context-set 'mode brain-const-search-mode))
-
 (defun brain-env-in-treeview-mode ()
   "Determines whether the current buffer is a tree view"
   (equal (brain-env-context-get 'mode) brain-const-treeview-mode))
+
+(defun brain-env-in-wikiview-mode ()
+  "Determines whether the current buffer is a wiki view"
+  (equal (brain-env-context-get 'mode) brain-const-wikiview-mode))
 
 (defun brain-env-in-search-mode ()
   "Determines whether the current buffer is a page of search results"
@@ -103,6 +101,9 @@
 
 (defun brain-env-to-treeview-mode (&optional context)
   (brain-env-context-set 'mode brain-const-treeview-mode context))
+
+(defun brain-env-to-wikiview-mode (&optional context)
+  (brain-env-context-set 'mode brain-const-wikiview-mode context))
 
 (defun brain-env-to-search-mode (&optional context)
   (brain-env-context-set 'mode brain-const-search-mode context))

@@ -82,6 +82,7 @@
   (propertize text 'face (dark-gray)))
 
 (defun delimit-value (value)
+  "Encloses multi-line values in triple brackets, leaving single-line values unchanged"
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
             (concat "{{{"
@@ -102,7 +103,7 @@
       (make-dark-gray (pad-to-length-2 n-children)))))
     (propertize text 'display `((margin right-margin),meta))))
 
-(defun write-view (children tree-indent)
+(defun write-treeview (children tree-indent)
   (loop for json across children do
         (let (
               (link (brain-env-json-get 'link json))
@@ -149,7 +150,14 @@
                     (insert (make-light-gray (concat space "    @shortcut    " focus-shortcut "\n"))))
                 (if focus-alias
                     (insert (make-light-gray (concat space "    @alias       " focus-alias "\n"))))))
-            (write-view children (+ tree-indent 4))))))
+            (write-treeview children (+ tree-indent 4))))))
+
+(defun write-wikiview (json)
+  (let ((focus-id (brain-data-atom-id json))
+    (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
+    (focus-weight (brain-data-atom-weight json))
+    (focus-sharability (brain-data-atom-sharability json)))
+      (insert (colorize focus-value focus-weight focus-sharability nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -174,12 +182,12 @@
     (concat (substring str 0 maxlen) "...")
     str))
 
-(defun name-for-view-buffer (root-id payload)
+(defun name-for-view-buffer (root-id payload is-treeview)
   (let ((title (brain-env-json-get 'title payload)))
     (if root-id
-      (concat (shorten-title title 20) " [" root-id "]")
+      (concat (shorten-title title 20) " [" root-id "]" (if is-treeview " - tree" ""))
       title)))
-
+      
 (defun prepare-right-margin ()
   (set-window-margins (frame-selected-window) 0 5))
 
@@ -248,20 +256,33 @@
   (setq buffer-read-only (is-readonly))
   (show-line-numbers))
 
-(defun write-to-buffer (payload)
-  (write-view (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
+(defun write-treeview-to-buffer (payload)
+  (write-treeview (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
 
-(defun brain-view-open (payload context)
+(defun write-wikiview-to-buffer (payload)
+  (write-wikiview (brain-data-payload-view payload)))
+
+(defun brain-treeview-open (payload context)
   "Callback to receive and display the data of a view"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload) context)
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload t) context)
   (configure-context payload)
   (create-atom-hashtable)
   (erase-buffer)
-  (write-to-buffer payload)
+  (write-treeview-to-buffer payload)
   (configure-buffer)
   (message "view updated in %.0f ms" (brain-env-response-time)))
 
+(defun brain-wikiview-open (payload context)
+  "Callback to receive and display the value/page of an atom"
+  (switch-to-buffer-with-context
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload nil) context)
+  (configure-context payload)
+  (erase-buffer)
+  (write-wikiview-to-buffer payload)
+  (configure-buffer)
+  (message "page updated in %.0f ms" (brain-env-response-time)))
+  
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
   (atom-color 0.75 (+ 0.25 (brain-env-context-get 'min-sharability)) nil nil))
