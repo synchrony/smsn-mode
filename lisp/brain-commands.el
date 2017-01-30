@@ -266,7 +266,7 @@
   (interactive)
   (if (assert-readwrite-context)
     (if (brain-env-in-wikiview-mode) (brain-client-push-wikiview)
-      (if brain-env-in-treeview-mode (brain-client-push-treeview)))))
+      (if (brain-env-in-treeview-mode) (brain-client-push-treeview)))))
 
 (defun brain-ripple-query (query)
   "evaluate Ripple expression QUERY"
