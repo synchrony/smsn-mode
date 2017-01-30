@@ -5,6 +5,9 @@ Brain-mode 1.3 SNAPSHOT (not yet released)
 ----------------------------------------
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * Added editable "page" views
+* Added a command to search on the atom at point
+* Display parent and child counts as metadata columns
+* Added a 'ping' command
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Brain-mode 1.2 (Into the Future)
