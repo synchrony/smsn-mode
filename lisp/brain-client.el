@@ -22,6 +22,7 @@
   (append request additional-params))
 
 (defvar broadcast-rdf-request (create-request "BroadcastRDF"))
+(defvar action-dujour-request (create-request "ActionDuJour"))
 (defvar find-duplicates-request (create-request "FindDuplicates"))
 (defvar find-isolated-atoms-request (create-request "FindIsolatedAtoms"))
 (defvar find-roots-request (add-to-request (create-request "FindRoots") (list :height 1)))
@@ -170,7 +171,7 @@
   (message "type inference completed successfully in %.0f ms" (brain-env-response-time)))
       
 (defun ping-callback (payload context)
-  (message "ping completed in %.0f ms" (brain-env-response-time)))
+  (message "completed in %.0f ms" (brain-env-response-time)))
 
 (defun remove-isolated-atoms-callback (payload context)
   (message "removed isolated atoms in %.0f ms" (brain-env-response-time)))
@@ -272,7 +273,10 @@
 (defun brain-client-wikiview (atom-id)
   (brain-view-set-context-line 1)
   (issue-request (create-wikiview-request atom-id) 'wikiview-callback))
-  
+
+(defun brain-client-action-dujour ()
+  (issue-request action-dujour-request 'ping-callback))
+
 (defun brain-client-ping-server ()
   (issue-request ping-request 'ping-callback))
 

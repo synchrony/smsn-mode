@@ -244,6 +244,11 @@
 	 (delq (current-buffer) (buffer-list))
 	 )))
 
+(defun brain-action-dujour ()
+  "calls an action which may vary over time; used in development and migration"
+  (interactive)
+  (brain-client-action-dujour))
+
 (defun brain-ping-server ()
   "finds the response time of the server connection to a simple request"
   (interactive)
@@ -816,6 +821,7 @@ a type has been assigned to it by the inference engine."
     (define-key brain-mode-map (kbd "C-c g")           'brain-ping-server)
     (define-key brain-mode-map (kbd "C-c h")           'brain-history)
     (define-key brain-mode-map (kbd "C-c i")           'brain-infer-types)
+    (define-key brain-mode-map (kbd "C-c j")           'brain-action-dujour)
     (define-key brain-mode-map (kbd "C-c m")           'brain-toggle-move-or-edit-submode)
     (define-key brain-mode-map (kbd "C-c n")           'brain-navigate-to-new-atom)
     (define-key brain-mode-map (kbd "C-c o")           'brain-shortcut-query-prompt)
