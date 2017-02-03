@@ -17,7 +17,7 @@
 (defconst brain-const-treeview-mode "treeview-mode"
   "A state for viewing and editing tree views of graph data")
 (defconst brain-const-wikiview-mode "wikiview-mode"
-  "A state for viewing and editing the value/page of an atom")
+  "A state for viewing and editing the page of an atom")
 (defconst brain-const-search-mode "search-mode"
   "A state for immutable search results")
 
@@ -202,8 +202,9 @@
   (cons 'style brain-const-forward-style)
   (cons 'timestamp 'nil)
   (cons 'title 'nil)
+  (cons 'page 'nil)
   (cons 'truncate-long-lines 'nil)
-  (cons 'value-length-cutoff 100)
+  (cons 'title-length-cutoff 100)
   (cons 'view 'nil)
   (cons 'view-properties 'nil)
   (cons 'view-style brain-const-color-by-sharability)))

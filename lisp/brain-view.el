@@ -109,7 +109,7 @@
               (link (brain-env-json-get 'link json))
               (children (brain-env-json-get 'children json)))
           (let ((focus-id (brain-data-atom-id json))
-                (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
+                (focus-title (let ((v (brain-data-atom-title json))) (if v v "")))
 		        (focus-weight (brain-data-atom-weight json))
 		        (focus-sharability (brain-data-atom-sharability json))
 		        (focus-priority (brain-data-atom-priority json))
@@ -132,7 +132,7 @@
                                              focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
                                    id-infix
                                    " "
-                                   (colorize (delimit-value focus-value)
+                                   (colorize (delimit-value focus-title)
                                              focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
                                    "\n")))
               (insert (propertize line 'id focus-id)))
@@ -153,11 +153,10 @@
             (write-treeview children (+ tree-indent 4))))))
 
 (defun write-wikiview (json)
-  (let ((focus-id (brain-data-atom-id json))
-    (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
-    (focus-weight (brain-data-atom-weight json))
-    (focus-sharability (brain-data-atom-sharability json)))
-      (insert (colorize focus-value focus-weight focus-sharability nil 0.0 nil nil))))
+  (let ((page (let ((v (brain-data-atom-page json))) (if v v "")))
+    (weight (brain-data-atom-weight json))
+    (sharability (brain-data-atom-sharability json)))
+      (insert (colorize page weight sharability nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -175,7 +174,7 @@
              [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
-   " :value \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
+   " :title \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
@@ -274,7 +273,7 @@
   (message "view updated in %.0f ms" (brain-env-response-time)))
 
 (defun brain-wikiview-open (payload context)
-  "Callback to receive and display the value/page of an atom"
+  "Callback to receive and display the page of an atom"
   (switch-to-buffer-with-context
      (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload nil) context)
   (configure-context payload)
