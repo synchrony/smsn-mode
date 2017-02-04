@@ -4,6 +4,7 @@ Brain-mode CHANGELOG
 Brain-mode 1.3 SNAPSHOT (not yet released)
 ----------------------------------------
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+* Adjusted to Semantic Synchrony data model changes
 * Added editable "page" views
 * Added a command to search on the atom at point
 * Display parent and child counts as metadata columns
