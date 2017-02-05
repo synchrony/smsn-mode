@@ -4,7 +4,7 @@
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/joshsh/brain-mode
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
@@ -37,8 +37,11 @@
 (defun brain-data-atom-created (atom)
   (brain-env-json-get 'created atom))
 
-(defun brain-data-atom-value (atom)
-  (brain-env-json-get 'value atom))
+(defun brain-data-atom-title (atom)
+  (brain-env-json-get 'title atom))
+
+(defun brain-data-atom-page (atom)
+  (brain-env-json-get 'page atom))
 
 (defun brain-data-atom-priority (atom)
   (let ((v (assoc 'priority atom)))
@@ -73,9 +76,9 @@
 (defun brain-data-focus ()
   (brain-data-atom (brain-data-atom-id-at-point)))
 
-(defun brain-data-focus-value ()
+(defun brain-data-focus-title ()
   (let ((g (brain-data-focus)))
-    (if g (brain-data-atom-value g))))
+    (if g (brain-data-atom-title g))))
 
 (defun brain-data-focus-alias ()
   (let ((g (brain-data-focus)))
@@ -88,7 +91,7 @@
 (defun brain-data-show (atom)
   (let (
         (created (brain-data-atom-created atom))
-        (value (brain-data-atom-value atom))
+        (title (brain-data-atom-title atom))
         (weight (brain-data-atom-weight atom))
         (sharability (brain-data-atom-sharability atom))
         (priority (brain-data-atom-priority atom))
@@ -102,7 +105,7 @@
               ", sharability: " (number-to-string sharability)
               (if priority (concat ", priority: " (number-to-string priority)) "")
               ", created: " (format-time-string "%Y-%m-%dT%H:%M:%S%z" (seconds-to-time (/ created 1000.0)))
-              ", value: " value
+              ", title: " title
               (if alias (concat ", alias: " alias) "")))))
 
 

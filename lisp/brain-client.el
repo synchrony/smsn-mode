@@ -4,7 +4,7 @@
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/joshsh/brain-mode
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
@@ -46,7 +46,7 @@
 
 (defun to-query-request (base-request)
   (add-to-request (to-filter-request base-request) (list
-      :valueCutoff (brain-env-context-get 'value-length-cutoff)
+      :titleCutoff (brain-env-context-get 'title-length-cutoff)
       :style brain-const-forward-style)))
 
 (defun create-search-request (query-type query)
@@ -112,7 +112,7 @@
     (issue-request request 'brain-treeview-open)))
 
 (defun push-wikiview ()
-   (set-property-in-wikiview "value" (buffer-string)))
+   (set-property-in-wikiview "page" (buffer-string)))
 
 (defun format-request-data (params)
   (json-encode (list

@@ -15,7 +15,7 @@
 ;;
 ;; See brain-mode-init-example.el for optional variables and example values.
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.

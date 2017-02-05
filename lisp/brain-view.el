@@ -4,7 +4,7 @@
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/joshsh/brain-mode
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
@@ -97,10 +97,11 @@
     (let ((s (number-to-string n)))
       (if (> (length s) 1) s (concat " " s)))))
 
-(defun add-meta-columns (text n-children n-parents)
+(defun add-meta-columns (text n-children n-parents has-page)
   (let ((meta (concat
       (make-light-gray (pad-to-length-2 n-parents)) " "
-      (make-dark-gray (pad-to-length-2 n-children)))))
+      (make-dark-gray (pad-to-length-2 n-children)) " "
+      (make-dark-gray (if has-page "*" " ")))))
     (propertize text 'display `((margin right-margin),meta))))
 
 (defun write-treeview (children tree-indent)
@@ -109,7 +110,8 @@
               (link (brain-env-json-get 'link json))
               (children (brain-env-json-get 'children json)))
           (let ((focus-id (brain-data-atom-id json))
-                (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
+                (focus-title (let ((v (brain-data-atom-title json))) (if v v "")))
+                (focus-has-page (brain-env-json-get 'page json))
 		        (focus-weight (brain-data-atom-weight json))
 		        (focus-sharability (brain-data-atom-sharability json))
 		        (focus-priority (brain-data-atom-priority json))
@@ -124,7 +126,8 @@
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
-            (let ((line "") (id-infix (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents)))
+            (let ((line "") (id-infix
+                (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
               (setq line (concat line space))
               (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
@@ -132,7 +135,7 @@
                                              focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
                                    id-infix
                                    " "
-                                   (colorize (delimit-value focus-value)
+                                   (colorize (delimit-value focus-title)
                                              focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
                                    "\n")))
               (insert (propertize line 'id focus-id)))
@@ -153,11 +156,10 @@
             (write-treeview children (+ tree-indent 4))))))
 
 (defun write-wikiview (json)
-  (let ((focus-id (brain-data-atom-id json))
-    (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
-    (focus-weight (brain-data-atom-weight json))
-    (focus-sharability (brain-data-atom-sharability json)))
-      (insert (colorize focus-value focus-weight focus-sharability nil 0.0 nil nil))))
+  (let ((page (let ((v (brain-data-atom-page json))) (if v v "")))
+    (weight (brain-data-atom-weight json))
+    (sharability (brain-data-atom-sharability json)))
+      (insert (colorize page weight sharability nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -175,7 +177,7 @@
              [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
-   " :value \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
+   " :title \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
@@ -189,7 +191,7 @@
       title)))
       
 (defun prepare-right-margin ()
-  (set-window-margins (frame-selected-window) 0 5))
+  (set-window-margins (frame-selected-window) 0 7))
 
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
@@ -274,7 +276,7 @@
   (message "view updated in %.0f ms" (brain-env-response-time)))
 
 (defun brain-wikiview-open (payload context)
-  "Callback to receive and display the value/page of an atom"
+  "Callback to receive and display the page of an atom"
   (switch-to-buffer-with-context
      (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload nil) context)
   (configure-context payload)
