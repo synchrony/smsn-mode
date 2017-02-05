@@ -191,7 +191,7 @@
       title)))
       
 (defun prepare-right-margin ()
-  (set-window-margins (frame-selected-window) 0 5))
+  (set-window-margins (frame-selected-window) 0 7))
 
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
