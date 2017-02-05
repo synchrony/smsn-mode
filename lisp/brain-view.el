@@ -100,8 +100,7 @@
 (defun add-meta-columns (text n-children n-parents has-page)
   (let ((meta (concat
       (make-light-gray (pad-to-length-2 n-parents)) " "
-      (make-dark-gray (pad-to-length-2 n-children)) " "
-      (make-dark-gray (if has-page "*" " ")))))
+      (make-dark-gray (concat (pad-to-length-2 n-children) (if has-page "*" " "))))))
     (propertize text 'display `((margin right-margin),meta))))
 
 (defun write-treeview (children tree-indent)
