@@ -97,10 +97,11 @@
     (let ((s (number-to-string n)))
       (if (> (length s) 1) s (concat " " s)))))
 
-(defun add-meta-columns (text n-children n-parents)
+(defun add-meta-columns (text n-children n-parents has-page)
   (let ((meta (concat
       (make-light-gray (pad-to-length-2 n-parents)) " "
-      (make-dark-gray (pad-to-length-2 n-children)))))
+      (make-dark-gray (pad-to-length-2 n-children)) " "
+      (make-dark-gray (if has-page "*" " ")))))
     (propertize text 'display `((margin right-margin),meta))))
 
 (defun write-treeview (children tree-indent)
@@ -110,6 +111,7 @@
               (children (brain-env-json-get 'children json)))
           (let ((focus-id (brain-data-atom-id json))
                 (focus-title (let ((v (brain-data-atom-title json))) (if v v "")))
+                (focus-has-page (brain-env-json-get 'page json))
 		        (focus-weight (brain-data-atom-weight json))
 		        (focus-sharability (brain-data-atom-sharability json))
 		        (focus-priority (brain-data-atom-priority json))
@@ -124,7 +126,8 @@
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
-            (let ((line "") (id-infix (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents)))
+            (let ((line "") (id-infix
+                (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
               (setq line (concat line space))
               (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
