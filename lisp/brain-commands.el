@@ -726,6 +726,7 @@ a type has been assigned to it by the inference engine."
     ("u" . undo)
     ("v" . yank)
     ("w" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
+    ("W" . brain-focus-wikiview)
     ("x" . kill-region)
     ("y" . brain-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
