@@ -719,15 +719,16 @@ a type has been assigned to it by the inference engine."
     ("L" . move-end-of-line)
     ("n" . brain-navigate-to-focus-atom-and-kill-buffer)
     ("o" . other-window)
-    ("p" . brain-push-view-prompt) ;; shortcut is effectively "p z"
-    ("P" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
-    ("S" . brain-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
+    ("p" . brain-set-priority-and-drop-cursor) ;; !! first use one-liner-view
+    ("q" . kill-buffer)
+    ("s" . brain-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . brain-navigate-to-focus-atom)
     ("u" . undo)
     ("v" . yank)
-    ("w" . kill-buffer)
-    ("W" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
+    ("w" . brain-set-weight-and-drop-cursor) ;; !! first use one-liner-view
+    ("W" . brain-focus-wikiview)
     ("x" . kill-region)
+    ("y" . brain-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
 

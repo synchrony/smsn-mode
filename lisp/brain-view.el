@@ -75,6 +75,38 @@
     (list :foreground "dim gray" :background "white")
     (list :foreground "black")))
 
+(defun orange-background ()
+  (if brain-view-full-colors-supported
+    (list :background "orange")
+    (list :background "gray")))
+
+(defun purple-background ()
+  (if brain-view-full-colors-supported
+    (list :background "purple")
+    (list :background "gray")))
+
+(defun yellow-background ()
+  (if brain-view-full-colors-supported
+    (list :background "yellow")
+    (list :background "gray")))
+
+(defun red-background ()
+  (if brain-view-full-colors-supported
+    (list :background "red")
+    (list :background "gray")))
+
+(defun make-background-orange (text)
+  (propertize text 'face (orange-background)))
+
+(defun make-background-purple (text)
+  (propertize text 'face (purple-background)))
+
+(defun make-background-yellow (text)
+  (propertize text 'face (yellow-background)))
+
+(defun make-background-red (text)
+  (propertize text 'face (red-background)))
+
 (defun make-light-gray (text)
   (propertize text 'face (light-gray)))
 
@@ -98,10 +130,19 @@
       (if (> (length s) 1) s (concat " " s)))))
 
 (defun add-meta-columns (text n-children n-parents has-page)
-  (let ((meta (concat
-      (make-light-gray (pad-to-length-2 n-parents)) " "
-      (make-dark-gray (concat (pad-to-length-2 n-children) (if has-page "*" " "))))))
-    (propertize text 'display `((margin right-margin),meta))))
+  ;; yellow for parents > 1. blank for parents|children = 0. purple child field for markup, unless there are children too, in which case red.
+  (let ((parent-text (if (> n-parents 0) (pad-to-length-2 n-parents) "  "))
+        (child-text (if (> n-children 0) (pad-to-length-2 n-children) "  ")))
+    (let ((parent-string (if (> n-parents 1)
+			     (make-background-yellow parent-text) parent-text))
+	  (child-string (if has-page
+			    (make-background-purple child-text)
+			    child-text)))
+      (let ((meta (concat parent-string " "
+			  (if (and (> n-children 0) has-page)
+			      (make-background-red child-string)
+			      child-string))))
+	(propertize text 'display `((margin right-margin),meta))))))
 
 (defun write-treeview (children tree-indent)
   (loop for json across children do
@@ -190,7 +231,7 @@
       title)))
       
 (defun prepare-right-margin ()
-  (set-window-margins (frame-selected-window) 0 7))
+  (set-window-margins (frame-selected-window) 0 5))
 
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
