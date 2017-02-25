@@ -75,6 +75,22 @@
     (list :foreground "dim gray" :background "white")
     (list :foreground "black")))
 
+(defun red-background ()
+  (if brain-view-full-colors-supported
+    (list :background "red")
+    (list :background "gray")))
+
+(defun yellow-background ()
+  (if brain-view-full-colors-supported
+    (list :background "yellow")
+    (list :background "gray")))
+
+(defun make-background-yellow (text)
+  (propertize text 'face (yellow-background)))
+
+(defun make-background-red (text)
+  (propertize text 'face (red-background)))
+
 (defun make-light-gray (text)
   (propertize text 'face (light-gray)))
 
@@ -99,9 +115,12 @@
 
 (defun add-meta-columns (text n-children n-parents has-page)
   (let ((meta (concat
-      (make-light-gray (pad-to-length-2 n-parents)) " "
-      (make-dark-gray (pad-to-length-2 n-children)) " "
-      (make-dark-gray (if has-page "*" " ")))))
+                 (if (> n-parents 1) (make-background-yellow ">") " ")
+	         (pad-to-length-2 n-parents)
+		 (if has-page (make-background-red "P") " ")
+	         (pad-to-length-2 n-children) " "
+                 (if (> n-children 0) "<" " ")
+	       )))
     (propertize text 'display `((margin right-margin),meta))))
 
 (defun write-treeview (children tree-indent)
@@ -191,7 +210,7 @@
       title)))
       
 (defun prepare-right-margin ()
-  (set-window-margins (frame-selected-window) 0 7))
+  (set-window-margins (frame-selected-window) 0 8))
 
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
