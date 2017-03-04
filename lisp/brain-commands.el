@@ -576,7 +576,10 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-import-vcs-prompt ()
   (interactive)
-  (prompt-for-string 'brain-import-vcs "import version-controlled graph from directory: " brain-default-vcs-file))
+  (prompt-for-string
+   'brain-import-vcs
+   "import version-controlled graph from directory: "
+   (if (boundp 'brain-default-vcs-file) brain-default-vcs-file "~/")))
 
 (defun brain-import-freeplane-prompt ()
   (interactive)
