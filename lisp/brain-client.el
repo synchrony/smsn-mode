@@ -71,6 +71,7 @@
 
 (defun do-write-graph (format file)
   (let ((request (add-to-request write-graph-request (list
+        :filter (to-filter)
         :format format
         :file file))))
     (issue-request request 'export-callback)))
