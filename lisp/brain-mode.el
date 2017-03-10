@@ -7,13 +7,15 @@
 ;;
 ;; Dependencies:
 ;;
-;;     aes, indent-guide, json, latex-math-preview, and linum
+;;     aes, indent-guide, json, latex-math-preview, linum, and websocket
 ;;
-;; Required global variables:
+;; Optional global variables:
 ;;
-;;     brain-server-url: IP and port Gremlin Server (defaults to "http://localhost:8182")
+;;     brain-server-host: IP address of Gremlin Server (defaults to "127.0.0.1")
+;;     brain-server-port: listening port of Gremlin Server (defaults to 8182)
+;;     brain-server-protocol: "http" or "websocket" (defaults to "http")
 ;;
-;; See brain-mode-init-example.el for optional variables and example values.
+;; See brain-mode-init-example.el for additional variables with example values.
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
@@ -38,6 +40,12 @@
 
 ;; a visual aid to consistent indentation
 (require 'indent-guide)
+
+;; WebSocket support
+(require 'tls)   ;; tests a WebSocket-related bug on emacs 23
+(require 'websocket)
+(eval-when-compile (require 'cl))
+
 
 (require 'brain-client)
 (require 'brain-commands)

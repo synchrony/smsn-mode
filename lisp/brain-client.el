@@ -12,6 +12,8 @@
 
 (require 'brain-env)
 (require 'brain-data)
+(require 'brain-client-http)
+(require 'brain-client-websocket)
 
 
 (defun create-request (action-name)
@@ -115,44 +117,6 @@
 (defun push-wikiview ()
    (set-property-in-wikiview "page" (buffer-string)))
 
-(defun format-request-data (params)
-  (json-encode (list
-    (cons 'language "smsn")
-    (cons 'gremlin (json-encode params)))))
-
-(defun http-post (url params callback)
-  "Issue an HTTP POST request to URL with PARAMS"
-  (let ((url-request-method "POST")
-        (url-request-extra-headers '(("Content-Type" . "application/json;charset=UTF-8")))
-        (url-request-data
-          (format-request-data params)))
-    (url-retrieve url callback)))
-
-(defun http-get (url callback)
-  "Issue an HTTP GET request to URL"
-  (url-retrieve url callback))
-
-(defun strip-http-headers (entity)
-  (let ((i (string-match "\n\n" entity)))
-    (if i
-        (decode-coding-string (substring entity (+ i 2)) 'utf-8)
-        "{}")))
-
-(defun get-buffer-json ()
-  (json-read-from-string (strip-http-headers (buffer-string))))
-
-(defun get-response-error (json)
-  (brain-env-json-get 'error json))
-
-(defun get-response-message (json)
-  (brain-env-json-get 'message
-    (brain-env-json-get 'status json)))
-
-(defun get-response-payload (json)
-  (car
-    (brain-env-json-get 'data
-      (brain-env-json-get 'result json))))
-
 (defun to-filter (&optional context)
   (list
       :minSharability (brain-env-context-get 'min-sharability context)
@@ -192,44 +156,25 @@
 
 (defun issue-request (request callback)
   (brain-env-set-timestamp)
-  (http-post-and-receive (find-server-url) request callback))
+  (let (
+      (protocol (find-server-protocol))
+      (host (find-server-host))
+      (port (find-server-port)))
+    (if (equal "http" protocol)
+      (brain-client-http-send-and-receive host port request callback)
+      (if (equal "websocket" protocol)
+        (brain-client-websocket-send-and-receive host port request callback)
+        (error (concat "unsupported protocol: " protocol))))))
 
-(defun http-post-and-receive (url request callback)
-  ;;(message  (concat "context: " (json-encode context)))
-  (http-post url request
-    (http-callback callback)))
+(defun find-server-protocol ()
+  (downcase
+    (if (boundp 'brain-server-protocol) brain-server-protocol "http")))
 
-(defun http-callback (callback)
-  (lexical-let
-    ((context (copy-alist (brain-env-get-context)))
-     (callback callback))
-    (lambda (status)
-      (handle-response status context callback))))
+(defun find-server-host ()
+  (if (boundp 'brain-server-host) brain-server-host "127.0.0.1"))
 
-(defun handle-response (http-status context callback)
-  (if http-status
-    (error  (concat "HTTP request failed: " (json-encode http-status)))
-    (let ((json (get-buffer-json)))
-      (let ((message (brain-env-json-get 'message (brain-env-json-get 'status json)))
-            (payload (get-payload json)))
-        (if (and message (> (length message) 0))
-          (error  (concat "request failed: " message))
-          (if payload
-            (funcall callback payload context)
-            (error  "no response data")))))))
-
-(defun get-payload (json)
-  (if json
-    (let ((data-array (brain-env-json-get 'data (brain-env-json-get 'result json))))
-      (if data-array
-        (if (= 1 (length data-array))
-          (json-read-from-string (aref data-array 0))
-          (error  "unexpected data array length"))
-        nil))
-    nil))
-
-(defun find-server-url ()
-  (if (boundp 'brain-server-url) brain-server-url "http://127.0.0.1:8182"))
+(defun find-server-port ()
+  (if (boundp 'brain-server-port) brain-server-port 8182))
 
 (defun brain-client-export (format file)
   (do-write-graph format file))

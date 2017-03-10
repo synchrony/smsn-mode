@@ -12,8 +12,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; optional settings
 
-;; overrride default Gremlin Server URL
-(defvar brain-server-url "http://127.0.0.1:8182")
+;; overrride default Gremlin Server connection settings
+(defvar brain-server-host "127.0.0.1")
+(defvar brain-server-port 8182)
+(defvar brain-server-protocol "websocket")
+
+;; export and import graph data in the VCS format from here
+(defvar brain-default-vcs-file "/opt/brains/git-smsn")
 
 ;; export the graph to here, or populate an empty graph from here
 (defvar brain-default-graphml-file "/tmp/arthurdent.xml")
