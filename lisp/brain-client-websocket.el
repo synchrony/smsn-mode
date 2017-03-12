@@ -25,7 +25,9 @@
 
 (defun get-websocket-connection (host port)
   (if (not (websocket-connection-is-open))
-    (setq websocket-connection (create-websocket-connection host port)))
+    (progn
+      (setq websocket-connection (create-websocket-connection host port))
+      (sleep-for 0.1)))
   websocket-connection)
 
 (defun create-websocket-connection (host port)
