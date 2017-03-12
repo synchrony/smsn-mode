@@ -159,7 +159,7 @@
 (defun brain-import-vcs (file)
   "import a graph from a set of version-controlled directories into the knowledge base"
   (interactive)
-  (message (concat "importing version-controlleg graph from " file))
+  (message (concat "importing version-controlled graph from " file))
   (brain-client-import "VCS" file))
 
 (defun brain-import-freeplane (file)
