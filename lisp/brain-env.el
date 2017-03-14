@@ -4,7 +4,7 @@
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/joshsh/brain-mode
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
@@ -15,7 +15,9 @@
   "The maximum allowed height of a view")
 
 (defconst brain-const-treeview-mode "treeview-mode"
-  "A state in which view buffers are not editable")
+  "A state for viewing and editing tree views of graph data")
+(defconst brain-const-wikiview-mode "wikiview-mode"
+  "A state for viewing and editing the page of an atom")
 (defconst brain-const-search-mode "search-mode"
   "A state for immutable search results")
 
@@ -61,25 +63,13 @@
   "Populates a first definition of buffer-local context with default values"
   (defvar brain-bufferlocal-context (default-context)))
 
-(defun brain-env-debug-message (msg)
-  "Outputs a debugging message"
-  (message "%s" (concat "Debug: " msg)))
-
-(defun brain-env-info-message (msg)
-  "Outputs an informational message"
-  (message "%s" (concat "Info: " msg)))
-
-(defun brain-env-error-message (msg)
-  "Outputs an error message"
-  (message "%s" (concat "Error: " msg)))
-
 (defun brain-env-error-no-focus ()
   "Informs the user that a focus atom was not found"
-  (brain-env-error-message "there is no atom associated with this line"))
+  (error "there is no atom associated with this line"))
 
 (defun brain-env-error-no-root ()
   "Informs the user that a root atom was not found"
-  (brain-env-error-message "there is no root atom associated with this view"))
+  (error "there is no root atom associated with this view"))
 
 (defun brain-env-using-inference ()
   "Determines whether the current buffer is an inference-enabled view"
@@ -91,23 +81,19 @@
 
 (defun brain-env-fail (message)
   "Fails an assertion with the given message"
-  (and (brain-env-error-message message) nil))
+  (and (error message) nil))
 
 (defun brain-env-is-readonly ()
   "Determines whether the current buffer is a read-only tree view"
   (not (equal (brain-env-context-get 'readonly) 'nil)))
 
-(defun brain-env-set-treeview-mode ()
-  "Marks the current buffer as a tree view"
-  (brain-env-context-set 'mode brain-const-treeview-mode))
-
-(defun brain-env-set-search-mode ()
-  "Marks the current buffer as a search/other view"
-  (brain-env-context-set 'mode brain-const-search-mode))
-
 (defun brain-env-in-treeview-mode ()
   "Determines whether the current buffer is a tree view"
   (equal (brain-env-context-get 'mode) brain-const-treeview-mode))
+
+(defun brain-env-in-wikiview-mode ()
+  "Determines whether the current buffer is a wiki view"
+  (equal (brain-env-context-get 'mode) brain-const-wikiview-mode))
 
 (defun brain-env-in-search-mode ()
   "Determines whether the current buffer is a page of search results"
@@ -115,6 +101,9 @@
 
 (defun brain-env-to-treeview-mode (&optional context)
   (brain-env-context-set 'mode brain-const-treeview-mode context))
+
+(defun brain-env-to-wikiview-mode (&optional context)
+  (brain-env-context-set 'mode brain-const-wikiview-mode context))
 
 (defun brain-env-to-search-mode (&optional context)
   (brain-env-context-set 'mode brain-const-search-mode context))
@@ -165,6 +154,16 @@
         const-time-format)
     time))
 
+(defun brain-env-set-timestamp ()
+  "Sets a context-local time stamp to the current time"
+  (brain-env-context-set 'timestamp (current-time)))
+
+(defun brain-env-response-time ()
+  "Finds the difference, in milliseconds, between the current time and the last recorded time stamp"
+  (* 1000.0 (float-time (time-subtract
+    (current-time)
+    (brain-env-context-get 'timestamp)))))
+
 (defun brain-env-context-get (key &optional context)
   (brain-env-json-get key (brain-env-get-context context)))
 
@@ -201,9 +200,11 @@
   (cons 'root-id 'nil)
   (cons 'readonly 'nil)
   (cons 'style brain-const-forward-style)
+  (cons 'timestamp 'nil)
   (cons 'title 'nil)
+  (cons 'page 'nil)
   (cons 'truncate-long-lines 'nil)
-  (cons 'value-length-cutoff 100)
+  (cons 'title-length-cutoff 100)
   (cons 'view 'nil)
   (cons 'view-properties 'nil)
   (cons 'view-style brain-const-color-by-sharability)))

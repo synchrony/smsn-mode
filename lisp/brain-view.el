@@ -4,7 +4,7 @@
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/joshsh/brain-mode
 ;;
-;; Copyright (C) 2011-2016 Joshua Shinavier and collaborators
+;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
@@ -67,31 +67,97 @@
 
 (defun light-gray ()
   (if brain-view-full-colors-supported
-    (list :foreground "grey80" :background "white")
+    (list :foreground "gray" :background "white")
     (list :foreground "black")))
 
+(defun dark-gray ()
+  (if brain-view-full-colors-supported
+    (list :foreground "dim gray" :background "white")
+    (list :foreground "black")))
+
+(defun orange-background ()
+  (if brain-view-full-colors-supported
+    (list :background "orange")
+    (list :background "gray")))
+
+(defun purple-background ()
+  (if brain-view-full-colors-supported
+    (list :background "purple")
+    (list :background "gray")))
+
+(defun yellow-background ()
+  (if brain-view-full-colors-supported
+    (list :background "yellow")
+    (list :background "gray")))
+
+(defun red-background ()
+  (if brain-view-full-colors-supported
+    (list :background "red")
+    (list :background "gray")))
+
+(defun make-background-orange (text)
+  (propertize text 'face (orange-background)))
+
+(defun make-background-purple (text)
+  (propertize text 'face (purple-background)))
+
+(defun make-background-yellow (text)
+  (propertize text 'face (yellow-background)))
+
+(defun make-background-red (text)
+  (propertize text 'face (red-background)))
+
 (defun make-light-gray (text)
-  (propertize text
-              'face (light-gray)))
+  (propertize text 'face (light-gray)))
+
+(defun make-dark-gray (text)
+  (propertize text 'face (dark-gray)))
 
 (defun delimit-value (value)
+  "Encloses multi-line values in triple brackets, leaving single-line values unchanged"
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
             (concat "{{{"
                     (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
 
-(defun write-view (children tree-indent)
+(defun choose-bullet (n-children)
+  (if (> n-children 0) "+" "\u00b7"))
+
+(defun pad-to-length-2 (n)
+  (if (> n 99) "++"
+    (let ((s (number-to-string n)))
+      (if (> (length s) 1) s (concat " " s)))))
+
+(defun add-meta-columns (text n-children n-parents has-page)
+  ;; yellow for parents > 1. blank for parents|children = 0. purple child field for markup, unless there are children too, in which case red.
+  (let ((parent-text (if (> n-parents 0) (pad-to-length-2 n-parents) "  "))
+        (child-text (if (> n-children 0) (pad-to-length-2 n-children) "  ")))
+    (let ((parent-string (if (> n-parents 1)
+			     (make-background-yellow parent-text) parent-text))
+	  (child-string (if has-page
+			    (make-background-purple child-text)
+			    child-text)))
+      (let ((meta (concat parent-string " "
+			  (if (and (> n-children 0) has-page)
+			      (make-background-red child-string)
+			      child-string))))
+	(propertize text 'display `((margin right-margin),meta))))))
+
+(defun write-treeview (children tree-indent)
   (loop for json across children do
         (let (
               (link (brain-env-json-get 'link json))
               (children (brain-env-json-get 'children json)))
           (let ((focus-id (brain-data-atom-id json))
-                (focus-value (let ((v (brain-data-atom-value json))) (if v v "")))
+                (focus-title (let ((v (brain-data-atom-title json))) (if v v "")))
+                (focus-has-page (brain-env-json-get 'page json))
 		        (focus-weight (brain-data-atom-weight json))
 		        (focus-sharability (brain-data-atom-sharability json))
 		        (focus-priority (brain-data-atom-priority json))
                 (focus-has-children (not (equal json-false (brain-env-json-get 'hasChildren json))))
+                (focus-n-children (brain-env-json-get 'numberOfChildren json))
+                (focus-n-parents (brain-env-json-get 'numberOfParents json))
 		        (focus-alias (brain-data-atom-alias json))
 		        (focus-shortcut (brain-data-atom-shortcut json))
 		        (focus-meta (brain-data-atom-meta json)))
@@ -100,15 +166,16 @@
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
-            (let ((line "") (id-infix (brain-view-create-id-infix focus-id)))
+            (let ((line "") (id-infix
+                (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
               (setq line (concat line space))
-              (let ((bullet (if focus-has-children "+" "\u00b7"))) ;; previously: "-" or "\u25ba"
+              (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
                                    (colorize bullet
                                              focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
                                    id-infix
                                    " "
-                                   (colorize (delimit-value focus-value)
+                                   (colorize (delimit-value focus-title)
                                              focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
                                    "\n")))
               (insert (propertize line 'id focus-id)))
@@ -126,7 +193,13 @@
                     (insert (make-light-gray (concat space "    @shortcut    " focus-shortcut "\n"))))
                 (if focus-alias
                     (insert (make-light-gray (concat space "    @alias       " focus-alias "\n"))))))
-            (write-view children (+ tree-indent 4))))))
+            (write-treeview children (+ tree-indent 4))))))
+
+(defun write-wikiview (json)
+  (let ((page (let ((v (brain-data-atom-page json))) (if v v "")))
+    (weight (brain-data-atom-weight json))
+    (sharability (brain-data-atom-sharability json)))
+      (insert (colorize page weight sharability nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -144,24 +217,28 @@
              [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
    ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
-   " :value \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
+   " :title \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
     (concat (substring str 0 maxlen) "...")
     str))
 
-(defun name-for-view-buffer (root-id payload)
+(defun name-for-view-buffer (root-id payload is-treeview)
   (let ((title (brain-env-json-get 'title payload)))
     (if root-id
-      (concat (shorten-title title 20) " [" root-id "]")
+      (concat (shorten-title title 20) " [" root-id "]" (if is-treeview " - tree" ""))
       title)))
+      
+(defun prepare-right-margin ()
+  (set-window-margins (frame-selected-window) 0 5))
 
 (defun switch-to-buffer-with-context (name context)
   "activate Brain-mode in a new view buffer created by Brain-mode"
   (switch-to-buffer name)
   (setq buffer-read-only nil)
   (brain-mode)
+  (prepare-right-margin)
   (brain-env-set-context context))
 
 (defun read-string-value (context-variable payload-variable payload)
@@ -221,19 +298,33 @@
   (setq buffer-read-only (is-readonly))
   (show-line-numbers))
 
-(defun write-to-buffer (payload)
-  (write-view (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
+(defun write-treeview-to-buffer (payload)
+  (write-treeview (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
 
-(defun brain-view-open (payload context)
+(defun write-wikiview-to-buffer (payload)
+  (write-wikiview (brain-data-payload-view payload)))
+
+(defun brain-treeview-open (payload context)
   "Callback to receive and display the data of a view"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload) context)
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload t) context)
   (configure-context payload)
   (create-atom-hashtable)
   (erase-buffer)
-  (write-to-buffer payload)
-  (configure-buffer))
+  (write-treeview-to-buffer payload)
+  (configure-buffer)
+  (message "view updated in %.0f ms" (brain-env-response-time)))
 
+(defun brain-wikiview-open (payload context)
+  "Callback to receive and display the page of an atom"
+  (switch-to-buffer-with-context
+     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload nil) context)
+  (configure-context payload)
+  (erase-buffer)
+  (write-wikiview-to-buffer payload)
+  (configure-buffer)
+  (message "page updated in %.0f ms" (brain-env-response-time)))
+  
 (defun brain-view-color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
   (atom-color 0.75 (+ 0.25 (brain-env-context-get 'min-sharability)) nil nil))
