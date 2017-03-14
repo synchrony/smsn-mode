@@ -1,7 +1,7 @@
 Brain-mode CHANGELOG
 ====================
 
-Brain-mode 1.3 SNAPSHOT (not yet released)
+Brain-mode 1.3 (Join the Army)
 ----------------------------------------
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 * Added support for WebSocket in addition to HTTP for client-server interaction
