@@ -189,7 +189,7 @@
   (cons 'format 'nil)
   (cons 'height 2)
   (cons 'line 1)
-  (cons 'min-sharability brain-const-sharability-private)
+  (cons 'min-sharability brain-const-sharability-personal)
   (cons 'min-weight brain-const-weight-none)
   (cons 'minimize-verbatim-blocks 'nil)
   (cons 'mode brain-const-search-mode)
