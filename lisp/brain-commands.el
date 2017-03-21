@@ -611,7 +611,7 @@ a type has been assigned to it by the inference engine."
 
 (defun brain-set-min-weight-prompt ()
   (interactive)
-  (prompt-for-char 'brain-set-min-weight "minimun weight = ?"))
+  (prompt-for-char 'brain-set-min-weight "minimum weight = ?"))
 
 (defun brain-acronym-query-prompt ()
   (interactive)

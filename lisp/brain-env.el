@@ -189,8 +189,6 @@
   (cons 'format 'nil)
   (cons 'height 2)
   (cons 'line 1)
-  (cons 'max-sharability brain-const-sharability-universal)
-  (cons 'max-weight brain-const-weight-all)
   (cons 'min-sharability brain-const-sharability-private)
   (cons 'min-weight brain-const-weight-none)
   (cons 'minimize-verbatim-blocks 'nil)

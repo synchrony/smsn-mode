@@ -120,10 +120,8 @@
 (defun to-filter (&optional context)
   (list
       :minSharability (brain-env-context-get 'min-sharability context)
-      :maxSharability (brain-env-context-get 'max-sharability context)
       :defaultSharability (brain-env-context-get 'default-sharability context)
       :minWeight (brain-env-context-get 'min-weight context)
-      :maxWeight (brain-env-context-get 'max-weight context)
       :defaultWeight (brain-env-context-get 'default-weight context)))
 
 (defun export-callback (payload context)

@@ -211,12 +211,10 @@
    " :style " (brain-env-context-get 'style)
    " :sharability
              [" (num-or-nil-to-string (brain-env-context-get 'min-sharability))
-   ", " (num-or-nil-to-string (brain-env-context-get 'default-sharability))
-   ", " (num-or-nil-to-string (brain-env-context-get 'max-sharability)) "]"
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-sharability)) "]"
    " :weight
              [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
-   ", " (num-or-nil-to-string (brain-env-context-get 'default-weight))
-   ", " (num-or-nil-to-string (brain-env-context-get 'max-weight)) "]"
+   ", " (num-or-nil-to-string (brain-env-context-get 'default-weight)) "]"
    " :title \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
@@ -260,11 +258,9 @@
     (read-string-value 'title 'title payload)
     (read-numeric-value 'height 'height payload)
     (read-numeric-value 'min-sharability 'minSharability payload)
-    (read-numeric-value 'max-sharability 'maxSharability payload)
     (brain-env-context-set 'default-sharability (find-default-sharability (brain-data-atom-sharability view)))
     ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
     (read-numeric-value 'min-weight 'minWeight payload)
-    (read-numeric-value 'max-weight 'maxWeight payload)
     (read-numeric-value 'default-weight 'defaultWeight payload)))
 
 (defun brain-view-set-context-line (&optional line)
