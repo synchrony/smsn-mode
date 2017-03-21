@@ -40,14 +40,14 @@
 (defconst brain-const-sharability-universal 1.0
   "A sharability level for extra-personal information known to everyone")
 (defconst brain-const-weight-none 0.0
-  "A weight for atoms of no importance, used as a lower limit")
-(defconst brain-const-weight-deemphasized 0.25
+  "A lower limit of atom weight")
+(defconst brain-const-weight-weak 0.25
   "A weight for less important atoms")
 (defconst brain-const-weight-default 0.5
   "A weight for typical atoms")
-(defconst brain-const-weight-emphasized 0.75
+(defconst brain-const-weight-strong 0.75
   "A weight for atoms of special importance")
-(defconst brain-const-weight-all 1.0
+(defconst brain-const-weight-full 1.0
   "A weight for the most important atoms")
 
 (defun brain-env-get-context (&optional context)
