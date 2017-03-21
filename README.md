@@ -7,4 +7,5 @@ Contents of this wiki:
 
 See also [Extend-o-Brain installation](https://github.com/synchrony/smsn/wiki/Extend-o-Brain-installation).
 
-**Credits**: Brain-mode is written and maintained by [Joshua Shinavier](https://github.com/joshsh), with contributions from [Jeffrey Brown](https://github.com/JeffreyBenjaminBrown).
+**Credits**: Brain-mode is written and maintained by [Joshua Shinavier](https://github.com/joshsh) and [Jeffrey Brown](https://github.com/JeffreyBenjaminBrown).
+

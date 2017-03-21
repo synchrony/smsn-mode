@@ -2,7 +2,7 @@
 ;; brain-client.el -- Client/server interaction
 ;;
 ;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/joshsh/brain-mode
+;;   https://github.com/synchrony/brain-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;

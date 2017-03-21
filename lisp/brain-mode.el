@@ -3,7 +3,7 @@
 ;; This major mode allows you to view, edit, search, and process an Extend-o-Brain personal knowledge base.
 ;;
 ;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/joshsh/brain-mode
+;;   https://github.com/synchrony/brain-mode
 ;;
 ;; Dependencies:
 ;;

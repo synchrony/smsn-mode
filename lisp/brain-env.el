@@ -2,7 +2,7 @@
 ;; brain-env.el -- Constants, state, and buffer-local variables
 ;;
 ;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/joshsh/brain-mode
+;;   https://github.com/synchrony/brain-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
