@@ -682,8 +682,12 @@ a type has been assigned to it by the inference engine."
           (coerce (cdr (coerce address 'list)) 'string))
       address)))
 
+(defun color-at-min-sharability ()
+  "Returns the color for at atom at the minimum visible sharability"
+  (atom-color 0.75 (brain-env-context-get 'min-sharability) nil nil))
+
 (defun color-prompt-by-min-sharability (callback)
-  (let ((newcol (brain-view-color-at-min-sharability))
+  (let ((newcol (color-at-min-sharability))
         (oldcol (face-foreground 'minibuffer-prompt)))
     (set-face-foreground 'minibuffer-prompt newcol)
     (funcall callback)

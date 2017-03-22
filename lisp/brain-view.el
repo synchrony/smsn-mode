@@ -320,10 +320,6 @@
   (write-wikiview-to-buffer payload)
   (configure-buffer)
   (message "page updated in %.0f ms" (brain-env-response-time)))
-  
-(defun brain-view-color-at-min-sharability ()
-  "Returns the color for at atom at the minimum visible sharability"
-  (atom-color 0.75 (+ 0.25 (brain-env-context-get 'min-sharability)) nil nil))
 
 (defun brain-view-create-id-infix (id)
   "Creates a string of the form :0000000:, where 000000 is the id of an atom"
