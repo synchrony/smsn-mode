@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-websocket.el -- WebSocket client for Semantic Synchrony
+;; smsn-websocket.el -- WebSocket client for Semantic Synchrony
 ;;
-;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/synchrony/brain-mode
+;; Part of the smsn-mode package for Emacs:
+;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
@@ -10,8 +10,8 @@
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'brain-env)
-(require 'brain-serde)
+(require 'smsn-env)
+(require 'smsn-serde)
 
 
 ;;(setq websocket-debug t)
@@ -44,20 +44,20 @@
 (defun websocket-connection-url (host port)
   (concat "ws://" host ":" (number-to-string port) "/gremlin"))
 
-(defun brain-websocket-send-and-receive (host port request callback)
+(defun smsn-websocket-send-and-receive (host port request callback)
   ;;(message  (concat "context: " (json-encode context)))
   ;;(setq websocket-response-handler ...)
   (let ((connection (get-websocket-connection host port)))
     (if (websocket-connection-is-open)
-      (let ((payload (brain-serde-format-request request)))
+      (let ((payload (smsn-serde-format-request request)))
         (setq websocket-response-handler
           (lexical-let (
             (callback callback)
-            (context (copy-alist (brain-env-get-context))))
+            (context (copy-alist (smsn-env-get-context))))
               (lambda (response)
-                (brain-serde-handle-response response callback context))))
+                (smsn-serde-handle-response response callback context))))
         (websocket-send-text connection payload))
       (error "WebSocket connection could not be opened"))))
 
 
-(provide 'brain-websocket)
+(provide 'smsn-websocket)

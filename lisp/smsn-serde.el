@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-serde.el -- Serializers and deserializers for use with Gremlin Server
+;; smsn-serde.el -- Serializers and deserializers for use with Gremlin Server
 ;;
-;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/synchrony/brain-mode
+;; Part of the smsn-mode package for Emacs:
+;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
@@ -13,7 +13,7 @@
 
 (defun get-data (json)
   (if json
-    (let ((data-array (brain-env-json-get 'data (brain-env-json-get 'result json))))
+    (let ((data-array (smsn-env-json-get 'data (smsn-env-json-get 'result json))))
       (if data-array
         (if (= 1 (length data-array))
           (json-read-from-string (aref data-array 0))
@@ -21,12 +21,12 @@
         nil))
     nil))
 
-(defun brain-serde-format-args (args)
+(defun smsn-serde-format-args (args)
   (json-encode (list
     (cons 'language "smsn")
     (cons 'gremlin (json-encode args)))))
 
-(defun brain-serde-format-request (args)
+(defun smsn-serde-format-request (args)
   (json-encode (list
     ;;(cons 'requestId "123e4567-e89b-12d3-a456-426655440000")
     (cons 'op "eval")
@@ -36,9 +36,9 @@
       (cons 'session "undefined")
       (cons 'gremlin (json-encode args)))))))
 
-(defun brain-serde-handle-response (response callback context)
+(defun smsn-serde-handle-response (response callback context)
   (let ((json (json-read-from-string response)))
-    (let ((message (brain-env-json-get 'message (brain-env-json-get 'status json)))
+    (let ((message (smsn-env-json-get 'message (smsn-env-json-get 'status json)))
           (payload (get-data json)))
       (if (and message (> (length message) 0))
         (error  (concat "request failed: " message))
@@ -47,5 +47,5 @@
           (error  "no response data"))))))
 
 
-(provide 'brain-serde)
+(provide 'smsn-serde)
 

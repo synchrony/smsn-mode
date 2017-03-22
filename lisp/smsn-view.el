@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-view.el -- Tree views and buffers
+;; smsn-view.el -- Tree views and buffers
 ;;
-;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/synchrony/brain-mode
+;; Part of the smsn-mode package for Emacs:
+;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
@@ -10,7 +10,7 @@
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'brain-env)
+(require 'smsn-env)
 
 
 ;; unused colors: black/gray, orange
@@ -20,7 +20,7 @@
 (defconst inference-base-colors '("#660066" "#006666"))
 (defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
 
-(defvar brain-view-full-colors-supported (> (length (defined-colors)) 8))
+(defvar smsn-view-full-colors-supported (> (length (defined-colors)) 8))
 
 (defun color-part-red (color)
   (string-to-number (substring color 1 3) 16))
@@ -44,7 +44,7 @@
 
 (defun atom-color (weight sharability bright has-meta)
   (let ((s
-         (if (brain-env-using-inference)
+         (if (smsn-env-using-inference)
              (elt (if bright inference-bright-colors inference-base-colors) (if has-meta 0 1))
            (elt (if bright sharability-bright-colors sharability-base-colors) (- (ceiling (* sharability 4)) 1)))))
     (color-string
@@ -53,7 +53,7 @@
      (fade-color (color-part-blue s) weight))))
 
 (defun colorize (text weight sharability priority-bg priority-fg bright has-meta)
-  (let ((color (if brain-view-full-colors-supported
+  (let ((color (if smsn-view-full-colors-supported
                    (atom-color weight sharability bright has-meta)
                  (elt sharability-reduced-colors (- (ceiling (* sharability 4)) 1)))))
     (setq l (list
@@ -66,32 +66,32 @@
     (propertize text 'face l)))
 
 (defun light-gray ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :foreground "gray" :background "white")
     (list :foreground "black")))
 
 (defun dark-gray ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :foreground "dim gray" :background "white")
     (list :foreground "black")))
 
 (defun orange-background ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :background "orange")
     (list :background "gray")))
 
 (defun purple-background ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :background "purple")
     (list :background "gray")))
 
 (defun yellow-background ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :background "yellow")
     (list :background "gray")))
 
 (defun red-background ()
-  (if brain-view-full-colors-supported
+  (if smsn-view-full-colors-supported
     (list :background "red")
     (list :background "gray")))
 
@@ -118,7 +118,7 @@
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
             (concat "{{{"
-                    (if (brain-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
+                    (if (smsn-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
                     "}}}")) value)))
 
 (defun choose-bullet (n-children)
@@ -147,27 +147,27 @@
 (defun write-treeview (children tree-indent)
   (loop for json across children do
         (let (
-              (link (brain-env-json-get 'link json))
-              (children (brain-env-json-get 'children json)))
-          (let ((focus-id (brain-data-atom-id json))
-                (focus-title (let ((v (brain-data-atom-title json))) (if v v "")))
-                (focus-has-page (brain-env-json-get 'page json))
-		        (focus-weight (brain-data-atom-weight json))
-		        (focus-sharability (brain-data-atom-sharability json))
-		        (focus-priority (brain-data-atom-priority json))
-                (focus-has-children (not (equal json-false (brain-env-json-get 'hasChildren json))))
-                (focus-n-children (brain-env-json-get 'numberOfChildren json))
-                (focus-n-parents (brain-env-json-get 'numberOfParents json))
-		        (focus-alias (brain-data-atom-alias json))
-		        (focus-shortcut (brain-data-atom-shortcut json))
-		        (focus-meta (brain-data-atom-meta json)))
+              (link (smsn-env-json-get 'link json))
+              (children (smsn-env-json-get 'children json)))
+          (let ((focus-id (smsn-data-atom-id json))
+                (focus-title (let ((v (smsn-data-atom-title json))) (if v v "")))
+                (focus-has-page (smsn-env-json-get 'page json))
+		        (focus-weight (smsn-data-atom-weight json))
+		        (focus-sharability (smsn-data-atom-sharability json))
+		        (focus-priority (smsn-data-atom-priority json))
+                (focus-has-children (not (equal json-false (smsn-env-json-get 'hasChildren json))))
+                (focus-n-children (smsn-env-json-get 'numberOfChildren json))
+                (focus-n-parents (smsn-env-json-get 'numberOfParents json))
+		        (focus-alias (smsn-data-atom-alias json))
+		        (focus-shortcut (smsn-data-atom-shortcut json))
+		        (focus-meta (smsn-data-atom-meta json)))
             (if focus-id
-              (puthash focus-id json (brain-env-context-get 'atoms-by-id))
+              (puthash focus-id json (smsn-env-context-get 'atoms-by-id))
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
             (let ((line "") (id-infix
-                (add-meta-columns (brain-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
+                (add-meta-columns (smsn-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
               (setq line (concat line space))
               (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
@@ -179,9 +179,9 @@
                                              focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
                                    "\n")))
               (insert (propertize line 'id focus-id)))
-            (if (brain-env-using-inference)
+            (if (smsn-env-using-inference)
                 (loop for a across focus-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
-            (if (brain-env-context-get 'view-properties)
+            (if (smsn-env-context-get 'view-properties)
               (let ()
                 (insert (make-light-gray
                          (concat space "    @sharability " (number-to-string focus-sharability) "\n")))
@@ -196,9 +196,9 @@
             (write-treeview children (+ tree-indent 4))))))
 
 (defun write-wikiview (json)
-  (let ((page (let ((v (brain-data-atom-page json))) (if v v "")))
-    (weight (brain-data-atom-weight json))
-    (sharability (brain-data-atom-sharability json)))
+  (let ((page (let ((v (smsn-data-atom-page json))) (if v v "")))
+    (weight (smsn-data-atom-weight json))
+    (sharability (smsn-data-atom-sharability json)))
       (insert (colorize page weight sharability nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
@@ -206,16 +206,16 @@
 
 (defun view-info ()
   (concat
-   "(root: " (brain-env-context-get 'root-id)
-   " :height " (num-or-nil-to-string (brain-env-context-get 'height))
-   " :style " (brain-env-context-get 'style)
+   "(root: " (smsn-env-context-get 'root-id)
+   " :height " (num-or-nil-to-string (smsn-env-context-get 'height))
+   " :style " (smsn-env-context-get 'style)
    " :sharability
-             [" (num-or-nil-to-string (brain-env-context-get 'min-sharability))
-   ", " (num-or-nil-to-string (brain-env-context-get 'default-sharability)) "]"
+             [" (num-or-nil-to-string (smsn-env-context-get 'min-sharability))
+   ", " (num-or-nil-to-string (smsn-env-context-get 'default-sharability)) "]"
    " :weight
-             [" (num-or-nil-to-string (brain-env-context-get 'min-weight))
-   ", " (num-or-nil-to-string (brain-env-context-get 'default-weight)) "]"
-   " :title \"" (brain-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
+             [" (num-or-nil-to-string (smsn-env-context-get 'min-weight))
+   ", " (num-or-nil-to-string (smsn-env-context-get 'default-weight)) "]"
+   " :title \"" (smsn-env-context-get 'title) "\")")) ;; TODO: actually escape the title string
 
 (defun shorten-title (str maxlen)
   (if (> (length str) maxlen)
@@ -223,7 +223,7 @@
     str))
 
 (defun name-for-view-buffer (root-id payload is-treeview)
-  (let ((title (brain-env-json-get 'title payload)))
+  (let ((title (smsn-env-json-get 'title payload)))
     (if root-id
       (concat (shorten-title title 20) " [" root-id "]" (if is-treeview " - tree" ""))
       title)))
@@ -232,62 +232,62 @@
   (set-window-margins (frame-selected-window) 0 5))
 
 (defun switch-to-buffer-with-context (name context)
-  "activate Brain-mode in a new view buffer created by Brain-mode"
+  "activate smsn-mode in a new view buffer created by smsn-mode"
   (switch-to-buffer name)
   (setq buffer-read-only nil)
-  (brain-mode)
+  (smsn-mode)
   (prepare-right-margin)
-  (brain-env-set-context context))
+  (smsn-env-set-context context))
 
 (defun read-string-value (context-variable payload-variable payload)
-  (let ((value (brain-env-json-get payload-variable payload)))
-    (if value (brain-env-context-set context-variable value))))
+  (let ((value (smsn-env-json-get payload-variable payload)))
+    (if value (smsn-env-context-set context-variable value))))
 
 (defun read-numeric-value (context-variable payload-variable payload)
-  (let ((value (brain-env-json-get payload-variable payload)))
-    (if value (brain-env-context-set context-variable (string-to-number value)))))
+  (let ((value (smsn-env-json-get payload-variable payload)))
+    (if value (smsn-env-context-set context-variable (string-to-number value)))))
 
 (defun find-default-sharability (root-sharability)
-  (min brain-const-sharability-public root-sharability))
+  (min smsn-const-sharability-public root-sharability))
 
 (defun configure-context (payload)
   "Sets variables of the buffer-local context according to a service response"
-  (let ((view (brain-data-payload-view payload)))
+  (let ((view (smsn-data-payload-view payload)))
     (read-string-value 'root-id 'root payload)
     (read-string-value 'style 'style payload)
     (read-string-value 'title 'title payload)
     (read-numeric-value 'height 'height payload)
     (read-numeric-value 'min-sharability 'minSharability payload)
-    (brain-env-context-set 'default-sharability (find-default-sharability (brain-data-atom-sharability view)))
+    (smsn-env-context-set 'default-sharability (find-default-sharability (smsn-data-atom-sharability view)))
     ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
     (read-numeric-value 'min-weight 'minWeight payload)
     (read-numeric-value 'default-weight 'defaultWeight payload)))
 
-(defun brain-view-set-context-line (&optional line)
-  (brain-env-context-set 'line
+(defun smsn-view-set-context-line (&optional line)
+  (smsn-env-context-set 'line
     (if line line (line-number-at-pos))))
 
 ;; Try to move to the corresponding line in the previous view.
 ;; This is not always possible and not always helpful, but it is often both.
 (defun move-to-context-line ()
-  (let ((line (brain-env-context-get 'line)))
+  (let ((line (smsn-env-context-get 'line)))
     (if line
       (beginning-of-line line)
       (error "no line number"))))
 
 (defun create-atom-hashtable ()
-  (brain-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
+  (smsn-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
 
 ;; always include line numbers in views
 (defun show-line-numbers ()
   (linum-mode t))
 
 (defun is-readonly ()
-  (or (brain-env-is-readonly)
-    (brain-env-in-search-mode)))
+  (or (smsn-env-is-readonly)
+    (smsn-env-in-search-mode)))
 
 (defun configure-buffer ()
-  (if (not (brain-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
+  (if (not (smsn-env-context-get 'truncate-long-lines)) (toggle-truncate-lines))
   (beginning-of-buffer)
   (setq visible-cursor t)
   (move-to-context-line)
@@ -295,35 +295,35 @@
   (show-line-numbers))
 
 (defun write-treeview-to-buffer (payload)
-  (write-treeview (brain-env-json-get 'children (brain-data-payload-view payload)) 0))
+  (write-treeview (smsn-env-json-get 'children (smsn-data-payload-view payload)) 0))
 
 (defun write-wikiview-to-buffer (payload)
-  (write-wikiview (brain-data-payload-view payload)))
+  (write-wikiview (smsn-data-payload-view payload)))
 
-(defun brain-treeview-open (payload context)
+(defun smsn-treeview-open (payload context)
   "Callback to receive and display the data of a view"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload t) context)
+     (name-for-view-buffer (smsn-data-atom-id (smsn-data-payload-view payload)) payload t) context)
   (configure-context payload)
   (create-atom-hashtable)
   (erase-buffer)
   (write-treeview-to-buffer payload)
   (configure-buffer)
-  (message "view updated in %.0f ms" (brain-env-response-time)))
+  (message "view updated in %.0f ms" (smsn-env-response-time)))
 
-(defun brain-wikiview-open (payload context)
+(defun smsn-wikiview-open (payload context)
   "Callback to receive and display the page of an atom"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (brain-data-atom-id (brain-data-payload-view payload)) payload nil) context)
+     (name-for-view-buffer (smsn-data-atom-id (smsn-data-payload-view payload)) payload nil) context)
   (configure-context payload)
   (erase-buffer)
   (write-wikiview-to-buffer payload)
   (configure-buffer)
-  (message "page updated in %.0f ms" (brain-env-response-time)))
+  (message "page updated in %.0f ms" (smsn-env-response-time)))
 
-(defun brain-view-create-id-infix (id)
+(defun smsn-view-create-id-infix (id)
   "Creates a string of the form :0000000:, where 000000 is the id of an atom"
   (propertize (concat " :" id ":") 'invisible t))
 
 
-(provide 'brain-view)
+(provide 'smsn-view)
