@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smsn-mode.el -- Semantic Synchrony client and user interface
-;; This major mode allows you to view, edit, search, and process a Semantic Synchrony personal knowledge base.
+;; This major mode allows you to view, edit, search, and process a Semantic Synchrony personal knowledge graph.
 ;;
-;; Part of the smsn-mode package for Emacs:
+;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Dependencies:

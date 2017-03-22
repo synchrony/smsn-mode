@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smsn-wrapper.el -- Additional functions for use through emacsclient
 ;;
-;; Part of the smsn-mode package for Emacs:
+;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators

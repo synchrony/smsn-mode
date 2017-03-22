@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smsn-websocket.el -- WebSocket client for Semantic Synchrony
 ;;
-;; Part of the smsn-mode package for Emacs:
+;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators

@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smsn-env.el -- Constants, state, and buffer-local variables
 ;;
-;; Part of the smsn-mode package for Emacs:
+;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators

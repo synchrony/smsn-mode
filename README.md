@@ -1,11 +1,9 @@
-Welcome to the Brain.
-
-Brain-mode is an Emacs major mode for the Extend-o-Brain personal knowledge base.  Use it in combination with [Semantic Synchrony](https://github.com/synchrony/smsn), the server which stores and queries your data.
+SmSn-mode is an Emacs major mode for personal knowledge graphs.  Use it in combination with [Semantic Synchrony](https://github.com/synchrony/smsn), the server which stores and queries your data.
 
 Contents of this wiki:
-* [Brain-mode command reference](https://github.com/synchrony/brain-mode/wiki/Brain-mode-command-reference)
+* [Command reference](https://github.com/synchrony/smsn-mode/wiki/Command-reference)
 
-See also [Extend-o-Brain installation](https://github.com/synchrony/smsn/wiki/Extend-o-Brain-installation).
+See also [Semantic Synchrony installation](https://github.com/synchrony/smsn/wiki/Installation).
 
-**Credits**: Brain-mode is written and maintained by [Joshua Shinavier](https://github.com/joshsh) and [Jeffrey Brown](https://github.com/JeffreyBenjaminBrown).
+**Credits**: SmSn-mode is written and maintained by [Joshua Shinavier](https://github.com/joshsh) and [Jeffrey Brown](https://github.com/JeffreyBenjaminBrown).
 

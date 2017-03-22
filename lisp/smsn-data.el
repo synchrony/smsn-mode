@@ -1,7 +1,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; smsn-data.el -- Data model and data accessors
 ;;
-;; Part of the smsn-mode package for Emacs:
+;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
