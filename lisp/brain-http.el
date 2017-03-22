@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-client-http.el -- HTTP client for Semantic Synchrony
+;; brain-http.el -- HTTP client for Semantic Synchrony
 ;;
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/synchrony/brain-mode
@@ -51,10 +51,10 @@
 (defun http-connection-url (host port)
   (concat "http://" host ":" (number-to-string port)))
 
-(defun brain-client-http-send-and-receive (host port request callback)
+(defun brain-http-send-and-receive (host port request callback)
   ;;(message  (concat "context: " (json-encode context)))
     (http-post (http-connection-url host port) request
       (http-callback callback)))
 
 
-(provide 'brain-client-http)
+(provide 'brain-http)

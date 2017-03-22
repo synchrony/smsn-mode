@@ -12,8 +12,8 @@
 
 (require 'brain-env)
 (require 'brain-data)
-(require 'brain-client-http)
-(require 'brain-client-websocket)
+(require 'brain-http)
+(require 'brain-websocket)
 
 
 (defun create-request (action-name)
@@ -159,9 +159,9 @@
       (host (find-server-host))
       (port (find-server-port)))
     (if (equal "http" protocol)
-      (brain-client-http-send-and-receive host port request callback)
+      (brain-http-send-and-receive host port request callback)
       (if (equal "websocket" protocol)
-        (brain-client-websocket-send-and-receive host port request callback)
+        (brain-websocket-send-and-receive host port request callback)
         (error (concat "unsupported protocol: " protocol))))))
 
 (defun find-server-protocol ()

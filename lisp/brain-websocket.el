@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-client-websocket.el -- WebSocket client for Semantic Synchrony
+;; brain-websocket.el -- WebSocket client for Semantic Synchrony
 ;;
 ;; Part of the Brain-mode package for Emacs:
 ;;   https://github.com/synchrony/brain-mode
@@ -44,7 +44,7 @@
 (defun websocket-connection-url (host port)
   (concat "ws://" host ":" (number-to-string port) "/gremlin"))
 
-(defun brain-client-websocket-send-and-receive (host port request callback)
+(defun brain-websocket-send-and-receive (host port request callback)
   ;;(message  (concat "context: " (json-encode context)))
   ;;(setq websocket-response-handler ...)
   (let ((connection (get-websocket-connection host port)))
@@ -60,4 +60,4 @@
       (error "WebSocket connection could not be opened"))))
 
 
-(provide 'brain-client-websocket)
+(provide 'brain-websocket)
