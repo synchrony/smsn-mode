@@ -548,7 +548,8 @@ a type has been assigned to it by the inference engine."
 
 (defun smsn-export-vcs-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-vcs "export version-controlled graph to directory: " smsn-default-vcs-file))
+  (prompt-for-string 'smsn-export-vcs "export version-controlled graph to directory: "
+                    (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
 
 (defun smsn-export-edges-prompt ()
   (interactive)
@@ -714,8 +715,8 @@ a type has been assigned to it by the inference engine."
     ("b" . smsn-update-to-backward-view)
     ("c" . kill-ring-save)
     ("f" . smsn-update-to-forward-view)
-    ("g" . smsn-update-view-prompt)
-    ("h" . smsn-set-view-height-prompt)
+    ("g" . smsn-update-view-prompt) ;; keyboard shortcut is effectively "g m"
+    ("h" . smsn-set-view-height-prompt) ;; "h 3" unfolds the tree to depth 3
     ("i" . previous-line)  ;; up
     ("I" . scroll-down-command)
     ("j" . backward-char)  ;; left
