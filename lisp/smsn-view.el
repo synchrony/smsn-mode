@@ -150,6 +150,7 @@
               (link (smsn-env-json-get 'link json))
               (children (smsn-env-json-get 'children json)))
           (let ((focus-id (smsn-data-atom-id json))
+                (focus-created (smsn-env-json-get 'created json))
                 (focus-title (let ((v (smsn-data-atom-title json))) (if v v "")))
                 (focus-has-page (smsn-env-json-get 'page json))
 		        (focus-weight (smsn-data-atom-weight json))
@@ -167,33 +168,44 @@
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
             (let ((line "") (id-infix
-                (add-meta-columns (smsn-view-create-id-infix focus-id) focus-n-children focus-n-parents focus-has-page)))
+                (add-meta-columns (smsn-view-create-id-infix focus-id)
+                  focus-n-children focus-n-parents focus-has-page)))
               (setq line (concat line space))
               (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
-                                   (colorize bullet
-                                             focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
-                                   id-infix
-                                   " "
-                                   (colorize (delimit-value focus-title)
-                                             focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
-                                   "\n")))
+                   (make-read-only (concat
+                      (colorize bullet
+                        focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
+                      id-infix
+                      " "))
+                   (colorize (delimit-value focus-title)
+                             focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
+                   "\n")))
               (insert (propertize line 'id focus-id)))
             (if (smsn-env-using-inference)
                 (loop for a across focus-meta do (insert (make-light-gray (concat space "    @{" a "}\n")))))
             (if (smsn-env-context-get 'view-properties)
               (let ()
-                (insert (make-light-gray
-                         (concat space "    @sharability " (number-to-string focus-sharability) "\n")))
-                (insert (make-light-gray
-                         (concat space "    @weight      " (number-to-string focus-weight) "\n")))
+                (make-read-only
+                  (insert-line-for-property "@created" (number-to-string focus-created)))
+                (insert-line-for-property "@sharability" (number-to-string focus-sharability))
+                (insert-line-for-property "@weight" (number-to-string focus-weight))
                 (if focus-priority
-                    (insert (make-light-gray (concat space "    @priority    " (number-to-string focus-priority) "\n"))))
+                  (insert-line-for-property "@priority" (number-to-string focus-priority)))
                 (if focus-shortcut
-                    (insert (make-light-gray (concat space "    @shortcut    " focus-shortcut "\n"))))
+                  (insert-line-for-property "@shortcut" focus-shortcut))
                 (if focus-alias
-                    (insert (make-light-gray (concat space "    @alias       " focus-alias "\n"))))))
+                  (insert-line-for-property "@alias" focus-alias))))
             (write-treeview children (+ tree-indent 4))))))
+
+(defun make-read-only (text)
+  text ;; TODO: any way to make the text read-only unless you delete the entire line?
+  ;;(propertize text 'read-only t)
+  )
+
+(defun insert-line-for-property (name value)
+  (insert (make-light-gray
+    (concat space "    " name " " value "\n"))))
 
 (defun write-wikiview (json)
   (let ((page (let ((v (smsn-data-atom-page json))) (if v v "")))

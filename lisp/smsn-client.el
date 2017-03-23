@@ -210,7 +210,7 @@
 (defun smsn-client-infer-types ()
   (issue-request infer-types-request 'inference-callback))
 
-(defun smsn-client-navigate-to-atom (atom-id)
+(defun smsn-client-open-atom (atom-id)
   (smsn-view-set-context-line 1)
   (issue-request (create-treeview-request atom-id) 'treeview-callback))
 

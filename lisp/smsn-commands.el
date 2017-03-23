@@ -464,17 +464,17 @@ a type has been assigned to it by the inference engine."
   (visit-focus-title value-selector (lambda (value)
                                        (concat "http://www.youtube.com/results?search_query=" (url-encode value)))))
 
-(defun smsn-navigate-to-new-atom ()
-  "create a new atom and navigate to that atom, opening a new (empty) view with the atom as root"
+(defun smsn-open-new-atom ()
+  "create a new atom and opening a new (empty) view of the atom"
   (interactive)
-  (smsn-client-navigate-to-atom "create-new-atom"))
+  (smsn-client-open-atom "create-new-atom"))
 
-(defun smsn-navigate-to-focus-atom ()
-  "navigate to the atom at point, opening a new view with that atom as root"
+(defun smsn-open-focus-atom ()
+  "opening a view of the atom at point"
   (interactive)
   (let ((id (smsn-data-atom-id-at-point)))
     (if id
-      (smsn-client-navigate-to-atom id)
+      (smsn-client-open-atom id)
       (smsn-env-error-no-focus))))
 
 (defun smsn-focus-wikiview ()
@@ -629,6 +629,10 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-fulltext-query "full-text search for: "))
 
+(defun smsn-open-atom-prompt ()
+  (interactive)
+  (prompt-for-string 'smsn-client-open-atom "open view for atom with id: "))
+
 (defun smsn-push-view-prompt ()
   (interactive)
   (if (eq (read-char "really push view? (press 'z' to confirm)") 122)
@@ -724,12 +728,12 @@ a type has been assigned to it by the inference engine."
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
-    ("n" . smsn-navigate-to-focus-atom-and-kill-buffer)
+    ("n" . smsn-open-focus-atom-and-kill-buffer)
     ("o" . other-window)
     ("p" . smsn-set-priority-and-drop-cursor) ;; !! first use one-liner-view
     ("q" . kill-buffer)
     ("s" . smsn-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
-    ("t" . smsn-navigate-to-focus-atom)
+    ("t" . smsn-open-focus-atom)
     ("u" . undo)
     ("v" . yank)
     ("w" . smsn-set-weight-and-drop-cursor) ;; !! first use one-liner-view
@@ -754,10 +758,10 @@ a type has been assigned to it by the inference engine."
   (progn (smsn-insert-attr-weight-prompt)
         (next-line)))
 
-(defun smsn-navigate-to-focus-atom-and-kill-buffer ()
+(defun smsn-open-focus-atom-and-kill-buffer ()
   (interactive)
   (let ((name (buffer-name)))
-    (progn (smsn-navigate-to-focus-atom)
+    (progn (smsn-open-focus-atom)
 	   (kill-buffer name))))
 
 (defun my-filter (condp lst)
@@ -831,16 +835,17 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c i")           'smsn-infer-types)
     (define-key smsn-mode-map (kbd "C-c j")           'smsn-action-dujour)
     (define-key smsn-mode-map (kbd "C-c m")           'smsn-toggle-move-or-edit-submode)
-    (define-key smsn-mode-map (kbd "C-c n")           'smsn-navigate-to-new-atom)
-    (define-key smsn-mode-map (kbd "C-c o")           'smsn-shortcut-query-prompt)
+    (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-atom)
+    (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-atom-prompt)
     (define-key smsn-mode-map (kbd "C-c p")           'smsn-push-view)
     (define-key smsn-mode-map (kbd "C-c q")           'smsn-ripple-query-prompt)
     (define-key smsn-mode-map (kbd "C-c r")           'smsn-copy-focus-reference-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c s")           'smsn-fulltext-query-prompt)
-    (define-key smsn-mode-map (kbd "C-c t")           'smsn-navigate-to-focus-atom)
+    (define-key smsn-mode-map (kbd "C-c t")           'smsn-open-focus-atom)
     (define-key smsn-mode-map (kbd "C-c u")           'smsn-update-view)
     (define-key smsn-mode-map (kbd "C-c v")           'smsn-copy-focus-title-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c w")           'smsn-focus-wikiview)
+    (define-key smsn-mode-map (kbd "C-c x")           'smsn-shortcut-query-prompt)
     (define-key smsn-mode-map (kbd "C-c .")           'smsn-copy-root-reference-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c C-c")         'smsn-debug)
     (define-key smsn-mode-map (kbd "C-x C-k o")       'smsn-kill-other-buffers)
