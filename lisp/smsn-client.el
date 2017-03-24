@@ -40,6 +40,7 @@
 (defvar search-request (create-request "Search"))
 (defvar set-properties-request (create-request "SetProperties"))
 (defvar update-view-request (create-request "UpdateView"))
+(defvar view-log-request (create-request "ViewLog"))
 (defvar write-graph-request (create-request "WriteGraph"))
 
 (defun to-filter-request (base-request)
@@ -83,6 +84,12 @@
         :format format
         :file file))))
     (issue-request request 'import-callback)))
+
+(defun do-view-log (file)
+  (let ((request (add-to-request (to-filter-request view-log-request) (list
+      :file file
+      :height 3))))
+    (issue-request request 'smsn-treeview-open)))
 
 (defun set-property (id name value callback)
   (smsn-view-set-context-line)
@@ -206,6 +213,9 @@
 
 (defun smsn-client-import (format file)
   (do-read-graph format file))
+
+(defun smsn-client-view-log (file)
+  (do-view-log file))
 
 (defun smsn-client-infer-types ()
   (issue-request infer-types-request 'inference-callback))

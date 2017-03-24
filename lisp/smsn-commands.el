@@ -162,6 +162,12 @@
   (message (concat "importing version-controlled graph from " file))
   (smsn-client-import "VCS" file))
 
+(defun smsn-view-log (file)
+  "create a view of Git history"
+  (interactive)
+  (message (concat "reading logs from " file))
+  (smsn-client-view-log file))
+
 (defun smsn-import-freeplane (file)
   "import one or more Freeplane files into the knowledge base"
   (interactive)
@@ -582,6 +588,13 @@ a type has been assigned to it by the inference engine."
    "import version-controlled graph from directory: "
    (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
 
+(defun smsn-view-log-prompt ()
+  (interactive)
+  (prompt-for-string
+    'smsn-view-log
+    "VCS directory: "
+   (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
+
 (defun smsn-import-freeplane-prompt ()
   (interactive)
   (prompt-for-string 'smsn-import-freeplane "import Freeplane data from file/directory: " smsn-default-freeplane-file))
@@ -835,6 +848,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c h")           'smsn-history)
     (define-key smsn-mode-map (kbd "C-c i")           'smsn-infer-types)
     (define-key smsn-mode-map (kbd "C-c j")           'smsn-action-dujour)
+    (define-key smsn-mode-map (kbd "C-c l")           'smsn-view-log-prompt)
     (define-key smsn-mode-map (kbd "C-c m")           'smsn-toggle-move-or-edit-submode)
     (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-atom)
     (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-atom-prompt)
