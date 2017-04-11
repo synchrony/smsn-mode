@@ -743,12 +743,14 @@ a type has been assigned to it by the inference engine."
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
     ("n" . smsn-open-focus-atom-and-kill-buffer)
-    ("o" . other-window)
+    ("o" . smsn-open-focus-atom-in-other-window)
+    ("O" . other-window)
     ("p" . smsn-set-priority-and-drop-cursor) ;; !! first use one-liner-view
     ("q" . kill-buffer)
     ("s" . smsn-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . smsn-open-focus-atom)
     ("u" . undo)
+    ("U" . smsn-navigate-to-focus-alias) ;; u as in url
     ("v" . yank)
     ("w" . smsn-set-weight-and-drop-cursor) ;; !! first use one-liner-view
     ("W" . smsn-focus-wikiview)
@@ -756,6 +758,20 @@ a type has been assigned to it by the inference engine."
     ("y" . smsn-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
+
+(defun smsn-open-focus-atom-in-other-window ()
+  "in another window, open a view of the atom at point"
+  (interactive)
+  (let ((id (smsn-data-atom-id-at-point)))
+    (progn
+      (if (eq (count-windows) 1)
+	  (split-window-below)
+        nil)
+      (other-window 1)
+      (if id
+	  (smsn-client-open-atom id)
+	(smsn-env-error-no-focus))
+      )))
 
 (defun smsn-set-priority-and-drop-cursor ()
   (interactive)
