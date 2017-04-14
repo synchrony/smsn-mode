@@ -61,7 +61,7 @@
 (defun create-treeview-request (root-id)
   (add-to-request (to-filter-request get-view-request) (list
     :root root-id
-    :height (smsn-env-context-get 'height)
+    :height (min (smsn-env-context-get 'height) 3)
     :style (smsn-env-context-get 'style))))
 
 (defun create-wikiview-request (root-id)
