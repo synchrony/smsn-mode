@@ -61,6 +61,13 @@
 (defun create-treeview-request (root-id)
   (add-to-request (to-filter-request get-view-request) (list
     :root root-id
+    :height (smsn-env-context-get 'height)
+    :style (smsn-env-context-get 'style))))
+
+(defun create-new-treeview-request (root-id)
+  "Like create-treeview-request, but with max inherited height of 3."
+  (add-to-request (to-filter-request get-view-request) (list
+    :root root-id
     :height (min (smsn-env-context-get 'height) 3)
     :style (smsn-env-context-get 'style))))
 
@@ -222,7 +229,7 @@
 
 (defun smsn-client-open-atom (atom-id)
   (smsn-view-set-context-line 1)
-  (issue-request (create-treeview-request atom-id) 'treeview-callback))
+  (issue-request (create-new-treeview-request atom-id) 'treeview-callback))
 
 (defun smsn-client-wikiview (atom-id)
   (smsn-view-set-context-line 1)
