@@ -848,7 +848,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c m")           'smsn-toggle-move-or-edit-submode)
     (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-atom)
     (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-atom-prompt)
-    (define-key smsn-mode-map (kbd "C-c p")           'smsn-push-view)
+    (define-key smsn-mode-map (kbd "C-x C-s")         'smsn-push-view)
     (define-key smsn-mode-map (kbd "C-c q")           'smsn-ripple-query-prompt)
     (define-key smsn-mode-map (kbd "C-c r")           'smsn-copy-focus-reference-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c s")           'smsn-fulltext-query-prompt)
