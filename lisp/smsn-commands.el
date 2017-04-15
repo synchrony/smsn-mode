@@ -689,8 +689,10 @@ a type has been assigned to it by the inference engine."
   (defconst smsn-move-submode-map '(
     (";" . smsn-toggle-truncate-lines)
     ("b" . smsn-update-to-backward-view)
+    ("B" . smsn-bury-line)
     ("c" . kill-ring-save)
     ("f" . smsn-update-to-forward-view)
+    ("F" . smsn-float-line)
     ("g" . smsn-update-view-prompt) ;; keyboard shortcut is effectively "g m"
     ("h" . smsn-set-view-height-prompt) ;; "h 3" unfolds the tree to depth 3
     ("i" . previous-line)  ;; up
@@ -717,6 +719,34 @@ a type has been assigned to it by the inference engine."
     ("y" . smsn-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
+
+(defun smsn-bury-line ()
+  "Drop line to bottom of buffer. Dangerous if the line is at depth > 1."
+  (interactive)
+  (move-beginning-of-line nil)
+  (let ((id (smsn-data-atom-id-at-point))
+        (line (count-lines 1 (point)))) ;; 1, 2, 10 have same effect, but 0 errs
+    (kill-line)
+    (end-of-buffer)
+    (open-line 1) ;; insert one newline after point
+    (yank)
+    (goto-line (+ 1 line)) ;; why we have to add 1, I don't know
+    (message "atom %s floated; change not svaed" id))
+  )
+
+(defun smsn-float-line ()
+  "For comments, see float-line."
+  (interactive)
+  (move-beginning-of-line nil)
+  (let ((id (smsn-data-atom-id-at-point))
+        (line (count-lines 1 (point))))
+    (kill-line)
+    (beginning-of-buffer)
+    (open-line 1)
+    (yank)
+    (goto-line (+ line 2))
+    (message "atom %s floated; change not svaed" id))
+  )
 
 (defun smsn-open-focus-atom-in-other-window ()
   "in another window, open a view of the atom at point"
