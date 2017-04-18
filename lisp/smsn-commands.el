@@ -730,7 +730,7 @@ a type has been assigned to it by the inference engine."
     (open-line 1) ;; insert one newline after point
     (yank)
     (goto-line (+ 1 line)) ;; why we have to add 1, I don't know
-    (message "atom %s floated; change not svaed" id))
+    (message "atom %s buried; change not svaed" id))
   )
 
 (defun smsn-float-line ()
