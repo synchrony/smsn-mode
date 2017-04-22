@@ -398,9 +398,8 @@ a type has been assigned to it by the inference engine."
 (defun smsn-toggle-truncate-lines ()
   "toggle line wrap mode"
   (interactive)
-  (if (smsn-env-in-treeview-mode) (progn
-    (smsn-env-context-set 'truncate-long-lines (not (smsn-env-context-get 'truncate-long-lines)))
-    (smsn-update-view))))
+  (smsn-env-context-set 'truncate-long-lines (not (smsn-env-context-get 'truncate-long-lines)))
+  (toggle-truncate-lines))
 
 (defun smsn-update-to-backward-view ()
   "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
@@ -868,7 +867,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c m")           'smsn-toggle-move-or-edit-submode)
     (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-atom)
     (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-atom-prompt)
-    (define-key smsn-mode-map (kbd "C-x C-s")         'smsn-push-view)
+    (define-key smsn-mode-map (kbd "C-c p")           'smsn-push-view)
     (define-key smsn-mode-map (kbd "C-c q")           'smsn-ripple-query-prompt)
     (define-key smsn-mode-map (kbd "C-c r")           'smsn-copy-focus-reference-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c s")           'smsn-fulltext-query-prompt)
