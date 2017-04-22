@@ -703,6 +703,7 @@ a type has been assigned to it by the inference engine."
     ("K" . scroll-up-command)
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
+    ("m" . smsn-set-minimal-font)
     ("n" . smsn-open-focus-atom-and-kill-buffer)
     ("o" . smsn-open-focus-atom-in-other-window)
     ("O" . other-window)
@@ -762,20 +763,39 @@ a type has been assigned to it by the inference engine."
 	(smsn-env-error-no-focus))
       )))
 
+(defun smsn-set-minimal-font ()
+  (interactive)
+  (progn
+    (move-end-of-line 1)
+    (insert "\n  @priority 0\n  @weight 0.25\n")
+    (kill-line)
+    (previous-line)
+    (previous-line) ;; return cursor to the start of that node, because presumably the user is about to delete it
+    ))
+
 (defun smsn-set-priority-and-drop-cursor ()
   (interactive)
-  (progn (smsn-insert-attr-priority-prompt)
-        (next-line)))
+  (progn
+    (move-end-of-line 1)
+    (smsn-insert-attr-priority-prompt)
+    (kill-line)
+    ))
 
 (defun smsn-set-sharability-and-drop-cursor ()
   (interactive)
-  (progn (smsn-insert-attr-sharability-prompt)
-        (next-line)))
+  (progn
+    (move-end-of-line 1)
+    (smsn-insert-attr-sharability-prompt)
+    (kill-line)
+    ))
 
 (defun smsn-set-weight-and-drop-cursor ()
   (interactive)
-  (progn (smsn-insert-attr-weight-prompt)
-        (next-line)))
+  (progn 
+    (move-end-of-line 1)
+    (smsn-insert-attr-weight-prompt)
+    (kill-line)
+    ))
 
 (defun smsn-open-focus-atom-and-kill-buffer ()
   (interactive)
