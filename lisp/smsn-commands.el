@@ -769,6 +769,7 @@ a type has been assigned to it by the inference engine."
     (insert "\n  @priority 0\n  @weight 0.25\n")
     (kill-line)
     (previous-line)
+    (previous-line)
     (previous-line) ;; return cursor to the start of that node, because presumably the user is about to delete it
     ))
 
