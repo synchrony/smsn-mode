@@ -45,8 +45,6 @@
   (concat "ws://" host ":" (number-to-string port) "/gremlin"))
 
 (defun smsn-websocket-send-and-receive (host port request callback)
-  ;;(message  (concat "context: " (json-encode context)))
-  ;;(setq websocket-response-handler ...)
   (let ((connection (get-websocket-connection host port)))
     (if (websocket-connection-is-open)
       (let ((payload (smsn-serde-format-request request)))

@@ -15,7 +15,6 @@
 (require 'smsn-http)
 (require 'smsn-websocket)
 
-
 (defun create-request (action-name)
   (let ((action-class (concat "net.fortytwo.smsn.server.actions." action-name)))
     (list :action action-class)))
@@ -28,6 +27,7 @@
 (defvar find-duplicates-request (create-request "FindDuplicates"))
 (defvar find-isolated-atoms-request (create-request "FindIsolatedAtoms"))
 (defvar find-roots-request (add-to-request (create-request "FindRoots") (list :height 1)))
+(defvar get-configuration-request (create-request "GetConfiguration"))
 (defvar get-events-request (create-request "GetEvents"))
 (defvar get-history-request (create-request "GetHistory"))
 (defvar get-priorities-request (create-request "GetPriorities"))
@@ -166,6 +166,21 @@
   (smsn-env-to-search-mode context)
   (smsn-treeview-open payload context))
 
+(defun create-source-map (conf)
+  (let ((sources (smsn-env-json-get 'sources conf)))
+    (if sources
+      (let ((ht (make-hash-table :test 'equal)) (source-list (mapcar (lambda (x) x) sources)))
+        (dolist (source source-list)
+          (let ((name (smsn-env-json-get 'name source)))
+            (puthash name source ht)))
+        ht)
+      (error "no sources"))))
+
+(defun update-configuration-callback (payload context)
+  (let ((conf (json-read-from-string (smsn-env-json-get 'configuration payload))))
+    (smsn-env-context-set 'configuration conf)
+    (smsn-env-context-set 'sources (create-source-map conf))))
+
 (defun issue-request (request callback)
   (smsn-env-set-timestamp)
   (let (
@@ -193,6 +208,9 @@
 
 (defun smsn-client-fetch-duplicates ()
   (issue-request (to-filter-request find-duplicates-request) 'search-view-callback))
+
+(defun smsn-client-fetch-configuration ()
+  (issue-request (to-filter-request get-configuration-request) 'update-configuration-callback))
 
 (defun smsn-client-fetch-events (height)
   (issue-request (to-query-request get-events-request) 'search-view-callback))

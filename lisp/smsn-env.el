@@ -183,6 +183,7 @@
 (defun default-context () (list
   (cons 'action 'nil)
   (cons 'atoms-by-id 'nil)
+  (cons 'configuration 'nil)
   (cons 'default-sharability smsn-const-sharability-personal)
   (cons 'default-weight smsn-const-weight-default)
   (cons 'file 'nil)
@@ -197,6 +198,7 @@
   (cons 'query-type 'nil)
   (cons 'root-id 'nil)
   (cons 'readonly 'nil)
+  (cons 'sources 'nil)
   (cons 'style smsn-const-forward-style)
   (cons 'timestamp 'nil)
   (cons 'title 'nil)

@@ -46,6 +46,9 @@
 (require 'websocket)
 (eval-when-compile (require 'cl))
 
+;; for smsn-mode development
+(require 'edebug)
+
 
 (require 'smsn-client)
 (require 'smsn-commands)
@@ -76,6 +79,8 @@
   (smsn-env-define-buffer-local-variables)
   (setq local-abbrev-table smsn-mode-abbrev-table)
   (set-syntax-table smsn-mode-syntax-table)
+  ;; fetch configuration as early as possible, prior to user input
+  (smsn-client-fetch-configuration)
   ;; note: not customizing indent style with indent-line-function
   (setq mode-name "smsn-mode")
   (setq major-mode 'smsn-mode)

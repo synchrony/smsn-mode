@@ -660,7 +660,7 @@ a type has been assigned to it by the inference engine."
 
 (defun color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
-  (atom-color 1.0 (smsn-env-context-get 'min-sharability) nil nil))
+  (smsn-view-atom-color 1.0 (smsn-env-context-get 'min-sharability) nil))
 
 (defun color-prompt-by-min-sharability (callback)
   (let ((newcol (color-at-min-sharability))

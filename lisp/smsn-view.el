@@ -13,12 +13,37 @@
 (require 'smsn-env)
 
 
-;; unused colors: black/gray, orange
-(defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
-(defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
+(defun get-sources ()
+  (let ((sources (smsn-env-context-get 'sources)))
+    (if sources sources (error "no data sources"))))
+
+(defun get-source (name)
+  (let ((sources (get-sources)))
+    (let ((source (gethash name sources)))
+      (if source source (error (concat "no data source named '" name "'"))))))
+
+(defun get-display-color (source-name)
+  (let ((source (get-source source-name)))
+    (let ((color (smsn-env-json-get 'displayColor source)))
+      (if color (to-color-triple color) (error (concat "no display color for source '" source-name "'"))))))
+
+(defun find-normal-color (source weight is-link)
+  (let ((base (get-display-color source)))
+    (let ((link-or-text-color
+      (if is-link base (darken base 0.75))))
+      (fade-color-triple link-or-text-color weight))))
+
+(defun to-color-triple (numeric-color)
+  (let ((blue (% numeric-color 256))
+        (green (% (truncate (/ numeric-color 256)) 256))
+        (red (truncate (/ numeric-color 65536))))
+    (list red green blue)))
+
 (defconst sharability-reduced-colors '("red" "red" "blue" "blue"))
-(defconst inference-base-colors '("#660066" "#006666"))
-(defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
+;;(defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
+;;(defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
+;;(defconst inference-base-colors '("#660066" "#006666"))
+;;(defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
 
 (defvar smsn-view-full-colors-supported (> (length (defined-colors)) 8))
 
@@ -31,8 +56,18 @@
 (defun color-part-blue (color)
   (string-to-number (substring color 5 7) 16))
 
-(defun color-string (red green blue)
-  (concat "#" (format "%02X" red) (format "%02X" green) (format "%02X" blue)))
+(defun color-from-string (str)
+  (list (color-part-red str) (color-part-green str) (color-part-blue str)))
+
+(defun color-triple-to-string (color-triple)
+  (let ((red (car color-triple))
+        (green (car (cdr color-triple)))
+	    (blue (car (cdr (cdr color-triple)))))
+    (concat "#" (format "%02X" red) (format "%02X" green) (format "%02X" blue))))
+
+(defun darken (color-triple factor)
+  (mapcar (lambda (n)
+    (truncate (* factor n))) color-triple))
 
 (defun weighted-average (a b weight)
   (+ (* a (- 1 weight)) (* b weight)))
@@ -42,27 +77,30 @@
         (high color))
     (weighted-average low high weight)))
 
-(defun atom-color (weight sharability bright has-meta)
-  (let ((s
-         (if (smsn-env-using-inference)
-             (elt (if bright inference-bright-colors inference-base-colors) (if has-meta 0 1))
-           (elt (if bright sharability-bright-colors sharability-base-colors) (- (ceiling (* sharability 4)) 1)))))
-    (color-string
-     (fade-color (color-part-red s) weight)
-     (fade-color (color-part-green s) weight)
-     (fade-color (color-part-blue s) weight))))
+(defun fade-color-triple (color-triple weight)
+  (mapcar (lambda (n)
+    (fade-color n weight)) color-triple))
+
+(setq hacked-sources (list "private" "personal" "public" "universal"))
+
+(defun hack-source (sharability)
+  (let ((index (- (ceiling (* sharability 4)) 1)))
+    (elt hacked-sources index)))
+
+(defun smsn-view-atom-color (weight sharability is-link)
+  (let ((source (hack-source sharability)))
+    (color-triple-to-string (find-normal-color source weight is-link))))
 
 (defun colorize (text weight sharability priority-bg priority-fg bright has-meta)
   (let ((color (if smsn-view-full-colors-supported
-                   (atom-color weight sharability bright has-meta)
+                   (smsn-view-atom-color weight sharability bright)
                  (elt sharability-reduced-colors (- (ceiling (* sharability 4)) 1)))))
     (setq l (list
              :foreground color
-             ;;:weight 'bold
              :underline (if (and priority-fg (> priority-fg 0))
-                            (list :color (atom-color priority-fg sharability bright has-meta)) nil)
-             :box (if priority-bg (list
-                                   :color (atom-color priority-bg sharability bright has-meta)) nil)))
+                            (list :color (smsn-view-atom-color priority-fg sharability bright)) nil)
+             :box (if priority-bg
+               (list :color (smsn-view-atom-color priority-bg sharability bright)) nil)))
     (propertize text 'face l)))
 
 (defun light-gray ()
