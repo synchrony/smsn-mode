@@ -134,7 +134,7 @@
 (defun to-filter (&optional context)
   (list
       :minSharability (smsn-env-context-get 'min-sharability context)
-      :defaultSharability (smsn-env-context-get 'default-sharability context)
+      :defaultSource smsn-const-default-source
       :minWeight (smsn-env-context-get 'min-weight context)
       :defaultWeight (smsn-env-context-get 'default-weight context)))
 
@@ -210,7 +210,9 @@
   (issue-request (to-filter-request find-duplicates-request) 'search-view-callback))
 
 (defun smsn-client-fetch-configuration ()
-  (issue-request (to-filter-request get-configuration-request) 'update-configuration-callback))
+  (let ((conf (smsn-env-context-get 'configuration)))
+    (if (not conf)
+      (issue-request (to-filter-request get-configuration-request) 'update-configuration-callback))))
 
 (defun smsn-client-fetch-events (height)
   (issue-request (to-query-request get-events-request) 'search-view-callback))

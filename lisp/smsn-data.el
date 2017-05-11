@@ -44,28 +44,25 @@
   (smsn-env-json-get 'page atom))
 
 (defun smsn-data-atom-priority (atom)
-  (let ((v (assoc 'priority atom)))
-    (if v (cdr v) nil)))
+  (smsn-env-json-get 'priority atom))
 
-(defun smsn-data-atom-sharability (atom)
-  (let ((v (assoc 'sharability atom)))
-    (if v (cdr v) (smsn-env-context-get 'default-sharability))))
+(defun smsn-data-atom-source (atom)
+  (let ((v (smsn-env-json-get 'source atom smsn-const-default-source)))
+    (message (concat "source: " v))
+    v))
 
 (defun smsn-data-atom-weight (atom)
-  (let ((v (assoc 'weight atom)))
-    (if v (cdr v) (smsn-env-context-get 'default-weight))))
+  (let ((v (smsn-env-json-get 'defaultWeight atom)))
+    (if v v (smsn-env-context-get 'default-weight))))
 
 (defun smsn-data-atom-alias (atom)
-  (let ((x (assoc 'alias atom)))
-    (if x (cdr x) nil)))
+  (smsn-env-json-get 'alias atom))
 
 (defun smsn-data-atom-shortcut (atom)
-  (let ((x (assoc 'shortcut atom)))
-    (if x (cdr x) nil)))
+  (smsn-env-json-get 'shortcut atom))
 
 (defun smsn-data-atom-meta (atom)
-  (let ((x (assoc 'meta atom)))
-    (if x (cdr x) nil)))
+  (smsn-env-json-get 'meta atom))
 
 (defun smsn-data-atom (id)
   (if id

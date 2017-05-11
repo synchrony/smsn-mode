@@ -50,6 +50,10 @@
 (defconst smsn-const-weight-full 1.0
   "A weight for the most important atoms")
 
+;; TODO
+(defconst smsn-const-default-source "public"
+  "A temporary source for notes otherwise not annotated")
+
 (defun smsn-env-get-context (&optional context)
   "Retrieves smsn-mode's buffer-local context"
   (if context context smsn-bufferlocal-context))
@@ -171,10 +175,11 @@
   (setcdr (assoc key (smsn-env-get-context context))
           (if value value 'nil)))
 
-(defun smsn-env-json-get (key json)
+(defun smsn-env-json-get (key json &optional default)
   (if json
-    (cdr (assoc key json))
-    nil))
+    (let ((value (cdr (assoc key json))))
+      (if value value default))
+    default))
 
 (defconst const-date-format "%Y-%m-%d")
 (defconst const-time-format "%H:%M")

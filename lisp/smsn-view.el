@@ -30,7 +30,7 @@
 (defun find-normal-color (source weight is-link)
   (let ((base (get-display-color source)))
     (let ((link-or-text-color
-      (if is-link base (darken base 0.75))))
+      (if is-link base (darken base 0.4))))
       (fade-color-triple link-or-text-color weight))))
 
 (defun to-color-triple (numeric-color)
@@ -72,35 +72,28 @@
 (defun weighted-average (a b weight)
   (+ (* a (- 1 weight)) (* b weight)))
 
-(defun fade-color (color weight)
+(defun fade (color weight)
   (let ((low (weighted-average color 255 0.9375))
         (high color))
     (weighted-average low high weight)))
 
 (defun fade-color-triple (color-triple weight)
   (mapcar (lambda (n)
-    (fade-color n weight)) color-triple))
+    (fade n weight)) color-triple))
 
-(setq hacked-sources (list "private" "personal" "public" "universal"))
+(defun atom-color (weight source is-link)
+  (color-triple-to-string (find-normal-color source weight is-link)))
 
-(defun hack-source (sharability)
-  (let ((index (- (ceiling (* sharability 4)) 1)))
-    (elt hacked-sources index)))
-
-(defun smsn-view-atom-color (weight sharability is-link)
-  (let ((source (hack-source sharability)))
-    (color-triple-to-string (find-normal-color source weight is-link))))
-
-(defun colorize (text weight sharability priority-bg priority-fg bright has-meta)
+(defun colorize (text weight source priority-bg priority-fg bright has-meta)
   (let ((color (if smsn-view-full-colors-supported
-                   (smsn-view-atom-color weight sharability bright)
-                 (elt sharability-reduced-colors (- (ceiling (* sharability 4)) 1)))))
+                   (atom-color weight source bright)
+                 "black")))
     (setq l (list
              :foreground color
              :underline (if (and priority-fg (> priority-fg 0))
-                            (list :color (smsn-view-atom-color priority-fg sharability bright)) nil)
+                            (list :color (atom-color priority-fg source bright)) nil)
              :box (if priority-bg
-               (list :color (smsn-view-atom-color priority-bg sharability bright)) nil)))
+               (list :color (atom-color priority-bg source bright)) nil)))
     (propertize text 'face l)))
 
 (defun light-gray ()
@@ -192,7 +185,7 @@
                 (focus-title (let ((v (smsn-data-atom-title json))) (if v v "")))
                 (focus-has-page (smsn-env-json-get 'page json))
 		        (focus-weight (smsn-data-atom-weight json))
-		        (focus-sharability (smsn-data-atom-sharability json))
+		        (focus-source (smsn-data-atom-source json))
 		        (focus-priority (smsn-data-atom-priority json))
                 (focus-has-children (not (equal json-false (smsn-env-json-get 'hasChildren json))))
                 (focus-n-children (smsn-env-json-get 'numberOfChildren json))
@@ -213,11 +206,11 @@
                 (setq line (concat line
                    (make-read-only (concat
                       (colorize bullet
-                        focus-weight focus-sharability focus-priority nil focus-alias focus-meta)
+                        focus-weight focus-source focus-priority nil focus-alias focus-meta)
                       id-infix
                       " "))
                    (colorize (delimit-value focus-title)
-                             focus-weight focus-sharability nil focus-priority focus-alias focus-meta)
+                             focus-weight focus-source nil focus-priority focus-alias focus-meta)
                    "\n")))
               (insert (propertize line 'id focus-id)))
             (if (smsn-env-using-inference)
@@ -226,7 +219,7 @@
               (let ()
                 (make-read-only
                   (insert-line-for-property "@created" (number-to-string focus-created)))
-                (insert-line-for-property "@sharability" (number-to-string focus-sharability))
+                (insert-line-for-property "@source" focus-source)
                 (insert-line-for-property "@weight" (number-to-string focus-weight))
                 (if focus-priority
                   (insert-line-for-property "@priority" (number-to-string focus-priority)))
@@ -248,8 +241,8 @@
 (defun write-wikiview (json)
   (let ((page (let ((v (smsn-data-atom-page json))) (if v v "")))
     (weight (smsn-data-atom-weight json))
-    (sharability (smsn-data-atom-sharability json)))
-      (insert (colorize page weight sharability nil 0.0 nil nil))))
+    (source (smsn-data-atom-source json)))
+      (insert (colorize page weight source nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -260,8 +253,7 @@
    " :height " (num-or-nil-to-string (smsn-env-context-get 'height))
    " :style " (smsn-env-context-get 'style)
    " :sharability
-             [" (num-or-nil-to-string (smsn-env-context-get 'min-sharability))
-   ", " (num-or-nil-to-string (smsn-env-context-get 'default-sharability)) "]"
+             " (num-or-nil-to-string (smsn-env-context-get 'min-sharability))
    " :weight
              [" (num-or-nil-to-string (smsn-env-context-get 'min-weight))
    ", " (num-or-nil-to-string (smsn-env-context-get 'default-weight)) "]"
@@ -297,9 +289,6 @@
   (let ((value (smsn-env-json-get payload-variable payload)))
     (if value (smsn-env-context-set context-variable (string-to-number value)))))
 
-(defun find-default-sharability (root-sharability)
-  (min smsn-const-sharability-public root-sharability))
-
 (defun configure-context (payload)
   "Sets variables of the buffer-local context according to a service response"
   (let ((view (smsn-data-payload-view payload)))
@@ -308,8 +297,6 @@
     (read-string-value 'title 'title payload)
     (read-numeric-value 'height 'height payload)
     (read-numeric-value 'min-sharability 'minSharability payload)
-    (smsn-env-context-set 'default-sharability (find-default-sharability (smsn-data-atom-sharability view)))
-    ;;(read-numeric-value 'default-sharability 'defaultSharability payload)
     (read-numeric-value 'min-weight 'minWeight payload)
     (read-numeric-value 'default-weight 'defaultWeight payload)))
 
