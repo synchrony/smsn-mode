@@ -81,16 +81,16 @@
   (let ((g (smsn-data-focus)))
     (if g (smsn-data-atom-alias g))))
 
-(defun smsn-data-focus-sharability ()
+(defun smsn-data-focus-source ()
   (let ((g (smsn-data-focus)))
-    (if g (smsn-data-atom-sharability g))))
+    (if g (smsn-data-atom-source g))))
 
 (defun smsn-data-show (atom)
   (let (
         (created (smsn-data-atom-created atom))
         (title (smsn-data-atom-title atom))
         (weight (smsn-data-atom-weight atom))
-        (sharability (smsn-data-atom-sharability atom))
+        (source (smsn-data-atom-source atom))
         (priority (smsn-data-atom-priority atom))
         (alias (smsn-data-atom-alias atom))
         (meta (smsn-data-atom-meta atom)))
@@ -99,7 +99,7 @@
               ;;(if type (concat "type: " type ", "))
               (if meta (concat "[meta], "))
               "weight: " (number-to-string weight)
-              ", sharability: " (number-to-string sharability)
+              ", source: " source
               (if priority (concat ", priority: " (number-to-string priority)) "")
               ", created: " (format-time-string "%Y-%m-%dT%H:%M:%S%z" (seconds-to-time (/ created 1000.0)))
               ", title: " title

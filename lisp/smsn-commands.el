@@ -212,11 +212,10 @@
   (let ((n (number-shorthand-to-number expr)))
     (if n (insert (concat "\n                @priority " (number-to-string (/ n 4.0)) "\n")))))
 
-(defun smsn-insert-attr-sharability (expr)
-  "insert a line to set the sharability of an atom to the value given by EXPR"
+(defun smsn-insert-attr-source (code)
+  "insert a line to set the source of an atom to the value given by CODE"
   (interactive)
-  (let ((n (number-shorthand-to-number expr)))
-    (if n (insert (concat "\n                @sharability " (number-to-string (/ n 4.0)) "\n")))))
+  (insert (concat "\n                @source " (smsn-env-get-source-by-code code))))
 
 (defun smsn-insert-attr-weight (expr)
   "insert a line to set the weight of an atom to the value given by EXPR"
@@ -310,7 +309,7 @@
     (if value (smsn-fulltext-query value))))
 
 (defun smsn-set-min-sharability (expr)
-  "set the minimum @sharability (for atoms visible in the current view) to the number represented by EXPR"
+  "set the minimum sharability (for atoms visible in the current view) to the number represented by EXPR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((n (number-shorthand-to-number expr)))
@@ -330,12 +329,11 @@
     (let ((n (number-shorthand-to-number expr)))
       (if n (smsn-client-set-focus-priority (/ n 4.0))))))
 
-(defun smsn-set-focus-sharability (expr)
-  "set the @sharability of the atom at point to the number represented by EXPR"
+(defun smsn-set-focus-source (code)
+  "set the @source of the atom at point to the number represented by CODE"
   (interactive)
   (if (smsn-env-in-treeview-mode)
-    (let ((n (number-shorthand-to-number expr)))
-      (if n (smsn-client-set-focus-sharability (/ n 4.0))))))
+    (smsn-client-set-focus-source (smsn-env-get-source-by-code code))))
 
 (defun smsn-set-focus-weight (expr)
   "set the @weight of the atom at point to the number represented by EXPR"
@@ -368,8 +366,8 @@ A value of -1 indicates that values should not be truncated."
   (dtk-toggle-quiet))
 
 (defun smsn-toggle-inference-viewstyle ()
-  "toggle between the sharability view style and the type inference view style.
-In the sharability view style, colors are assigned to atoms based on the sharability of each atom
+  "toggle between the source view style and the type inference view style.
+In the source view style, colors are assigned to atoms based on the data source of each atom
 (for example, private atoms are red, while public atoms are green).
 However, in the type inference view style, an atom is either cyan or magenta depending on whether
 a type has been assigned to it by the inference engine."
@@ -498,9 +496,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-char 'smsn-insert-attr-priority "priority = ?"))
 
-(defun smsn-insert-attr-sharability-prompt ()
+(defun smsn-insert-attr-source-prompt ()
   (interactive)
-  (prompt-for-char 'smsn-insert-attr-sharability "sharability = ?"))
+  (prompt-for-char 'smsn-insert-attr-source "source = ?"))
 
 (defun smsn-insert-attr-weight-prompt ()
   (interactive)
@@ -569,9 +567,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-char 'smsn-set-focus-priority "new priority = ?"))
 
-(defun smsn-set-focus-sharability-prompt ()
+(defun smsn-set-focus-source-prompt ()
   (interactive)
-  (prompt-for-char 'smsn-set-focus-sharability "new sharability = ?"))
+  (prompt-for-char 'smsn-set-focus-source "new source = ?"))
 
 (defun smsn-set-focus-weight-prompt ()
   (interactive)
@@ -660,7 +658,7 @@ a type has been assigned to it by the inference engine."
 
 (defun color-at-min-sharability ()
   "Returns the color for at atom at the minimum visible sharability"
-  "gray")
+  "dim gray")
 
 (defun color-prompt-by-min-sharability (callback)
   (let ((newcol (color-at-min-sharability))
@@ -708,7 +706,7 @@ a type has been assigned to it by the inference engine."
     ("O" . other-window)
     ("p" . smsn-set-priority-and-drop-cursor) ;; !! first use one-liner-view
     ("q" . kill-buffer)
-    ("s" . smsn-set-sharability-and-drop-cursor) ;; !! first use one-liner-view
+    ("s" . smsn-set-source-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . smsn-open-focus-atom)
     ("u" . undo)
     ("U" . smsn-navigate-to-focus-alias) ;; u as in url
@@ -781,11 +779,11 @@ a type has been assigned to it by the inference engine."
     (kill-line)
     ))
 
-(defun smsn-set-sharability-and-drop-cursor ()
+(defun smsn-set-source-and-drop-cursor ()
   (interactive)
   (progn
     (move-end-of-line 1)
-    (smsn-insert-attr-sharability-prompt)
+    (smsn-insert-attr-source-prompt)
     (kill-line)
     ))
 
@@ -816,7 +814,7 @@ a type has been assigned to it by the inference engine."
   (progn
     (setq smsn-mode-map (make-sparse-keymap))
     (define-key smsn-mode-map (kbd "C-c C-a C-p")     'smsn-insert-attr-priority-prompt)
-    (define-key smsn-mode-map (kbd "C-c C-a C-s")     'smsn-insert-attr-sharability-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-a C-s")     'smsn-insert-attr-source-prompt)
     (define-key smsn-mode-map (kbd "C-c C-a C-w")     'smsn-insert-attr-weight-prompt)
     (define-key smsn-mode-map (kbd "C-c C-a d")       'smsn-insert-current-date)
     (define-key smsn-mode-map (kbd "C-c C-a s")       'smsn-insert-current-time-with-seconds)
@@ -832,7 +830,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-s C-m")     'smsn-set-min-sharability-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-a b")   'smsn-navigate-to-focus-alias)
     (define-key smsn-mode-map (kbd "C-c C-t C-p")     'smsn-set-focus-priority-prompt)
-    (define-key smsn-mode-map (kbd "C-c C-t C-s")     'smsn-set-focus-sharability-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-t C-s")     'smsn-set-focus-source-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-w")     'smsn-set-focus-weight-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t a")       (smsn-visit-as-url 'smsn-data-focus-title))
     (define-key smsn-mode-map (kbd "C-c C-t i")       (smsn-atom-info 'smsn-data-focus))

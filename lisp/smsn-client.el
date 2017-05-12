@@ -166,20 +166,9 @@
   (smsn-env-to-search-mode context)
   (smsn-treeview-open payload context))
 
-(defun create-source-map (conf)
-  (let ((sources (smsn-env-json-get 'sources conf)))
-    (if sources
-      (let ((ht (make-hash-table :test 'equal)) (source-list (mapcar (lambda (x) x) sources)))
-        (dolist (source source-list)
-          (let ((name (smsn-env-json-get 'name source)))
-            (puthash name source ht)))
-        ht)
-      (error "no sources"))))
-
 (defun update-configuration-callback (payload context)
   (let ((conf (json-read-from-string (smsn-env-json-get 'configuration payload))))
-    (smsn-env-context-set 'configuration conf)
-    (smsn-env-context-set 'sources (create-source-map conf))))
+    (smsn-env-set-configuration conf)))
 
 (defun issue-request (request callback)
   (smsn-env-set-timestamp)
@@ -285,15 +274,12 @@
     (error 
      (concat "priority " (number-to-string v) " is outside of range [0, 1]"))))
 
-(defun smsn-client-set-focus-sharability (v)
-  (if (and (> v 0) (<= v 1))
-      (let ((focus (smsn-data-focus)))
-        (if focus
-            (let ((id (smsn-data-atom-id focus)))
-              (smsn-client-set-property id "sharability" v))
-          (smsn-env-error-no-focus)))
-    (error 
-     (concat "sharability " (number-to-string v) " is outside of range (0, 1]"))))
+(defun smsn-client-set-focus-source (source)
+  (let ((focus (smsn-data-focus)))
+    (if focus
+        (let ((id (smsn-data-atom-id focus)))
+          (smsn-client-set-property id "source" source))
+      (smsn-env-error-no-focus))))
 
 (defun smsn-client-set-focus-weight (v)
   (if (and (> v 0) (<= v 1))

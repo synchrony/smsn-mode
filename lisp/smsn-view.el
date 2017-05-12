@@ -13,17 +13,8 @@
 (require 'smsn-env)
 
 
-(defun get-sources ()
-  (let ((sources (smsn-env-context-get 'sources)))
-    (if sources sources (error "no data sources"))))
-
-(defun get-source (name)
-  (let ((sources (get-sources)))
-    (let ((source (gethash name sources)))
-      (if source source (error (concat "no data source named '" name "'"))))))
-
 (defun get-display-color (source-name)
-  (let ((source (get-source source-name)))
+  (let ((source (smsn-env-get-source-by-name source-name)))
     (let ((color (smsn-env-json-get 'displayColor source)))
       (if color (to-color-triple color) (error (concat "no display color for source '" source-name "'"))))))
 
@@ -38,12 +29,6 @@
         (green (% (truncate (/ numeric-color 256)) 256))
         (red (truncate (/ numeric-color 65536))))
     (list red green blue)))
-
-(defconst sharability-reduced-colors '("red" "red" "blue" "blue"))
-;;(defconst sharability-base-colors  '("#660000" "#604000" "#005000" "#000066"))
-;;(defconst sharability-bright-colors  '("#D00000" "#D0B000" "#00B000" "#0000D0"))
-;;(defconst inference-base-colors '("#660066" "#006666"))
-;;(defconst inference-bright-colors '("#FF00FF" "#00FFFF"))
 
 (defvar smsn-view-full-colors-supported (> (length (defined-colors)) 8))
 

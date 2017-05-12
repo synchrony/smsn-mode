@@ -21,8 +21,8 @@
 (defconst smsn-const-search-mode "search-mode"
   "A state for immutable search results")
 
-(defconst smsn-const-color-by-sharability "sharability"
-  "A color scheme based on atom weight and sharability")
+(defconst smsn-const-color-by-source "source"
+  "A color scheme based on atom weight and data source")
 (defconst smsn-const-color-by-class-inference "inference"
   "A color scheme based on type inference")
 
@@ -31,14 +31,6 @@
 (defconst smsn-const-backward-style "backward"
   "A view style in which atom parents are arranged below children in a tree")
 
-(defconst smsn-const-sharability-private 0.25
-  "A sharability level for the most sensitive information")
-(defconst smsn-const-sharability-personal 0.5
-  "A sharability level for personal information which may be shared in certain contexts")
-(defconst smsn-const-sharability-public 0.75
-  "A sharability level for information which can be freely shared")
-(defconst smsn-const-sharability-universal 1.0
-  "A sharability level for extra-personal information known to everyone")
 (defconst smsn-const-weight-none 0.0
   "A lower limit of atom weight")
 (defconst smsn-const-weight-weak 0.25
@@ -140,11 +132,11 @@
       (smsn-env-succeed))))
 
 (defun smsn-env-toggle-inference-viewstyle (&optional context)
-  "Switches from the 'weight/sharability' view style to the 'type inference' style, or vice versa"
+  "Switches from the 'weight/source' view style to the 'type inference' style, or vice versa"
   (smsn-env-context-set 'view-style
-    (if (equal (smsn-env-context-get 'view-style) smsn-const-color-by-sharability)
+    (if (equal (smsn-env-context-get 'view-style) smsn-const-color-by-source)
       smsn-const-color-by-class-inference
-      smsn-const-color-by-sharability) context))
+      smsn-const-color-by-source) context))
 
 (defun smsn-env-format-date (time)
   "Formats the current date for use in a buffer of notes"
@@ -181,6 +173,41 @@
       (if value value default))
     default))
 
+(defun smsn-env-set-configuration (conf)
+  (smsn-env-context-set 'configuration conf)
+  (create-source-maps conf))
+
+(defun create-source-maps (conf)
+  (let ((sources (smsn-env-json-get 'sources conf)))
+   (if sources
+      (let (
+          (sources-by-name (make-hash-table :test 'equal))
+          (sources-by-code (make-hash-table :test 'equal))
+          (source-list (mapcar (lambda (x) x) sources)))
+        (dolist (source source-list)
+          (let (
+              (name (smsn-env-json-get 'name source))
+              (code (smsn-env-json-get 'code source)))
+            (puthash name source sources-by-name)
+            (puthash code source sources-by-code)))
+        (smsn-env-context-set 'sources-by-name sources-by-name)
+        (smsn-env-context-set 'sources-by-code sources-by-code))
+      (error "no sources"))))
+
+(defun smsn-env-get-source-by-name (name)
+  (let ((sources (smsn-env-context-get 'sources-by-name)))
+    (if sources
+      (let ((source (gethash name sources)))
+        (if source source (error (concat "no data source named '" name "'"))))
+      (error "no sources by name"))))
+
+(defun smsn-env-get-source-by-code (code)
+  (let ((sources (smsn-env-context-get 'sources-by-code)))
+    (if sources
+      (let ((source (gethash code sources)))
+        (if source source (error (concat "no data source with code '" code "'"))))
+      (error "no sources by code"))))
+
 (defconst const-date-format "%Y-%m-%d")
 (defconst const-time-format "%H:%M")
 (defconst const-time-with-seconds-format "%H:%M:%S")
@@ -189,13 +216,14 @@
   (cons 'action 'nil)
   (cons 'atoms-by-id 'nil)
   (cons 'configuration 'nil)
-  (cons 'default-sharability smsn-const-sharability-personal)
+  (cons 'sources-by-name 'nil)
+  (cons 'sources-by-code 'nil)
   (cons 'default-weight smsn-const-weight-default)
   (cons 'file 'nil)
   (cons 'format 'nil)
   (cons 'height 2)
   (cons 'line 1)
-  (cons 'min-sharability smsn-const-sharability-personal)
+  (cons 'min-sharability 0.5)
   (cons 'min-weight smsn-const-weight-none)
   (cons 'minimize-verbatim-blocks 'nil)
   (cons 'mode smsn-const-search-mode)
@@ -212,14 +240,7 @@
   (cons 'title-length-cutoff 100)
   (cons 'view 'nil)
   (cons 'view-properties 'nil)
-  (cons 'view-style smsn-const-color-by-sharability)))
-
-;; change the default sharability in the new view after a user visits a link or atom
-;; The default will never be greater than 0.75 unless explicitly set by the user.
-(defun adjust-default-sharability (sharability)
-  (if sharability
-      (if (<= sharability 0.75) sharability 0.75)
-    0.5))
+  (cons 'view-style smsn-const-color-by-source)))
 
 
 (provide 'smsn-env)

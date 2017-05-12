@@ -52,7 +52,6 @@
   (concat "http://" host ":" (number-to-string port)))
 
 (defun smsn-http-send-and-receive (host port request callback)
-  ;;(message  (concat "context: " (json-encode context)))
     (http-post (http-connection-url host port) request
       (http-callback callback)))
 
