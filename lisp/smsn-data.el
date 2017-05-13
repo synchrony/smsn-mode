@@ -52,7 +52,7 @@
     v))
 
 (defun smsn-data-atom-weight (atom)
-  (let ((v (smsn-env-json-get 'defaultWeight atom)))
+  (let ((v (smsn-env-json-get 'weight atom)))
     (if v v (smsn-env-context-get 'default-weight))))
 
 (defun smsn-data-atom-alias (atom)
