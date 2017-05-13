@@ -329,11 +329,13 @@
     (let ((n (number-shorthand-to-number expr)))
       (if n (smsn-client-set-focus-priority (/ n 4.0))))))
 
-(defun smsn-set-focus-source (code)
+(defun smsn-set-focus-source (char)
   "set the @source of the atom at point to the number represented by CODE"
   (interactive)
   (if (smsn-env-in-treeview-mode)
-    (smsn-client-set-focus-source (smsn-env-get-source-by-code code))))
+    (let ((code (char-to-string char)))
+      (smsn-client-set-focus-source
+         (smsn-env-json-get 'name (smsn-env-get-source-by-code code))))))
 
 (defun smsn-set-focus-weight (expr)
   "set the @weight of the atom at point to the number represented by EXPR"
