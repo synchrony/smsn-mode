@@ -114,53 +114,53 @@
   (interactive)
   (smsn-client-fetch-events 2))
 
-(defun smsn-export-vcs (file)
+(defun smsn-write-vcs ()
   "export graph as version-controlled directory"
   (interactive)
-  (message "%s" (concat "exporting VCS dump to " file))
-  (smsn-client-export "VCS" file))
+  (message "%s" (concat "exporting VCS dump to configured locations"))
+  (smsn-client-write-graph "VCS"))
 
 (defun smsn-export-edges (file)
   "export tab-separated dump of Semantic Synchrony parent-child edges to the file system"
   (interactive)
   (message "%s" (concat "exporting edges to " file))
-  (smsn-client-export "Edges" file))
+  (smsn-client-write-graph "Edges" file))
 
 (defun smsn-export-graphml (file)
   "export a GraphML dump of the knowledge base to the file system"
   (interactive)
   (message "%s" (concat "exporting GraphML to " file))
-  (smsn-client-export "GraphML" file))
+  (smsn-client-write-graph "GraphML" file))
 
 (defun smsn-export-latex (file)
   "export a LaTeX-formatted view of a subtree of the knowledge base to the file system"
   (interactive)
   (message "%s" (concat "exporting LaTeX to " file))
-  (smsn-client-export "LaTeX" file))
+  (smsn-client-write-graph "LaTeX" file))
 
 (defun smsn-export-pagerank (file)
   "export a tab-separated PageRank ranking of Semantic Synchrony atoms to the file system"
   (interactive)
   (message "%s" (concat "computing and exporting PageRank to " file))
-  (smsn-client-export "PageRank" file))
+  (smsn-client-write-graph "PageRank" file))
 
 (defun smsn-export-rdf (file)
   "export an RDF dump of the knowledge base to the file system"
   (interactive)
   (message "%s" (concat "exporting private N-Triples dump to " file))
-  (smsn-client-export "N-Triples" file))
+  (smsn-client-write-graph "N-Triples" file))
 
 (defun smsn-export-vertices (file)
   "export tab-separated dump of Semantic Synchrony vertices (atoms) to the file system"
   (interactive)
   (message "%s" (concat "exporting vertices to " file))
-  (smsn-client-export "Vertices" file))
+  (smsn-client-write-graph "Vertices" file))
 
-(defun smsn-import-vcs (file)
-  "import a graph from a set of version-controlled directories into the knowledge base"
+(defun smsn-read-vcs ()
+  "import a graph from configured data sources into the knowledge graph"
   (interactive)
-  (message "%s" (concat "importing version-controlled graph from " file))
-  (smsn-client-import "VCS" file))
+  (message "importing graph from configured sources")
+  (smsn-client-read-graph "VCS"))
 
 (defun smsn-view-log (file)
   "create a view of Git history"
@@ -502,10 +502,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-char 'smsn-set-view-height "height = ?"))
 
-(defun smsn-export-vcs-prompt ()
+(defun smsn-write-vcs-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-vcs "export version-controlled graph to directory: "
-                    (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
+  (prompt-for-confirmation 'smsn-write-vcs "export graph to VCS"))
 
 (defun smsn-export-edges-prompt ()
   (interactive)
@@ -531,12 +530,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-export-vertices "export vertices to file: " smsn-default-vertices-file))
 
-(defun smsn-import-vcs-prompt ()
+(defun smsn-read-vcs-prompt ()
   (interactive)
-  (prompt-for-string
-   'smsn-import-vcs
-   "import version-controlled graph from directory: "
-   (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
+  (prompt-for-confirmation 'smsn-read-vcs "import graph from VCS"))
 
 (defun smsn-view-log-prompt ()
   (interactive)
@@ -671,6 +667,14 @@ a type has been assigned to it by the inference engine."
   (color-prompt-by-min-source (lambda ()
     (let ((c (read-char prompt)))
       (if c (funcall function c))))))
+
+(defun prompt-for-confirmation (function prompt)
+  (prompt-for-string
+    (lexical-let ((function function))
+      (lambda (arg)
+        (if (and (> (length arg) 0) (equal "y" (downcase (substring arg 0 1))))
+          (funcall function))))
+    (concat prompt " (y/n)? ")))
 
 ;; "edit"(default) and "move" submodes
     ;; some editing (esp. cut|paste and of properties) is still
@@ -818,7 +822,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-f")         'smsn-find-roots)
     (define-key smsn-mode-map (kbd "C-c C-i f")       'smsn-find-isolated-atoms)
     (define-key smsn-mode-map (kbd "C-c C-i r")       'smsn-remove-isolated-atoms)
-    (define-key smsn-mode-map (kbd "C-c C-r c")       'smsn-import-vcs-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-r c")       'smsn-read-vcs-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r f")       'smsn-import-freeplane-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r g")       'smsn-import-graphml-prompt)
     (define-key smsn-mode-map (kbd "C-c C-s C-m")     'smsn-set-min-source-prompt)
@@ -839,7 +843,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-v t")       'smsn-set-value-truncation-length-prompt)
     (define-key smsn-mode-map (kbd "C-c C-v v")       'smsn-toggle-minimize-verbatim-blocks)
     (define-key smsn-mode-map (kbd "C-c C-w C-m")     'smsn-set-min-weight-prompt)
-    (define-key smsn-mode-map (kbd "C-c C-w c")       'smsn-export-vcs-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-w c")       'smsn-write-vcs-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w e")       'smsn-export-edges-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w g")       'smsn-export-graphml-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w l")       'smsn-export-latex-prompt)

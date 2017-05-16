@@ -79,18 +79,19 @@
 (defun do-search (query-type query)
   (issue-request (create-search-request query-type query) 'search-view-callback))
 
-(defun do-write-graph (format file)
-  (let ((request (add-to-request write-graph-request (list
+(defun smsn-client-write-graph (format &optional file)
+  (let ((request (add-to-request write-graph-request
+     (append (list
         :filter (to-filter)
-        :format format
-        :file file))))
-    (issue-request request 'export-callback)))
+        :format format)
+        (if file (list :file file) nil)))))
+    (issue-request request 'write-graph-callback)))
 
-(defun do-read-graph (format file)
-  (let ((request (add-to-request read-graph-request (list
-        :format format
-        :file file))))
-    (issue-request request 'import-callback)))
+(defun smsn-client-read-graph (format &optional file)
+  (let ((request (add-to-request read-graph-request
+     (append (list :format format)
+       (if file (list :file file) nil)))))
+    (issue-request request 'read-graph-callback)))
 
 (defun do-view-log (file)
   (let ((request (add-to-request (to-filter-request view-log-request) (list
@@ -138,11 +139,11 @@
       :minWeight (smsn-env-context-get 'min-weight context)
       :defaultWeight (smsn-env-context-get 'default-weight context)))
 
-(defun export-callback (payload context)
-  (message "exported successfully in %.0f ms" (smsn-env-response-time)))
+(defun write-graph-callback (payload context)
+  (message "wrote graph successfully in %.0f ms" (smsn-env-response-time)))
 
-(defun import-callback (payload context)
-  (message "imported successfully in %.0f ms" (smsn-env-response-time)))
+(defun read-graph-callback (payload context)
+  (message "read graph successfully in %.0f ms" (smsn-env-response-time)))
 
 (defun inference-callback (payload context)
   (message "type inference completed successfully in %.0f ms" (smsn-env-response-time)))
@@ -192,9 +193,6 @@
 (defun find-server-port ()
   (if (boundp 'smsn-server-port) smsn-server-port 8182))
 
-(defun smsn-client-export (format file)
-  (do-write-graph format file))
-
 (defun smsn-client-fetch-duplicates ()
   (issue-request (to-filter-request find-duplicates-request) 'search-view-callback))
 
@@ -226,9 +224,6 @@
 
 (defun smsn-client-find-roots ()
   (issue-request (to-query-request find-roots-request) 'search-view-callback))
-
-(defun smsn-client-import (format file)
-  (do-read-graph format file))
 
 (defun smsn-client-view-log (file)
   (do-view-log file))
