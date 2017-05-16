@@ -42,10 +42,6 @@
 (defconst smsn-const-weight-full 1.0
   "A weight for the most important atoms")
 
-;; TODO
-(defconst smsn-const-default-source "public"
-  "A temporary source for notes otherwise not annotated")
-
 (defun smsn-env-get-context (&optional context)
   "Retrieves smsn-mode's buffer-local context"
   (if context context smsn-bufferlocal-context))
@@ -77,7 +73,7 @@
 
 (defun smsn-env-fail (message)
   "Fails an assertion with the given message"
-  (and (error message) nil))
+  (and (error "%s" message) nil))
 
 (defun smsn-env-is-readonly ()
   "Determines whether the current buffer is a read-only tree view"
@@ -177,6 +173,10 @@
   (smsn-env-context-set 'configuration conf)
   (create-source-maps conf))
 
+(defun find-first-source (sources)
+  (let ((source (car sources)))
+    (smsn-env-json-get 'name source)))
+
 (defun create-source-maps (conf)
   (let ((sources (smsn-env-json-get 'sources conf)))
    (if sources
@@ -184,6 +184,7 @@
           (sources-by-name (make-hash-table :test 'equal))
           (sources-by-code (make-hash-table :test 'equal))
           (source-list (mapcar (lambda (x) x) sources)))
+        (smsn-env-context-set 'min-source (find-first-source source-list))
         (dolist (source source-list)
           (let (
               (name (smsn-env-json-get 'name source))
@@ -198,14 +199,14 @@
   (let ((sources (smsn-env-context-get 'sources-by-name)))
     (if sources
       (let ((source (gethash name sources)))
-        (if source source (error (concat "no data source named '" name "'"))))
+        (if source source (error  "%s"(concat "no data source named '" name "'"))))
       (error "no sources by name"))))
 
 (defun smsn-env-get-source-by-code (code)
   (let ((sources (smsn-env-context-get 'sources-by-code)))
     (if sources
       (let ((source (gethash code sources)))
-        (if source source (error (concat "no data source with code '" code "'"))))
+        (if source source (error "%s" (concat "no data source with code '" code "'"))))
       (error "no sources by code"))))
 
 (defconst const-date-format "%Y-%m-%d")
@@ -223,9 +224,8 @@
   (cons 'format 'nil)
   (cons 'height 2)
   (cons 'line 1)
-  (cons 'min-sharability 0.5)
+  (cons 'min-source 'nil)
   (cons 'min-weight smsn-const-weight-none)
-  (cons 'minimize-verbatim-blocks 'nil)
   (cons 'mode smsn-const-search-mode)
   (cons 'query 'nil)
   (cons 'query-type 'nil)

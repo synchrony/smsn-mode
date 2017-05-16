@@ -17,8 +17,7 @@
 ;;(setq websocket-debug t)
 
 (setq websocket-connection nil)
-(setq websocket-response-handler (lambda (response)
-  (message (concat "server response: " response))))
+(setq websocket-response-handler (lambda (response) ()))
 
 (defun websocket-connection-is-open ()
   (and websocket-connection (websocket-openp websocket-connection)))

@@ -17,7 +17,7 @@
       (if data-array
         (if (= 1 (length data-array))
           (json-read-from-string (aref data-array 0))
-          (error  "unexpected data array length"))
+          (error "unexpected data array length"))
         nil))
     nil))
 
@@ -37,11 +37,12 @@
       (cons 'gremlin (json-encode args)))))))
 
 (defun smsn-serde-handle-response (response callback context)
+  (message "%s" (concat "handling response: " response))
   (let ((json (json-read-from-string response)))
     (let ((message (smsn-env-json-get 'message (smsn-env-json-get 'status json)))
           (payload (get-data json)))
       (if (and message (> (length message) 0))
-        (error  (concat "request failed: " message))
+        (error "%s" (concat "request failed: " message))
         (if payload
           (funcall callback payload context)
           (error  "no response data"))))))

@@ -117,67 +117,67 @@
 (defun smsn-export-vcs (file)
   "export graph as version-controlled directory"
   (interactive)
-  (message (concat "exporting VCS dump to " file))
+  (message "%s" (concat "exporting VCS dump to " file))
   (smsn-client-export "VCS" file))
 
 (defun smsn-export-edges (file)
   "export tab-separated dump of Semantic Synchrony parent-child edges to the file system"
   (interactive)
-  (message (concat "exporting edges to " file))
+  (message "%s" (concat "exporting edges to " file))
   (smsn-client-export "Edges" file))
 
 (defun smsn-export-graphml (file)
   "export a GraphML dump of the knowledge base to the file system"
   (interactive)
-  (message (concat "exporting GraphML to " file))
+  (message "%s" (concat "exporting GraphML to " file))
   (smsn-client-export "GraphML" file))
 
 (defun smsn-export-latex (file)
   "export a LaTeX-formatted view of a subtree of the knowledge base to the file system"
   (interactive)
-  (message (concat "exporting LaTeX to " file))
+  (message "%s" (concat "exporting LaTeX to " file))
   (smsn-client-export "LaTeX" file))
 
 (defun smsn-export-pagerank (file)
   "export a tab-separated PageRank ranking of Semantic Synchrony atoms to the file system"
   (interactive)
-  (message (concat "computing and exporting PageRank to " file))
+  (message "%s" (concat "computing and exporting PageRank to " file))
   (smsn-client-export "PageRank" file))
 
 (defun smsn-export-rdf (file)
   "export an RDF dump of the knowledge base to the file system"
   (interactive)
-  (message (concat "exporting private N-Triples dump to " file))
+  (message "%s" (concat "exporting private N-Triples dump to " file))
   (smsn-client-export "N-Triples" file))
 
 (defun smsn-export-vertices (file)
   "export tab-separated dump of Semantic Synchrony vertices (atoms) to the file system"
   (interactive)
-  (message (concat "exporting vertices to " file))
+  (message "%s" (concat "exporting vertices to " file))
   (smsn-client-export "Vertices" file))
 
 (defun smsn-import-vcs (file)
   "import a graph from a set of version-controlled directories into the knowledge base"
   (interactive)
-  (message (concat "importing version-controlled graph from " file))
+  (message "%s" (concat "importing version-controlled graph from " file))
   (smsn-client-import "VCS" file))
 
 (defun smsn-view-log (file)
   "create a view of Git history"
   (interactive)
-  (message (concat "reading logs from " file))
+  (message "%s" (concat "reading logs from " file))
   (smsn-client-view-log file))
 
 (defun smsn-import-freeplane (file)
   "import one or more Freeplane files into the knowledge base"
   (interactive)
-  (message (concat "importing Freeplane nodes from " file))
+  (message "%s" (concat "importing Freeplane nodes from " file))
   (smsn-client-import "Freeplane" file))
 
 (defun smsn-import-graphml (file)
   "import a GraphML dump from the file system into the knowledge base"
   (interactive)
-  (message (concat "importing GraphML from " file))
+  (message "%s" (concat "importing GraphML from " file))
   (smsn-client-import "GraphML" file))
 
 (defun smsn-find-isolated-atoms ()
@@ -308,12 +308,12 @@
   (let ((value (smsn-data-focus-title)))
     (if value (smsn-fulltext-query value))))
 
-(defun smsn-set-min-sharability (expr)
-  "set the minimum sharability (for atoms visible in the current view) to the number represented by EXPR"
+(defun smsn-set-min-source (char)
+  "set the minimum source (for atoms visible in the current view) to the data source represented by CHAR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
-    (let ((n (number-shorthand-to-number expr)))
-      (if n (smsn-client-set-min-sharability (/ n 4.0))))))
+    (let ((source (smsn-env-get-source-by-code (char-to-string char))))
+      (if source (smsn-client-set-min-source source)))))
 
 (defun smsn-set-min-weight (expr)
   "set the minimum @weight (for atoms visible in the current view) to the number represented by EXPR"
@@ -330,7 +330,7 @@
       (if n (smsn-client-set-focus-priority (/ n 4.0))))))
 
 (defun smsn-set-focus-source (char)
-  "set the @source of the atom at point to the number represented by CODE"
+  "set the @source of the atom at point to the number represented by CHAR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((code (char-to-string char)))
@@ -378,14 +378,6 @@ a type has been assigned to it by the inference engine."
     (smsn-env-toggle-inference-viewstyle)
     (smsn-update-view)
     (message (concat "switched to " (smsn-env-context-get 'view-style) " view style")))))
-
-(defun smsn-toggle-minimize-verbatim-blocks ()
-  "enable or disable the hiding of the contents of {{{verbatim blocks}}}, which span multiple lines"
-  (interactive)
-  (if (smsn-env-in-treeview-mode) (progn
-    (smsn-env-context-set 'minimize-verbatim-blocks (not (smsn-env-context-get 'minimize-verbatim-blocks)))
-    (smsn-update-view)
-    (message (concat (if (smsn-env-context-get 'minimize-verbatim-blocks) "minimized" "expanded") " verbatim blocks")))))
 
 (defun smsn-toggle-properties-view ()
   "enable or disable the explicit display of atom properties as extra lines within views"
@@ -561,9 +553,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-import-graphml "import GraphML from file: " smsn-default-graphml-file))
 
-(defun smsn-set-min-sharability-prompt ()
+(defun smsn-set-min-source-prompt ()
   (interactive)
-  (prompt-for-char 'smsn-set-min-sharability "minimum sharability = ?"))
+  (prompt-for-char 'smsn-set-min-source "minimum source = ?"))
 
 (defun smsn-set-focus-priority-prompt ()
   (interactive)
@@ -658,25 +650,25 @@ a type has been assigned to it by the inference engine."
           (coerce (cdr (coerce address 'list)) 'string))
       address)))
 
-(defun color-at-min-sharability ()
-  "Returns the color for at atom at the minimum visible sharability"
+(defun color-at-min-source ()
+  "Returns the color for at atom at the minimum visible source"
   "dim gray")
 
-(defun color-prompt-by-min-sharability (callback)
-  (let ((newcol (color-at-min-sharability))
+(defun color-prompt-by-min-source (callback)
+  (let ((newcol (color-at-min-source))
         (oldcol (face-foreground 'minibuffer-prompt)))
     (set-face-foreground 'minibuffer-prompt newcol)
     (funcall callback)
     (set-face-foreground 'minibuffer-prompt oldcol)))
 
 (defun prompt-for-string (function prompt &optional initial)
-  (color-prompt-by-min-sharability (lambda ()
+  (color-prompt-by-min-source (lambda ()
     ;; note: use of the INITIAL argument is discouraged, but here it makes sense
     (let ((arg (read-from-minibuffer prompt initial)))
       (if arg (funcall function arg))))))
 
 (defun prompt-for-char (function prompt)
-  (color-prompt-by-min-sharability (lambda ()
+  (color-prompt-by-min-source (lambda ()
     (let ((c (read-char prompt)))
       (if c (funcall function c))))))
 
@@ -829,7 +821,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-r c")       'smsn-import-vcs-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r f")       'smsn-import-freeplane-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r g")       'smsn-import-graphml-prompt)
-    (define-key smsn-mode-map (kbd "C-c C-s C-m")     'smsn-set-min-sharability-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-s C-m")     'smsn-set-min-source-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-a b")   'smsn-navigate-to-focus-alias)
     (define-key smsn-mode-map (kbd "C-c C-t C-p")     'smsn-set-focus-priority-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-s")     'smsn-set-focus-source-prompt)

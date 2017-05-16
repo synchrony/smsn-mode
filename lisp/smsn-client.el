@@ -133,8 +133,8 @@
 
 (defun to-filter (&optional context)
   (list
-      :minSharability (smsn-env-context-get 'min-sharability context)
-      :defaultSource smsn-const-default-source
+      :minSource (smsn-env-context-get 'min-source context)
+      :defaultSource (smsn-env-context-get 'default-source context)
       :minWeight (smsn-env-context-get 'min-weight context)
       :defaultWeight (smsn-env-context-get 'default-weight context)))
 
@@ -180,7 +180,7 @@
       (smsn-http-send-and-receive host port request callback)
       (if (equal "websocket" protocol)
         (smsn-websocket-send-and-receive host port request callback)
-        (error (concat "unsupported protocol: " protocol))))))
+        (error "%s" (concat "unsupported protocol: " protocol))))))
 
 (defun find-server-protocol ()
   (downcase
@@ -292,13 +292,11 @@
     (error 
      (concat "weight " (number-to-string v) " is outside of range (0, 1]"))))
 
-(defun smsn-client-set-min-sharability (s)
-  (if (and (smsn-env-in-setproperties-mode) (>= s 0) (<= s 1))
-    (let ()
-      (smsn-env-context-set 'min-sharability s)
-      (smsn-client-refresh-treeview))
-    (error 
-     (concat "min sharability " (number-to-string s) " is outside of range [0, 1]"))))
+(defun smsn-client-set-min-source (source)
+  (if (and source (smsn-env-in-setproperties-mode))
+    (progn
+      (smsn-env-context-set 'min-source source)
+      (smsn-client-refresh-treeview))))
 
 (defun smsn-client-set-min-weight (s)
   (if (and (smsn-env-in-setproperties-mode) (>= s 0) (<= s 1))

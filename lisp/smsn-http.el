@@ -23,7 +23,7 @@
 
 (defun handle-http-response (http-status context callback)
   (if http-status
-    (error  (concat "HTTP request failed: " (json-encode http-status)))
+    (error "%s" (concat "HTTP request failed: " (json-encode http-status)))
     (let ((response (get-buffer-content)))
       (smsn-serde-handle-response response callback context))))
 

@@ -47,8 +47,8 @@
   (smsn-env-json-get 'priority atom))
 
 (defun smsn-data-atom-source (atom)
-  (let ((v (smsn-env-json-get 'source atom smsn-const-default-source)))
-    (message (concat "source: " v))
+  (let ((v (smsn-env-json-get 'source atom (smsn-env-context-get 'default-source))))
+    ;;(message (concat "source: " v))
     v))
 
 (defun smsn-data-atom-weight (atom)
@@ -95,7 +95,7 @@
         (alias (smsn-data-atom-alias atom))
         (meta (smsn-data-atom-meta atom)))
     ;;(type (smsn-env-context-get 'atom-type atom)))
-    (message (concat
+    (message "%s" (concat
               ;;(if type (concat "type: " type ", "))
               (if meta (concat "[meta], "))
               "weight: " (number-to-string weight)

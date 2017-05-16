@@ -15,8 +15,8 @@
 
 (defun get-display-color (source-name)
   (let ((source (smsn-env-get-source-by-name source-name)))
-    (let ((color (smsn-env-json-get 'displayColor source)))
-      (if color (to-color-triple color) (error (concat "no display color for source '" source-name "'"))))))
+    (let ((color (smsn-env-json-get 'color source)))
+      (if color (to-color-triple color) (error "%s" (concat "no display color for source '" source-name "'"))))))
 
 (defun find-normal-color (source weight is-link)
   (let ((base (get-display-color source)))
@@ -133,9 +133,7 @@
   "Encloses multi-line values in triple brackets, leaving single-line values unchanged"
   (let ((s (string-match "\n" value)))
     (if s (let ((content (concat "\n" value "\n")))
-            (concat "{{{"
-                    (if (smsn-env-context-get 'minimize-verbatim-blocks) (propertize content 'invisible t) content)
-                    "}}}")) value)))
+            (concat "{{{\n" content "\n}}}")) value)))
 
 (defun choose-bullet (n-children)
   (if (> n-children 0) "+" "\u00b7"))
@@ -237,8 +235,8 @@
    "(root: " (smsn-env-context-get 'root-id)
    " :height " (num-or-nil-to-string (smsn-env-context-get 'height))
    " :style " (smsn-env-context-get 'style)
-   " :sharability
-             " (num-or-nil-to-string (smsn-env-context-get 'min-sharability))
+   " :min-source
+             " (smsn-env-context-get 'min-source)
    " :weight
              [" (num-or-nil-to-string (smsn-env-context-get 'min-weight))
    ", " (num-or-nil-to-string (smsn-env-context-get 'default-weight)) "]"
@@ -280,10 +278,12 @@
     (read-string-value 'root-id 'root payload)
     (read-string-value 'style 'style payload)
     (read-string-value 'title 'title payload)
-    (read-numeric-value 'height 'height payload)
-    (read-numeric-value 'min-sharability 'minSharability payload)
-    (read-numeric-value 'min-weight 'minWeight payload)
-    (read-numeric-value 'default-weight 'defaultWeight payload)))
+    ;;(read-numeric-value 'height 'height payload)
+    ;;(read-string-value 'min-source 'minSource payload)
+    ;;(read-numeric-value 'min-weight 'minWeight payload)
+    ;;(read-string-value 'default-source 'defaultSource payload)
+    ;;(read-numeric-value 'default-weight 'defaultWeight payload)
+    ))
 
 (defun smsn-view-set-context-line (&optional line)
   (smsn-env-context-set 'line
