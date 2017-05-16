@@ -184,7 +184,9 @@
           (sources-by-name (make-hash-table :test 'equal))
           (sources-by-code (make-hash-table :test 'equal))
           (source-list (mapcar (lambda (x) x) sources)))
-        (smsn-env-context-set 'min-source (find-first-source source-list))
+        (let ((first-source (find-first-source source-list)))
+          (smsn-env-context-set 'min-source first-source)
+          (smsn-env-context-set 'default-source first-source))
         (dolist (source source-list)
           (let (
               (name (smsn-env-json-get 'name source))
@@ -219,6 +221,7 @@
   (cons 'configuration 'nil)
   (cons 'sources-by-name 'nil)
   (cons 'sources-by-code 'nil)
+  (cons 'default-source 'nil)
   (cons 'default-weight smsn-const-weight-default)
   (cons 'file 'nil)
   (cons 'format 'nil)
