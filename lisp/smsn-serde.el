@@ -37,7 +37,7 @@
       (cons 'gremlin (json-encode args)))))))
 
 (defun smsn-serde-handle-response (response callback context)
-  (message "%s" (concat "handling response: " response))
+  ;;(message "%s" (concat "handling response: " response))
   (let ((json (json-read-from-string response)))
     (let ((message (smsn-env-json-get 'message (smsn-env-json-get 'status json)))
           (payload (get-data json)))
