@@ -7,7 +7,7 @@
 ;;
 ;; Dependencies:
 ;;
-;;     aes, indent-guide, json, latex-math-preview, linum, and websocket
+;;     edebug, goto-addr, indent-guide, json, latex-math-preview, linum, and websocket
 ;;
 ;; Optional global variables:
 ;;
@@ -23,31 +23,27 @@
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; for JSON-formatted messages to and from Semantic Synchrony services (see json-read-from-string, json-encode)
-(require 'json)
+;; for smsn-mode development
+(require 'edebug)
 
-;; for line number annotations in buffers (see linum-mode)
-(require 'linum)
-
-;; for visiting URLs in a browser (see goto-address-at-point)
+;; for visiting URLs in a browser
 (require 'goto-addr)
-
-;; for encryption of sensitive values
-(require 'aes)
-
-;; for LaTeX views (nice-to-have, but not essential)
-(require 'latex-math-preview)
 
 ;; a visual aid to consistent indentation
 (require 'indent-guide)
 
+;; for JSON-formatted messages to and from Semantic Synchrony services (see json-read-from-string, json-encode)
+(require 'json)
+
+;; for LaTeX views (nice-to-have, but not essential)
+(require 'latex-math-preview)
+
+;; for line number annotations in buffers (see linum-mode)
+(require 'linum)
+
 ;; WebSocket support
-(require 'tls)   ;; tests a WebSocket-related bug on emacs 23
 (require 'websocket)
 (eval-when-compile (require 'cl))
-
-;; for smsn-mode development
-(require 'edebug)
 
 
 (require 'smsn-client)
