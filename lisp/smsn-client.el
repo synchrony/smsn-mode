@@ -165,6 +165,7 @@
 (defun search-view-callback (payload context)
   (smsn-view-set-context-line 1)
   (smsn-env-to-search-mode context)
+  (smsn-env-context-set-forward-style context)
   (smsn-treeview-open payload context))
 
 (defun update-configuration-callback (payload context)

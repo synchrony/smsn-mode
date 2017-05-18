@@ -284,14 +284,14 @@
   (if (> (length query) 0)
       (smsn-client-fetch-ripple-results query)))
 
-(defun smsn-fulltext-query (query)
+(defun smsn-title-query (query)
   "evaluate full-text query for QUERY, yielding a ranked list of query results in a new buffer"
   (interactive)
   (if (> (length query) 0)
     (smsn-client-fetch-query query "FullText")))
 
 (defun smsn-acronym-query (query)
-  "evaluate acronym (abbreviated fulltext) query for QUERY, yielding a ranked list of query results in a new buffer"
+  "evaluate acronym (abbreviated title) query for QUERY, yielding a ranked list of query results in a new buffer"
   (interactive)
   (if (> (length query) 0)
     (smsn-client-fetch-query query "Acronym")))
@@ -302,11 +302,11 @@
   (if (> (length query) 0)
     (smsn-client-fetch-query query "Shortcut")))
 
-(defun smsn-fulltext-query-on-focus-title ()
+(defun smsn-title-query-on-focus-title ()
   "evaluate a full-text query for the title of the atom at point"
   (interactive)
   (let ((title (smsn-data-focus-title)))
-    (if title (smsn-fulltext-query title))))
+    (if title (smsn-title-query title))))
 
 (defun smsn-set-min-source (char)
   "set the minimum source (for atoms visible in the current view) to the data source represented by CHAR"
@@ -585,9 +585,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-ripple-query "ripple query: "))
 
-(defun smsn-fulltext-query-prompt ()
+(defun smsn-title-query-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-fulltext-query "full-text search for: "))
+  (prompt-for-string 'smsn-title-query "full-text search for: "))
 
 (defun smsn-open-atom-prompt ()
   (interactive)
@@ -833,7 +833,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-t a")       (smsn-visit-as-url 'smsn-data-focus-title))
     (define-key smsn-mode-map (kbd "C-c C-t i")       (smsn-atom-info 'smsn-data-focus))
     (define-key smsn-mode-map (kbd "C-c C-t l")       'smsn-preview-focus-latex-math)
-    (define-key smsn-mode-map (kbd "C-c C-t s")       'smsn-fulltext-query-on-focus-title)
+    (define-key smsn-mode-map (kbd "C-c C-t s")       'smsn-query-on-focus-title)
     (define-key smsn-mode-map (kbd "C-c C-v ;")       'smsn-toggle-truncate-lines)
     (define-key smsn-mode-map (kbd "C-c C-v e")       'smsn-enter-readwrite-view)
     (define-key smsn-mode-map (kbd "C-c C-v i")       'smsn-toggle-inference-viewstyle)
@@ -867,7 +867,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c p")           'smsn-push-view)
     (define-key smsn-mode-map (kbd "C-c q")           'smsn-ripple-query-prompt)
     (define-key smsn-mode-map (kbd "C-c r")           'smsn-copy-focus-reference-to-clipboard)
-    (define-key smsn-mode-map (kbd "C-c s")           'smsn-fulltext-query-prompt)
+    (define-key smsn-mode-map (kbd "C-c s")           'smsn-title-query-prompt)
     (define-key smsn-mode-map (kbd "C-c t")           'smsn-open-focus-atom)
     (define-key smsn-mode-map (kbd "C-c u")           'smsn-update-view)
     (define-key smsn-mode-map (kbd "C-c v")           'smsn-copy-focus-title-to-clipboard)
