@@ -129,11 +129,11 @@
 (defun make-dark-gray (text)
   (propertize text 'face (dark-gray)))
 
-(defun delimit-value (value)
-  "Encloses multi-line values in triple brackets, leaving single-line values unchanged"
-  (let ((s (string-match "\n" value)))
-    (if s (let ((content (concat "\n" value "\n")))
-            (concat "{{{\n" content "\n}}}")) value)))
+(defun delimit-title (title)
+  "Encloses multi-line titles in triple brackets, leaving single-line titles unchanged"
+  (let ((s (string-match "\n" title)))
+    (if s (let ((content (concat "\n" title "\n")))
+            (concat "{{{\n" content "\n}}}")) title)))
 
 (defun choose-bullet (n-children)
   (if (> n-children 0) "+" "\u00b7"))
@@ -192,7 +192,7 @@
                         focus-weight focus-source focus-priority nil focus-alias focus-meta)
                       id-infix
                       " "))
-                   (colorize (delimit-value focus-title)
+                   (colorize (delimit-title focus-title)
                              focus-weight focus-source nil focus-priority focus-alias focus-meta)
                    "\n")))
               (insert (propertize line 'id focus-id)))
@@ -278,13 +278,7 @@
     (read-value 'root-id 'root payload)
     (read-value 'style 'style payload)
     (read-value 'title 'title payload)
-    (read-value 'default-source 'source view)
-    ;;(read-value-as-number 'height 'height payload)
-    ;;(read-value 'min-source 'minSource payload)
-    ;;(read-value-as-number 'min-weight 'minWeight payload)
-    ;;(read-value 'default-source 'defaultSource payload)
-    ;;(read-value-as-number 'default-weight 'defaultWeight payload)
-    ))
+    (read-value 'default-source 'source view)))
 
 (defun smsn-view-set-context-line (&optional line)
   (smsn-env-context-set 'line
