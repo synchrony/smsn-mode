@@ -313,7 +313,7 @@
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((source (smsn-env-get-source-by-code (char-to-string char))))
-      (if source (smsn-client-set-min-source source)))))
+      (if source (smsn-client-set-min-source (smsn-env-json-get 'name source))))))
 
 (defun smsn-set-min-weight (expr)
   "set the minimum @weight (for atoms visible in the current view) to the number represented by EXPR"
