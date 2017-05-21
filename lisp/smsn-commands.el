@@ -302,7 +302,7 @@
   (if (> (length query) 0)
     (smsn-client-fetch-query query "Shortcut")))
 
-(defun smsn-title-query-on-focus-title ()
+(defun smsn-query-on-focus-title ()
   "evaluate a full-text query for the title of the atom at point"
   (interactive)
   (let ((title (smsn-data-focus-title)))
