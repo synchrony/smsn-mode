@@ -172,13 +172,13 @@
   "import one or more Freeplane files into the knowledge base"
   (interactive)
   (message "%s" (concat "importing Freeplane nodes from " file))
-  (smsn-client-import "Freeplane" file))
+  (smsn-client-read-graph "Freeplane" file))
 
 (defun smsn-import-graphml (file)
   "import a GraphML dump from the file system into the knowledge base"
   (interactive)
   (message "%s" (concat "importing GraphML from " file))
-  (smsn-client-import "GraphML" file))
+  (smsn-client-read-graph "GraphML" file))
 
 (defun smsn-find-isolated-atoms ()
   "retrieve a list of isolated atoms (i.e. atoms with neither parents nor children) in the knowledge base"
