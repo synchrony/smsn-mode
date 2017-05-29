@@ -17,8 +17,7 @@
 (defvar smsn-server-port 8182)
 (defvar smsn-server-protocol "websocket")  ;; alternative is "http"
 
-;; default locationsfor graph input/output files
-;;(defvar smsn-default-graphml-file "/path/to/mygraphdata/graph.xml")
+;; default locations for graph input/output files
 ;;(defvar smsn-default-graphml-file "/path/to/mygraphdata/graph.xml")
 ;;(defvar smsn-default-vertices-file "/path/to/mygraphdata/vertices.tsv")
 ;;(defvar smsn-default-edges-file "/path/to/mygraphdata/edges.tsv")
