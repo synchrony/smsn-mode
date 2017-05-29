@@ -23,6 +23,9 @@
 ;;(defvar smsn-default-edges-file "/path/to/mygraphdata/edges.tsv")
 ;;(defvar smsn-default-rdf-file "/path/to/mygraphdata/graph.nt")
 
+;; enables "fuzzy" search
+(defconst smsn-const-query-by-partial-title t)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; additional useful shortcuts

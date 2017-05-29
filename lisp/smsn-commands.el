@@ -284,18 +284,25 @@
   (if (> (length query) 0)
       (smsn-client-fetch-ripple-results query)))
 
+(defun do-query-by-partial-title ()
+  (if (boundp 'smsn-const-query-by-partial-title) smsn-const-query-by-partial-title nil))
+
+(defun to-partial-title-query (query)
+  (mapconcat 'identity
+    (mapcar
+      (lambda (s) (concat "*" s "*"))
+      (split-string query)) " "))
+
+(defun adjust-title-query (query)
+  (if (do-query-by-partial-title)
+    (to-partial-title-query query)
+    query))
+
 (defun smsn-title-query (query)
   "evaluate full-text query for QUERY, yielding a ranked list of query results in a new buffer"
   (interactive)
   (if (> (length query) 0)
-      (smsn-client-fetch-query query "FullText")))
-
-(defun smsn-flex-title-query (query)
-  "evaluate full-text query for QUERY, yielding a ranked list of query results in a new buffer"
-  (interactive)
-  (if (> (length query) 0)
-      (let ((query (concat "*" query "*")))
-       (smsn-client-fetch-query query "FullText"))))
+      (smsn-client-fetch-query (adjust-title-query query) "FullText")))
 
 (defun smsn-acronym-query (query)
   "evaluate acronym (abbreviated title) query for QUERY, yielding a ranked list of query results in a new buffer"
@@ -594,11 +601,7 @@ a type has been assigned to it by the inference engine."
 
 (defun smsn-title-query-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-title-query "full-text search for: "))
-
-(defun smsn-flex-title-query-prompt ()
-  (interactive)
-  (prompt-for-string 'smsn-flex-title-query "full-text search for: "))
+  (prompt-for-string 'smsn-title-query "title search for: "))
 
 (defun smsn-open-atom-prompt ()
   (interactive)
