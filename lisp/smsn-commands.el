@@ -288,7 +288,14 @@
   "evaluate full-text query for QUERY, yielding a ranked list of query results in a new buffer"
   (interactive)
   (if (> (length query) 0)
-    (smsn-client-fetch-query query "FullText")))
+      (smsn-client-fetch-query query "FullText")))
+
+(defun smsn-flex-title-query (query)
+  "evaluate full-text query for QUERY, yielding a ranked list of query results in a new buffer"
+  (interactive)
+  (if (> (length query) 0)
+      (let ((query (concat "*" query "*")))
+       (smsn-client-fetch-query query "FullText"))))
 
 (defun smsn-acronym-query (query)
   "evaluate acronym (abbreviated title) query for QUERY, yielding a ranked list of query results in a new buffer"
@@ -589,6 +596,10 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-title-query "full-text search for: "))
 
+(defun smsn-flex-title-query-prompt ()
+  (interactive)
+  (prompt-for-string 'smsn-flex-title-query "full-text search for: "))
+
 (defun smsn-open-atom-prompt ()
   (interactive)
   (prompt-for-string 'smsn-client-open-atom "open view for atom with id: "))
@@ -787,7 +798,7 @@ a type has been assigned to it by the inference engine."
 
 (defun smsn-set-weight-and-drop-cursor ()
   (interactive)
-  (progn 
+  (progn
     (move-end-of-line 1)
     (smsn-insert-attr-weight-prompt)
     (kill-line)
