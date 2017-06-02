@@ -40,8 +40,8 @@
 (defun smsn-data-atom-title (atom)
   (smsn-env-json-get 'title atom))
 
-(defun smsn-data-atom-page (atom)
-  (smsn-env-json-get 'page atom))
+(defun smsn-data-atom-text (atom)
+  (smsn-env-json-get 'text atom))
 
 (defun smsn-data-atom-priority (atom)
   (smsn-env-json-get 'priority atom))

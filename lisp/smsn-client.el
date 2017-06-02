@@ -130,7 +130,7 @@
     (issue-request request 'smsn-treeview-open)))
 
 (defun push-wikiview ()
-   (set-property-in-wikiview "page" (buffer-string)))
+   (set-property-in-wikiview "text" (buffer-string)))
 
 (defun to-filter (&optional context)
   (list

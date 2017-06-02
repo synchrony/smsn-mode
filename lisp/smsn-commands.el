@@ -448,7 +448,7 @@ a type has been assigned to it by the inference engine."
       (smsn-env-error-no-focus))))
 
 (defun smsn-focus-wikiview ()
-  "open an atom's text for editing as a page of Markdown"
+  "open an atom's text for editing in a separate buffer"
   (interactive)
   (let ((id (smsn-data-atom-id-at-point)))
     (if id
@@ -520,29 +520,38 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-confirmation 'smsn-write-vcs "export graph to VCS"))
 
+(defun get-default (var &optional default)
+  (if (boundp var) (symbol-value var) default))
+
 (defun smsn-export-edges-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-edges "export edges to file: " smsn-default-edges-file))
+  (prompt-for-string 'smsn-export-edges "export edges to file: "
+    (get-default 'smsn-default-edges-file)))
 
 (defun smsn-export-graphml-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-graphml "export GraphML to file: " smsn-default-graphml-file))
+  (prompt-for-string 'smsn-export-graphml "export GraphML to file: "
+    (get-default 'smsn-default-graphml-file)))
 
 (defun smsn-export-latex-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-latex "export LaTeX to file: " smsn-default-latex-file))
+  (prompt-for-string 'smsn-export-latex "export LaTeX to file: "
+    (get-default 'smsn-default-latex-file)))
 
 (defun smsn-export-pagerank-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-pagerank "export PageRank results to file: " smsn-default-pagerank-file))
+  (prompt-for-string 'smsn-export-pagerank "export PageRank results to file: "
+    (get-default 'smsn-default-pagerank-file)))
 
 (defun smsn-export-rdf-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-rdf "export N-Triples dump to file: " smsn-default-rdf-file))
+  (prompt-for-string 'smsn-export-rdf "export N-Triples dump to file: "
+    (get-default 'smsn-default-rdf-file)))
 
 (defun smsn-export-vertices-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-export-vertices "export vertices to file: " smsn-default-vertices-file))
+  (prompt-for-string 'smsn-export-vertices "export vertices to file: "
+    (get-default 'smsn-default-vertices-file)))
 
 (defun smsn-read-vcs-prompt ()
   (interactive)
@@ -552,16 +561,17 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string
     'smsn-view-log
-    "VCS directory: "
-   (if (boundp 'smsn-default-vcs-file) smsn-default-vcs-file "~/")))
+    "VCS directory: " (get-default 'smsn-default-vcs-file "~/")))
 
 (defun smsn-import-freeplane-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-import-freeplane "import Freeplane data from file/directory: " smsn-default-freeplane-file))
+  (prompt-for-string 'smsn-import-freeplane "import Freeplane data from file/directory: "
+    (get-default 'smsn-default-freeplane-file)))
 
 (defun smsn-import-graphml-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-import-graphml "import GraphML from file: " smsn-default-graphml-file))
+  (prompt-for-string 'smsn-import-graphml "import GraphML from file: "
+    (get-default 'smsn-default-graphml-file)))
 
 (defun smsn-set-min-source-prompt ()
   (interactive)

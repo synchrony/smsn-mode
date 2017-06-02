@@ -143,17 +143,17 @@
     (let ((s (number-to-string n)))
       (if (> (length s) 1) s (concat " " s)))))
 
-(defun add-meta-columns (text n-children n-parents has-page)
+(defun add-meta-columns (text n-children n-parents has-text)
   ;; yellow for parents > 1. blank for parents|children = 0. purple child field for markup, unless there are children too, in which case red.
   (let ((parent-text (if (> n-parents 0) (pad-to-length-2 n-parents) "  "))
         (child-text (if (> n-children 0) (pad-to-length-2 n-children) "  ")))
     (let ((parent-string (if (> n-parents 1)
 			     (make-background-yellow parent-text) parent-text))
-	  (child-string (if has-page
+	  (child-string (if has-text
 			    (make-background-purple child-text)
 			    child-text)))
       (let ((meta (concat parent-string " "
-			  (if (and (> n-children 0) has-page)
+			  (if (and (> n-children 0) has-text)
 			      (make-background-red child-string)
 			      child-string))))
 	(propertize text 'display `((margin right-margin),meta))))))
@@ -166,7 +166,7 @@
           (let ((focus-id (smsn-data-atom-id json))
                 (focus-created (smsn-env-json-get 'created json))
                 (focus-title (let ((v (smsn-data-atom-title json))) (if v v "")))
-                (focus-has-page (smsn-env-json-get 'page json))
+                (focus-has-text (smsn-env-json-get 'text json))
 		        (focus-weight (smsn-data-atom-weight json))
 		        (focus-source (smsn-data-atom-source json))
 		        (focus-priority (smsn-data-atom-priority json))
@@ -183,7 +183,7 @@
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
             (let ((line "") (id-infix
                 (add-meta-columns (smsn-view-create-id-infix focus-id)
-                  focus-n-children focus-n-parents focus-has-page)))
+                  focus-n-children focus-n-parents focus-has-text)))
               (setq line (concat line space))
               (let ((bullet (choose-bullet focus-n-children)))
                 (setq line (concat line
@@ -222,10 +222,10 @@
     (concat space "    " name " " value "\n"))))
 
 (defun write-wikiview (json)
-  (let ((page (let ((v (smsn-data-atom-page json))) (if v v "")))
+  (let ((text (let ((v (smsn-data-atom-text json))) (if v v "")))
     (weight (smsn-data-atom-weight json))
     (source (smsn-data-atom-source json)))
-      (insert (colorize page weight source nil 0.0 nil nil))))
+      (insert (colorize text weight source nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
   (if n (number-to-string n) "nil"))
@@ -329,14 +329,14 @@
   (message "view updated in %.0f ms" (smsn-env-response-time)))
 
 (defun smsn-wikiview-open (payload context)
-  "Callback to receive and display the page of an atom"
+  "Callback to receive and display the text of an atom"
   (switch-to-buffer-with-context
      (name-for-view-buffer (smsn-data-atom-id (smsn-data-payload-view payload)) payload nil) context)
   (configure-context payload)
   (erase-buffer)
   (write-wikiview-to-buffer payload)
   (configure-buffer)
-  (message "page updated in %.0f ms" (smsn-env-response-time)))
+  (message "text updated in %.0f ms" (smsn-env-response-time)))
 
 (defun smsn-view-create-id-infix (id)
   "Creates a string of the form :0000000:, where 000000 is the id of an atom"

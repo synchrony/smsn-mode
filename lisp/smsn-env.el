@@ -17,7 +17,7 @@
 (defconst smsn-const-treeview-mode "treeview-mode"
   "A state for viewing and editing tree views of graph data")
 (defconst smsn-const-wikiview-mode "wikiview-mode"
-  "A state for viewing and editing the page of an atom")
+  "A state for viewing and editing the text of an atom")
 (defconst smsn-const-search-mode "search-mode"
   "A state for immutable search results")
 
@@ -238,7 +238,7 @@
   (cons 'style smsn-const-forward-style)
   (cons 'timestamp 'nil)
   (cons 'title 'nil)
-  (cons 'page 'nil)
+  (cons 'text 'nil)
   (cons 'truncate-long-lines 'nil)
   (cons 'title-length-cutoff 100)
   (cons 'view 'nil)
