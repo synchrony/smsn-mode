@@ -146,17 +146,10 @@
 (defun add-meta-columns (text n-children n-parents has-text)
   ;; yellow for parents > 1. blank for parents|children = 0. purple child field for markup, unless there are children too, in which case red.
   (let ((parent-text (if (> n-parents 0) (pad-to-length-2 n-parents) "  "))
-        (child-text (if (> n-children 0) (pad-to-length-2 n-children) "  ")))
-    (let ((parent-string (if (> n-parents 1)
-			     (make-background-yellow parent-text) parent-text))
-	  (child-string (if has-text
-			    (make-background-purple child-text)
-			    child-text)))
-      (let ((meta (concat parent-string " "
-			  (if (and (> n-children 0) has-text)
-			      (make-background-red child-string)
-			      child-string))))
-	(propertize text 'display `((margin right-margin),meta))))))
+        (child-text (if (> n-children 0) (pad-to-length-2 n-children) "  "))
+	(middle-text (if has-text "M" " ")))
+    (let ((meta (concat parent-text middle-text child-text)))
+      (propertize text 'display `((margin right-margin),meta)))))
 
 (defun write-treeview (children tree-indent)
   (loop for json across children do

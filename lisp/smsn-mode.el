@@ -81,7 +81,9 @@
   (setq mode-name "smsn-mode")
   (setq major-mode 'smsn-mode)
   (set-indent-guide-mode)
-  (run-hooks 'smsn-hook))
+  (run-hooks 'smsn-hook)
+  (set-background-color "blue")
+)
 (defun smsn ()
   "Major mode for interacting with a Semantic Synchrony personal knowledge base"
   (interactive)
