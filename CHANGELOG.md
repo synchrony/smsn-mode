@@ -1,9 +1,28 @@
-Brain-mode CHANGELOG
-====================
+SmSn-mode CHANGELOG
+========================================
+
+SmSn-mode 1.4 (Pogo Stilts)
+----------------------------------------
+****************************************
+* Added optional support for partial search
+* Use generalized data sources configured on the server side
+* Replaced @sharability with @source for data management and visibility
+* Refine cursor placement
+* Tighten the on-screen footprint of the property-setting shortcuts
+* Harmonize smsn-push-view shortcut with the preexisting Emacs shortcut for save-buffer
+* Added bury-line and float-line shortcuts
+* Cap the inherited tree depth at three
+* Command to open a view of an atom in another window (in the same frame)
+* Added a command for the Git history view
+* Added a command to open a view after prompting for an id
+* Default VCS import/export file no longer needs to be defined
+* Renamed brain-mode to smsn-mode
+* Eliminated max sharability and max weight from filters
+****************************************
 
 Brain-mode 1.3 (Join the Army)
 ----------------------------------------
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 * Added support for WebSocket in addition to HTTP for client-server interaction
 * Color highlighting in meta columns
 * Adjusted to Semantic Synchrony data model changes
@@ -11,11 +30,11 @@ Brain-mode 1.3 (Join the Army)
 * Added a command to search on the atom at point
 * Display parent and child counts as metadata columns
 * Added a 'ping' command
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 
 Brain-mode 1.2 (Into the Future)
 ----------------------------------------
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 * Added client support for VCS (version control system) reader and writer
 * Refactored and improved buffer context management
 * Added support for the 'create new atom' action
@@ -25,12 +44,11 @@ Brain-mode 1.2 (Into the Future)
 * Migrated to SmSn 1.2, which uses Apache TinkerPop's Gremlin Server
 * Color command prompts by minimum sharability
 * Prompt before push in move mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 
 SmSn 1.1 (More Brains)
 ----------------------------------------
-SmSn 1.1.0
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 * Created a unified BrainReader/BrainWriter framework for graph I/O
 * Minimized TinkerPop2 dependencies
 * Moved Brain-mode to a separate, GPL-licensed project
@@ -50,11 +68,11 @@ SmSn 1.1.0
 * Created v2.0 of Extend-o-Brain inference support
 * Added Linked Data and OSC support to the coordinator
 * Added a Ripple environment for use with the Typeatron
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 
 SmSn 1.0 (Semantic Gadgets)
 ----------------------------------------
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 * Added a GraphML writer
 * Integrated the Typeatron with Brain-mode via emacsclient
 * Created a framework for inter-device discovery and communication
@@ -70,11 +88,11 @@ SmSn 1.0 (Semantic Gadgets)
 * Created Arduino-based libraries for the devices
 * Created Extend-o-Hand
 * Created the Monomanual Typeatron
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 
 SmSn 0.x (Braaains)
 ----------------------------------------
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 * Prototype design of the Monomanual Typeatron
 * Added Emacspeak support to TinkerNotes (Brain-mode)
 * Moved to an ordered, list-based data model in Extend-o-Brain
@@ -96,5 +114,5 @@ SmSn 0.x (Braaains)
 * Created an Android library (later called the Brainstem)
 * Created MyOtherBrain (Extend-o-Brain) prototypes with Java, Flash/Flex, and JavaScript
 * Created a personal knowledge base ontology
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+****************************************
 

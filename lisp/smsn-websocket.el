@@ -1,8 +1,8 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; brain-client-websocket.el -- WebSocket client for Semantic Synchrony
+;; smsn-websocket.el -- WebSocket client for Semantic Synchrony
 ;;
-;; Part of the Brain-mode package for Emacs:
-;;   https://github.com/joshsh/brain-mode
+;; Part of the SmSn-mode package for Emacs:
+;;   https://github.com/synchrony/smsn-mode
 ;;
 ;; Copyright (C) 2011-2017 Joshua Shinavier and collaborators
 ;;
@@ -10,15 +10,14 @@
 ;; along with this software.  If not, see <http://www.gnu.org/licenses/>.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(require 'brain-env)
-(require 'brain-serde)
+(require 'smsn-env)
+(require 'smsn-serde)
 
 
 ;;(setq websocket-debug t)
 
 (setq websocket-connection nil)
-(setq websocket-response-handler (lambda (response)
-  (message (concat "server response: " response))))
+(setq websocket-response-handler (lambda (response) ()))
 
 (defun websocket-connection-is-open ()
   (and websocket-connection (websocket-openp websocket-connection)))
@@ -44,20 +43,18 @@
 (defun websocket-connection-url (host port)
   (concat "ws://" host ":" (number-to-string port) "/gremlin"))
 
-(defun brain-client-websocket-send-and-receive (host port request callback)
-  ;;(message  (concat "context: " (json-encode context)))
-  ;;(setq websocket-response-handler ...)
+(defun smsn-websocket-send-and-receive (host port request callback)
   (let ((connection (get-websocket-connection host port)))
     (if (websocket-connection-is-open)
-      (let ((payload (brain-serde-format-request request)))
+      (let ((payload (smsn-serde-format-request request)))
         (setq websocket-response-handler
           (lexical-let (
             (callback callback)
-            (context (copy-alist (brain-env-get-context))))
+            (context (copy-alist (smsn-env-get-context))))
               (lambda (response)
-                (brain-serde-handle-response response callback context))))
+                (smsn-serde-handle-response response callback context))))
         (websocket-send-text connection payload))
       (error "WebSocket connection could not be opened"))))
 
 
-(provide 'brain-client-websocket)
+(provide 'smsn-websocket)
