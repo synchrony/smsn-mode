@@ -491,7 +491,7 @@ a type has been assigned to it by the inference engine."
            (smsn-use-edit-submode)
 	   (message "submode: edit")
 	   (set-cursor-color "black")
-	   (set-background-color "yellow")
+	   (set-background-color "blue")
 	   )
     (progn (setq smsn-move-submode t)
            (smsn-use-move-submode)
