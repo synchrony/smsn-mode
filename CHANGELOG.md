@@ -1,9 +1,10 @@
 SmSn-mode CHANGELOG
 ========================================
 
-SmSn-mode 1.4 SNAPSHOT (not yet released)
+SmSn-mode 1.4 (Pogo Stilts)
 ----------------------------------------
 ****************************************
+* Added optional support for partial search
 * Use generalized data sources configured on the server side
 * Replaced @sharability with @source for data management and visibility
 * Refine cursor placement
