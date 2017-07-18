@@ -37,4 +37,4 @@ main :: IO ()
 main = do
   [inputFile, outputFile] <- getArgs
   input <- readFile inputFile
-  writeFile outputFile $ concat $ map ((\s -> s ++ "\n") . f) $ lines input
+  writeFile outputFile $ unlines $ map f $ lines input
