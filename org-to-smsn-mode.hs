@@ -8,10 +8,26 @@
 -- Run it using 'runghc' (part of a standard Haskell installation).
   -- runghc org-to-smsn-mode.hs file.org file.smsn
 
+import Data.List (span)
 import System.Environment (getArgs)
 
-f :: String -> String
-f s = g 0 s where
+data IndentLine = IndentLine Int String
+
+parseFromOrg :: String -> IndentLine
+parseFromOrg s = IndentLine level $ tail rest -- tail strips a leading ' '
+  where (prefix,rest) = span (== '*') s
+        level = length prefix
+
+serializeToSmsn :: IndentLine -> String
+serializeToSmsn (IndentLine 0 s) = error
+  $ "Level-0 string encountered."
+  ++ " (Those are valid in org-mode but not smsn-mode.)"
+serializeToSmsn (IndentLine k s) = replicate (4 * k - 4) ' ' ++ "* " ++ s
+
+f = serializeToSmsn . parseFromOrg
+
+f' :: String -> String -- faster, but hard to generalize
+f' s = g 0 s where
   g :: Int -> String -> String
   g k ('*':'*':rest) = g (k+1) ('*':rest)
   g k ('*':rest) = (concat $ replicate (4*k) " ") ++ "* " ++ rest
