@@ -26,7 +26,7 @@ serializeToSmsn (IndentLine k s) = replicate (4 * k - 4) ' ' ++ "* " ++ s
 
 f = serializeToSmsn . parseFromOrg
 
--- a faster yet worse alternative
+-- a faster alternative
   -- less safe, cryptic errors, hard to generalize
 f' :: String -> String
 f' s = g 0 s where
