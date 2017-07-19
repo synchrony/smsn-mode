@@ -4,6 +4,7 @@ SmSn-mode CHANGELOG
 SmSn-mode 1.5 SNAPSHOT (not yet released)
 ----------------------------------------
 ****************************************
+* Added key bindings for search on buffer title
 ****************************************
 
 SmSn-mode 1.4 (Pogo Stilts)
