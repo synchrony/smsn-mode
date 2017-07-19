@@ -23,6 +23,9 @@
 (defun smsn-data-root-id ()
   (smsn-env-context-get 'root-id))
 
+(defun smsn-data-page-title ()
+  (smsn-env-context-get 'title))
+
 (defun smsn-data-atom-id-at-point ()
   (let ((line (current-line)))
     (if (string-match "^[0-9A-Za-z@&]*: " line)
