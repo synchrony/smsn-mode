@@ -1,4 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
+-- each line of ordinary text needs to be preceded by a newline
+-- but each line of a codeblock, including the bracketing ``` lines, don't.
 
 import Data.List (span, stripPrefix)
 import Data.Maybe
@@ -8,8 +10,8 @@ stripLeadingSpace :: String -> String
 stripLeadingSpace = snd . span (== ' ')
 
 -- assumes input looks like "* :OETCJmx4rJmIR5Pk: bla bla", keeps only blas
-stripAddress :: String -> String 
-stripAddress = drop 21
+stripSmsnAddress :: String -> String
+stripSmsnAddress = drop 21
 
 markdownLine :: String -> Maybe String
 markdownLine = stripPrefix "[markdown"
@@ -27,12 +29,7 @@ processMarkdownLine s = "ANOTHER CODE? " ++ s
 
 f :: String -> String
 f theFile = unlines $ map processMarkdownLine $ catMaybes
-  $ map (markdownLine . stripAddress . stripLeadingSpace)
-  $ lines theFile
-
--- g :: String -> String
-g theFile = map processMarkdownLine $ catMaybes
-  $ map (markdownLine . stripAddress . stripLeadingSpace)
+  $ map (markdownLine . stripSmsnAddress . stripLeadingSpace)
   $ lines theFile
 
 main = interact f
