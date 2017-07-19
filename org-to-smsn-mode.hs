@@ -26,7 +26,9 @@ serializeToSmsn (IndentLine k s) = replicate (4 * k - 4) ' ' ++ "* " ++ s
 
 f = serializeToSmsn . parseFromOrg
 
-f' :: String -> String -- faster, but hard to generalize
+-- a faster yet worse alternative
+  -- less safe, cryptic errors, hard to generalize
+f' :: String -> String
 f' s = g 0 s where
   g :: Int -> String -> String
   g k ('*':'*':rest) = g (k+1) ('*':rest)
@@ -38,3 +40,7 @@ main = do
   [inputFile, outputFile] <- getArgs
   input <- readFile inputFile
   writeFile outputFile $ unlines $ map f $ lines input
+
+-- a pipe-friendly alternative. takes from stdin, puts to stdout.
+  -- example: cat in.org | runghc org-to-smsn-mode.hs > out.smsn
+main' = interact $ unlines . map f . lines
