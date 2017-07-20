@@ -21,16 +21,28 @@ processMarkdownLine :: String -> String
     -- except in a code block, where they would hinder readability
 processMarkdownLine (stripPrefix "]"           -> Just restOfLine) =
   '\n' : restOfLine
-processMarkdownLine (stripPrefix "-code-start]" -> Just restOfLine) =
-  '\n' : restOfLine
 processMarkdownLine (stripPrefix "-code]"      -> Just restOfLine) =
   restOfLine
-processMarkdownLine s = "ANOTHER CODE? " ++ s
+processMarkdownLine s = "ERROR: ANOTHER CODE? " ++ s
 
 f :: String -> String
 f theFile = unlines $ map processMarkdownLine $ catMaybes
   $ map (markdownLine . stripSmsnAddress . stripLeadingSpace)
   $ lines theFile
+
+data ExportedSmsn = File String | Text String | Code String | Ignore
+  deriving Show
+exportedSmsn (stripPrefix "[markdown]" -> Just restOfLine)
+  = Text $ '\n' : restOfLine
+exportedSmsn (stripPrefix "[markdown-code]" -> Just restOfLine)
+  = Code restOfLine
+exportedSmsn (stripPrefix "[target-filename]" -> Just restOfLine)
+  = File restOfLine
+exportedSmsn s = Ignore
+
+-- file <- readFile "input.auto.md" 
+-- let repd = map (exportedSmsn . stripSmsnAddress . stripLeadingSpace) $ lines file
+-- map (\x -> case x of Code _ -> x; _ -> Ignore) repd
 
 main = interact f
  -- example of how to run it
