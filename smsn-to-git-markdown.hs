@@ -3,6 +3,7 @@
 -- but each line of a codeblock, including the bracketing ``` lines, don't.
 
 import Data.List (span, stripPrefix)
+import Data.List.Split (splitWhen)
 import Data.Maybe
 import System.Process
 
@@ -30,19 +31,27 @@ f theFile = unlines $ map processMarkdownLine $ catMaybes
   $ map (markdownLine . stripSmsnAddress . stripLeadingSpace)
   $ lines theFile
 
-data ExportedSmsn = File String | Text String | Code String | Ignore
+data ExportedSmsnLine = File String | Text String | Code String | Ignore
   deriving Show
-exportedSmsn (stripPrefix "[markdown]" -> Just restOfLine)
-  = Text $ '\n' : restOfLine
-exportedSmsn (stripPrefix "[markdown-code]" -> Just restOfLine)
-  = Code restOfLine
-exportedSmsn (stripPrefix "[target-filename]" -> Just restOfLine)
-  = File restOfLine
-exportedSmsn s = Ignore
 
--- file <- readFile "input.auto.md" 
--- let repd = map (exportedSmsn . stripSmsnAddress . stripLeadingSpace) $ lines file
--- map (\x -> case x of Code _ -> x; _ -> Ignore) repd
+exportedSmsnLine :: String -> ExportedSmsnLine
+exportedSmsnLine (stripPrefix "[markdown]" -> Just restOfLine)
+  = Text restOfLine -- these need to be prefixed with '\n'
+exportedSmsnLine (stripPrefix "[markdown-code]" -> Just restOfLine)
+  = Code restOfLine
+exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
+  = File restOfLine
+exportedSmsnLine s = Ignore
+
+-- dropInitialFluff = dropWhile (not . isFile)
+
+assignFiles :: [ExportedSmsnLine] -> [(FilePath, [ExportedSmsnLine])]
+assignFiles stuff = zip files contents where
+  files = map (\(File s) -> s) $ filter isFile stuff
+  contents = tail $ splitWhen isFile stuff
+
+isFile (File _) = True
+isFile _ = False
 
 main = interact f
  -- example of how to run it
