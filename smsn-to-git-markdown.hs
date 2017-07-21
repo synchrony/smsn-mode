@@ -1,6 +1,4 @@
 {-# LANGUAGE ViewPatterns #-}
--- each line of ordinary text needs to be preceded by a newline
--- but each line of a codeblock, including the bracketing ``` lines, don't.
 
 import Data.List (span, stripPrefix)
 import Data.List.Split (splitWhen)
@@ -8,17 +6,17 @@ import Data.Maybe
 import System.Environment (getArgs)
 
 
+readSmsnLines :: String -> [ExportedSmsnLine]
+readSmsnLines =
+  map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
+  . lines
+
 stripLeadingSpace :: String -> String
 stripLeadingSpace = snd . span (== ' ')
 
 -- assumes input looks like "* :OETCJmx4rJmIR5Pk: bla bla", keeps only blas
 stripSmsnAddress :: String -> String
 stripSmsnAddress = drop 21
-
-readSmsnLines :: String -> [ExportedSmsnLine]
-readSmsnLines =
-  map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
-  . lines
 
 
 data ExportedSmsnLine = File String | Text String | Code String | Ignore
@@ -40,6 +38,8 @@ markdown es = unlines $ mapMaybe f es where
   f (Text s) = Just $ "\n" ++ s
   f (Code s) = Just s
   f Ignore = Nothing
+  -- In markdown, all ordinary text lines need to be preceded by a newline,
+  -- but lines of code, including the bracketing ``` lines, do not.
 
 pairFilesToContents :: [ExportedSmsnLine] -> [(FilePath, String)]
 pairFilesToContents stuff = zip files contents where
@@ -52,32 +52,8 @@ isFile _ = False
 
 main = do
   (inputFile:_) <- getArgs
-  --let inputFile = "input.auto.md"
   input <- readFile inputFile
   let pairs = pairFilesToContents $ readSmsnLines input
   mapM_ f pairs where
     f :: (FilePath, String) -> IO ()
     f (name, content) = writeFile name content
-
--- ======= the old way
--- =======
-main' = interact f
- -- example of how to run it
-   -- cat input.auto.md | runghc smsn-to-git-markdown.hs
-
-markdownLine :: String -> Maybe String
-markdownLine = stripPrefix "[markdown"
-
-processMarkdownLine :: String -> String
-  -- newlines make the unrendered markdown more readable
-    -- except in a code block, where they would hinder readability
-processMarkdownLine (stripPrefix "]"           -> Just restOfLine) =
-  '\n' : restOfLine
-processMarkdownLine (stripPrefix "-code]"      -> Just restOfLine) =
-  restOfLine
-processMarkdownLine s = "ERROR: ANOTHER CODE? " ++ s
-
-f :: String -> String
-f theFile = unlines $ map processMarkdownLine $ catMaybes
-  $ map (markdownLine . stripSmsnAddress . stripLeadingSpace)
-  $ lines theFile
