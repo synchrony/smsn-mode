@@ -1,3 +1,6 @@
+-- run it from the command line:
+  -- runghc smsn-to-git-markdown.hs INPUT_FILENAME
+
 {-# LANGUAGE ViewPatterns #-}
 
 import Data.List (span, stripPrefix)
