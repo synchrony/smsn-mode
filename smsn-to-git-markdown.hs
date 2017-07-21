@@ -5,7 +5,8 @@
 import Data.List (span, stripPrefix)
 import Data.List.Split (splitWhen)
 import Data.Maybe
-import System.Process
+import System.Environment (getArgs)
+
 
 stripLeadingSpace :: String -> String
 stripLeadingSpace = snd . span (== ' ')
@@ -15,8 +16,10 @@ stripSmsnAddress :: String -> String
 stripSmsnAddress = drop 21
 
 readSmsnLines :: String -> [ExportedSmsnLine]
-readSmsnLines = map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
-                . lines
+readSmsnLines =
+  map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
+  . lines
+
 
 data ExportedSmsnLine = File String | Text String | Code String | Ignore
   deriving Show
@@ -30,14 +33,28 @@ exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
   = File restOfLine
 exportedSmsnLine s = Ignore
 
-assignFiles :: [ExportedSmsnLine] -> [(FilePath, [ExportedSmsnLine])]
-assignFiles stuff = zip files contents where
+markdown :: [ExportedSmsnLine] -> String
+markdown es = concat $ mapMaybe f es where
+  f :: ExportedSmsnLine -> Maybe String
+  f (File s) = Nothing
+  f (Text s) = Just $ "\n" ++ s
+  f (Code s) = Just s
+  f Ignore = Nothing
+
+divideByFiles :: [ExportedSmsnLine] -> [(FilePath, String)]
+divideByFiles stuff = zip files contents where
   files = map (\(File s) -> s) $ filter isFile stuff
-  contents = tail $ splitWhen isFile stuff
+  contents = map markdown $ tail $ splitWhen isFile stuff
+    -- use tail to ignore anything before the first filename
 
 isFile (File _) = True
 isFile _ = False
 
+main = do
+  (inputFile:_) <- getArgs
+  --let inputFile = "input.auto.md"
+  input <- readFile inputFile
+  return $ divideByFiles $ readSmsnLines input
 
 -- ======= the old way
 -- =======
