@@ -14,6 +14,37 @@ stripLeadingSpace = snd . span (== ' ')
 stripSmsnAddress :: String -> String
 stripSmsnAddress = drop 21
 
+readSmsnLines :: String -> [ExportedSmsnLine]
+readSmsnLines = map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
+                . lines
+
+data ExportedSmsnLine = File String | Text String | Code String | Ignore
+  deriving Show
+
+exportedSmsnLine :: String -> ExportedSmsnLine
+exportedSmsnLine (stripPrefix "[markdown]" -> Just restOfLine)
+  = Text restOfLine -- these need to be prefixed with '\n'
+exportedSmsnLine (stripPrefix "[markdown-code]" -> Just restOfLine)
+  = Code restOfLine
+exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
+  = File restOfLine
+exportedSmsnLine s = Ignore
+
+assignFiles :: [ExportedSmsnLine] -> [(FilePath, [ExportedSmsnLine])]
+assignFiles stuff = zip files contents where
+  files = map (\(File s) -> s) $ filter isFile stuff
+  contents = tail $ splitWhen isFile stuff
+
+isFile (File _) = True
+isFile _ = False
+
+
+-- ======= the old way
+-- =======
+main' = interact f
+ -- example of how to run it
+   -- cat input.auto.md | runghc smsn-to-git-markdown.hs
+
 markdownLine :: String -> Maybe String
 markdownLine = stripPrefix "[markdown"
 
@@ -30,29 +61,3 @@ f :: String -> String
 f theFile = unlines $ map processMarkdownLine $ catMaybes
   $ map (markdownLine . stripSmsnAddress . stripLeadingSpace)
   $ lines theFile
-
-data ExportedSmsnLine = File String | Text String | Code String | Ignore
-  deriving Show
-
-exportedSmsnLine :: String -> ExportedSmsnLine
-exportedSmsnLine (stripPrefix "[markdown]" -> Just restOfLine)
-  = Text restOfLine -- these need to be prefixed with '\n'
-exportedSmsnLine (stripPrefix "[markdown-code]" -> Just restOfLine)
-  = Code restOfLine
-exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
-  = File restOfLine
-exportedSmsnLine s = Ignore
-
--- dropInitialFluff = dropWhile (not . isFile)
-
-assignFiles :: [ExportedSmsnLine] -> [(FilePath, [ExportedSmsnLine])]
-assignFiles stuff = zip files contents where
-  files = map (\(File s) -> s) $ filter isFile stuff
-  contents = tail $ splitWhen isFile stuff
-
-isFile (File _) = True
-isFile _ = False
-
-main = interact f
- -- example of how to run it
-   -- cat input.auto.md | runghc smsn-to-git-markdown.hs
