@@ -34,15 +34,15 @@ exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
 exportedSmsnLine s = Ignore
 
 markdown :: [ExportedSmsnLine] -> String
-markdown es = concat $ mapMaybe f es where
+markdown es = unlines $ mapMaybe f es where
   f :: ExportedSmsnLine -> Maybe String
   f (File s) = Nothing
   f (Text s) = Just $ "\n" ++ s
   f (Code s) = Just s
   f Ignore = Nothing
 
-divideByFiles :: [ExportedSmsnLine] -> [(FilePath, String)]
-divideByFiles stuff = zip files contents where
+pairFilesToContents :: [ExportedSmsnLine] -> [(FilePath, String)]
+pairFilesToContents stuff = zip files contents where
   files = map (\(File s) -> s) $ filter isFile stuff
   contents = map markdown $ tail $ splitWhen isFile stuff
     -- use tail to ignore anything before the first filename
@@ -54,7 +54,10 @@ main = do
   (inputFile:_) <- getArgs
   --let inputFile = "input.auto.md"
   input <- readFile inputFile
-  return $ divideByFiles $ readSmsnLines input
+  let pairs = pairFilesToContents $ readSmsnLines input
+  mapM_ f pairs where
+    f :: (FilePath, String) -> IO ()
+    f (name, content) = writeFile name content
 
 -- ======= the old way
 -- =======
