@@ -43,5 +43,5 @@
   (list "s" "Google Scholar" "http://scholar.google.com/scholar?q=")
   (list "t" "Twitter" "http://twitter.com/#!/search/")
   (list "w" "Wikipedia" "http://en.wikipedia.org/w/index.php?title=Special%3ASearch&search=")
-  (list "y" "YouTube" "http://www.youtube.com/results?search_query="))
+  (list "y" "YouTube" "http://www.youtube.com/results?search_query=")))
 
