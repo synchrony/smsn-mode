@@ -46,8 +46,13 @@ buildMarkdownFile es = unlines $ mapMaybe f es where
   -- In markdown, all ordinary text lines need to be preceded by a newline,
   -- but lines of code, including the bracketing ``` lines, do not.
 
+isFile :: Expr -> Bool
 isFile (File _) = True
 isFile _ = False
+
+isUrl :: Expr -> Bool
+isUrl (Url _) = True
+isUrl _ = False
 
 fromUrl :: Expr -> String
 fromUrl (Url s) = s
@@ -62,7 +67,7 @@ readSmsnLines s = map f levelsPairedWithAddressedStrings where
 countLeadingSpace :: String -> (IndentLevel, String)
 countLeadingSpace s = (n, s') where
   aSplit = span (== ' ') s
-  n = length $ fst $ aSplit
+  n = round $ (fromIntegral $ length $ fst $ aSplit) / 4
   s' = snd $ aSplit
 
 stripGraphId :: String -> String
@@ -70,7 +75,41 @@ stripGraphId :: String -> String
   -- keeps only "bla bla"
 stripGraphId = drop 21
 
+ 
 -- === Substitute URLs into Text values
+data SubstitutionGroup = AsIs Expr | Substitute [(IndentLevel, Expr)]
+  deriving Show
+
+groupForSubs :: [(IndentLevel, Expr)] -> [SubstitutionGroup]
+groupForSubs pairs = f [] pairs where
+  f :: [SubstitutionGroup] -> [(IndentLevel, Expr)] -> [SubstitutionGroup]
+  f acc [] = acc
+  f acc ( firstPair@(lev, Text s) : pairs )
+    = case countUrlSubstitutions s of
+           0 -> f (AsIs (Text s) : acc) pairs
+           n -> f ( (Substitute $ firstPair : take n pairs) : acc )
+             $ drop n pairs
+  f acc ( (lev,expr) : pairs ) = f (AsIs expr : acc) pairs
+
+groupForSubs_test = groupForSubs
+  [(1, File "something.md")
+  ,(1, Text "[subme]() [twice]() yeah")
+  ,(2, Url "goat")
+  ,(2, Url "frog")
+  ,(1, Code "n+3=2")]
+
+substituteUrls' :: SubstitutionGroup -> Expr
+substituteUrls' (AsIs expr) = expr
+substituteUrls' (Substitute ((lev, Text s) : urlPairs)) =
+  if (all (== lev+1) $ map fst urlPairs) && (all isUrl $ map snd urlPairs)
+  then Text $ substituteUrlsOnce s $ map (fromUrl . snd) urlPairs
+  else error $ "Bad URL substitution for Text that reads \"" ++ s
+
+substituteUrlsOnce :: String -> [String] -> String
+substituteUrlsOnce s urls =  interleave sDivided urlsBracketed
+    where sDivided = splitOn "]()" s
+          urlsBracketed = map (\url -> "](" ++ url ++ ")") urls
+
 countUrlSubstitutions :: String -> UrlCount
 countUrlSubstitutions s = f 0 s where
   f n (']' : '(' : ')' : s') = f (n+1) s'
@@ -82,48 +121,6 @@ interleave outer inner = concat $ tail $ concat -- tail drops the "discard"
   $ map (\(a,b) -> [a,b])
   $ zip ("discard" : inner) outer -- inner is one shorter than outer
 
-substituteUrlsOnce :: String -> [String] -> String
-substituteUrlsOnce s urls =  interleave sDivided urlsBracketed
-    where sDivided = splitOn "]()" s
-          urlsBracketed = map (\url -> "](" ++ url ++ ")") urls
-
-substituteUrls :: [(IndentLevel,Expr)] -> [Expr]
-  -- this should consume all URLs
-  -- if it does not, the input text has mismatches
-substituteUrls levComs = f [] levComs where
-  f :: [Expr] -> [(IndentLevel,Expr)] -> [Expr]
-  f accumulator ((lev, Text s) : rest) = let
-    urlCount = countUrlSubstitutions s
-    urlPairs = take urlCount rest
-    goodLevels :: String
-    goodLevels = if (length $ filter ((== lev+1) . fst) urlPairs)
-                    == length urlPairs
-      then "it's cool"
-      else error "The " ++ show urlCount ++ " URLs following \"" ++ s
-           ++ "\" do not all lie one indentation level below it."
-    sWithSubs = substituteUrlsOnce s
-               $ map (fromUrl . snd)
-               $ filter ((== lev+1) . fst) -- ensure URLs are nested under it
-                -- PITFALL: if this goes wrong, the error will be cryptic
-               $ urlPairs
-    in f (Text sWithSubs : accumulator) $ drop urlCount rest
-  f accumulator ((lev, com) : rest) = f (com : accumulator) rest
-  f accumulator [] = accumulator
-
-substituteUrls_test :: [Expr]
-substituteUrls_test = substituteUrls
-  [ (2, Text "[frog]() and [goat]() are friends")
-  ,  (3, Url "http://frog")
-  ,  (3, Url "http://goat")
-  ]
-
-substituteUrls_test' :: [Expr]
-substituteUrls_test' = substituteUrls
-  [ (2, Text "[frog]() and [goat]() are friends")
-  ,  (3, Url "http://frog")
-  ,  (1, Url "http://goat")
-  ]
-
 -- === Handle files
 pairFilesToContents :: [Expr] -> [(FilePath, String)]
 pairFilesToContents stuff = zip files contents where
@@ -134,8 +131,10 @@ pairFilesToContents stuff = zip files contents where
 main = do
   (inputFile:_) <- getArgs
   input <- readFile inputFile
-  let pairs = pairFilesToContents $ substituteUrls $ readSmsnLines input
-  writeFile "all makrdown, concatenated.txt" $ unlines $ map snd pairs
-  mapM_ f pairs where
+  let fileContentPairs = pairFilesToContents 
+              $ map substituteUrls'$ groupForSubs $ readSmsnLines input
+  writeFile "all makrdown, concatenated.txt"
+    $ unlines $ map snd fileContentPairs
+  mapM_ f fileContentPairs where
     f :: (FilePath, String) -> IO ()
     f (name, content) = writeFile name content
