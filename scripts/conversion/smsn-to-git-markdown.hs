@@ -61,13 +61,3 @@ main = do
   mapM_ f pairs where
     f :: (FilePath, String) -> IO ()
     f (name, content) = writeFile name content
-
--- maybe better
-main' = do
-  (root : inputFile :_)  <- getArgs
-  input <- readFile inputFile
-  let pairs = pairFilesToContents $ readSmsnLines input
-  mapM_ (f root) pairs where
-    -- root is in the where clause's scope only if it is an argument to mapM_
-    f :: FilePath -> (FilePath, String) -> IO ()
-    f root (name, content) = writeFile (root ++ name) content
