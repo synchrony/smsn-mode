@@ -8,35 +8,50 @@ import Data.List.Split (splitWhen)
 import Data.Maybe
 import System.Environment (getArgs)
 
+type IndentLevel = Int
+type UrlCount = Int
 
-readSmsnLines :: String -> [ExportedSmsnLine]
+readSmsnLines :: String -> [Command]
 readSmsnLines =
-  map (exportedSmsnLine . stripSmsnAddress . stripLeadingSpace)
+  map (readCommand . stripSmsnAddress . stripLeadingSpace)
   . lines
+
+readSmsnLines' :: String -> [(IndentLevel, Command)]
+readSmsnLines' s = map f levelsPairedWithAddressedStrings where
+  levelsPairedWithAddressedStrings = map countLeadingSpace $ lines s
+  f (lev,s) = (lev, readCommand $ stripSmsnAddress s)
 
 stripLeadingSpace :: String -> String
 stripLeadingSpace = snd . span (== ' ')
+
+countLeadingSpace :: String -> (IndentLevel, String)
+countLeadingSpace s = (n, s') where
+  aSplit = span (== ' ') s
+  n = length $ fst $ aSplit
+  s' = snd $ aSplit
 
 -- assumes input looks like "* :OETCJmx4rJmIR5Pk: bla bla", keeps only blas
 stripSmsnAddress :: String -> String
 stripSmsnAddress = drop 21
 
-
-data ExportedSmsnLine = File String | Text String | Code String | Ignore
+data Command = File String | Text String | Code String | Url String | Ignore
   deriving Show
 
-exportedSmsnLine :: String -> ExportedSmsnLine
-exportedSmsnLine (stripPrefix "[markdown]" -> Just restOfLine)
-  = Text restOfLine -- these need to be prefixed with '\n'
-exportedSmsnLine (stripPrefix "[markdown-code]" -> Just restOfLine)
-  = Code restOfLine
-exportedSmsnLine (stripPrefix "[target-filename]" -> Just restOfLine)
-  = File restOfLine
-exportedSmsnLine s = Ignore
+-- countUrlSubstitutions :: String -> UrlCount
+-- countUrlSubstitutions s = f s
 
-markdown :: [ExportedSmsnLine] -> String
+readCommand :: String -> Command
+readCommand (stripPrefix "[markdown]" -> Just restOfLine)
+  = Text restOfLine -- these need to be prefixed with '\n'
+readCommand (stripPrefix "[markdown-code]" -> Just restOfLine)
+  = Code restOfLine
+readCommand (stripPrefix "[target-filename]" -> Just restOfLine)
+  = File restOfLine
+readCommand s = Ignore
+
+markdown :: [Command] -> String
 markdown es = unlines $ mapMaybe f es where
-  f :: ExportedSmsnLine -> Maybe String
+  f :: Command -> Maybe String
   f (File s) = Nothing
   f (Text s) = Just $ "\n" ++ s
   f (Code s) = Just s
@@ -44,7 +59,7 @@ markdown es = unlines $ mapMaybe f es where
   -- In markdown, all ordinary text lines need to be preceded by a newline,
   -- but lines of code, including the bracketing ``` lines, do not.
 
-pairFilesToContents :: [ExportedSmsnLine] -> [(FilePath, String)]
+pairFilesToContents :: [Command] -> [(FilePath, String)]
 pairFilesToContents stuff = zip files contents where
   files = map (\(File s) -> s) $ filter isFile stuff
   contents = map markdown $ tail $ splitWhen isFile stuff
