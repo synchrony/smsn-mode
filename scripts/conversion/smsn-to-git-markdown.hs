@@ -57,6 +57,7 @@ main = do
   (inputFile:_) <- getArgs
   input <- readFile inputFile
   let pairs = pairFilesToContents $ readSmsnLines input
+  writeFile "all makrdown, concatenated.txt" $ unlines $ map snd pairs
   mapM_ f pairs where
     f :: (FilePath, String) -> IO ()
     f (name, content) = writeFile name content
