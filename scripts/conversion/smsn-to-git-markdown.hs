@@ -1,12 +1,10 @@
 -- run it from the command line:
   -- runghc smsn-to-git-markdown.hs INPUT_FILE
 
--- TODO: Divide some steps
-  -- data ExprGroup = AsIs [Expr] | Substitution [(IndentLevel,Expr)]
-  -- then test each substitution for validity:
-    -- first a Text, then Urls, and each Url a level lower than the Text
-
--- It might work already, but it's dangerous: errors can be cryptic, and in at least one case (not enough URLs) failure can look like success.
+-- how it works
+  -- In the text exported from smsn, each block of lines representing a file's contents should start with a note that reads "[target-filename]...". The portion after the ] indicates where that content will be written to. Anything before the first such note is ignored.
+  -- Notes with makrdown text content should begin with "[markdown]...", and notes with markdown code, "[markdown-code]".
+  -- A note with markdown text content can include incomplete URLs like "see [something cool]() for more information". Such a note should have children, one for each incomplete URL. They will be filled in accordingly. If it has more children yet, the URLs must be first. Each should start with "[url-leaf]...".
 
 {-# LANGUAGE ViewPatterns #-}
 
@@ -14,6 +12,7 @@ import Data.List (span, stripPrefix)
 import Data.List.Split (splitWhen, splitOn)
 import Data.Maybe
 import System.Environment (getArgs)
+
 
 type IndentLevel = Int
 type UrlCount = Int
@@ -41,7 +40,7 @@ buildMarkdownFile es = unlines $ mapMaybe f es where
   f (File s) = Nothing
   f (Text s) = Just $ "\n" ++ s
   f (Code s) = Just s
-  f (Url u) = Just $ error "Url mismatch: " ++ u
+  f (Url u) = Just $ error $ "Un-substituted URL: <<<" ++ u ++ ">>>"
   f Ignore = Nothing
   -- In markdown, all ordinary text lines need to be preceded by a newline,
   -- but lines of code, including the bracketing ``` lines, do not.
@@ -58,7 +57,8 @@ fromUrl :: Expr -> String
 fromUrl (Url s) = s
 fromUrl _ = error "fromUrl applied to non-URL"
 
--- === Get a list of commands, paired with indentation levels
+
+-- === Get a list of Exprs, paired with indentation levels
 readSmsnLines :: String -> [(IndentLevel, Expr)]
 readSmsnLines s = map f levelsPairedWithAddressedStrings where
   levelsPairedWithAddressedStrings = map countLeadingSpace $ lines s
@@ -75,21 +75,22 @@ stripGraphId :: String -> String
   -- keeps only "bla bla"
 stripGraphId = drop 21
 
- 
+
 -- === Substitute URLs into Text values
-data SubstitutionGroup = AsIs Expr | Substitute [(IndentLevel, Expr)]
+data SubstitutionGroup = DoNothing Expr
+  | Substitute [(IndentLevel, Expr)] -- head should be Text, the rest Urls
   deriving Show
 
 groupForSubs :: [(IndentLevel, Expr)] -> [SubstitutionGroup]
 groupForSubs pairs = f [] pairs where
   f :: [SubstitutionGroup] -> [(IndentLevel, Expr)] -> [SubstitutionGroup]
-  f acc [] = acc
+  f acc [] = reverse acc
   f acc ( firstPair@(lev, Text s) : pairs )
     = case countUrlSubstitutions s of
-           0 -> f (AsIs (Text s) : acc) pairs
+           0 -> f (DoNothing (Text s) : acc) pairs
            n -> f ( (Substitute $ firstPair : take n pairs) : acc )
              $ drop n pairs
-  f acc ( (lev,expr) : pairs ) = f (AsIs expr : acc) pairs
+  f acc ( (lev,expr) : pairs ) = f (DoNothing expr : acc) pairs
 
 groupForSubs_test = groupForSubs
   [(1, File "something.md")
@@ -98,12 +99,12 @@ groupForSubs_test = groupForSubs
   ,(2, Url "frog")
   ,(1, Code "n+3=2")]
 
-substituteUrls' :: SubstitutionGroup -> Expr
-substituteUrls' (AsIs expr) = expr
-substituteUrls' (Substitute ((lev, Text s) : urlPairs)) =
+substituteUrls :: SubstitutionGroup -> Expr
+substituteUrls (DoNothing expr) = expr
+substituteUrls (Substitute ((lev, Text s) : urlPairs)) =
   if (all (== lev+1) $ map fst urlPairs) && (all isUrl $ map snd urlPairs)
   then Text $ substituteUrlsOnce s $ map (fromUrl . snd) urlPairs
-  else error $ "Bad URL substitution for Text that reads \"" ++ s
+  else error $ "Bad URL substitution for Text that reads <<<" ++ s ++ ">>>"
 
 substituteUrlsOnce :: String -> [String] -> String
 substituteUrlsOnce s urls =  interleave sDivided urlsBracketed
@@ -121,6 +122,7 @@ interleave outer inner = concat $ tail $ concat -- tail drops the "discard"
   $ map (\(a,b) -> [a,b])
   $ zip ("discard" : inner) outer -- inner is one shorter than outer
 
+
 -- === Handle files
 pairFilesToContents :: [Expr] -> [(FilePath, String)]
 pairFilesToContents stuff = zip files contents where
@@ -132,7 +134,7 @@ main = do
   (inputFile:_) <- getArgs
   input <- readFile inputFile
   let fileContentPairs = pairFilesToContents 
-              $ map substituteUrls'$ groupForSubs $ readSmsnLines input
+              $ map substituteUrls $ groupForSubs $ readSmsnLines input
   writeFile "all makrdown, concatenated.txt"
     $ unlines $ map snd fileContentPairs
   mapM_ f fileContentPairs where
