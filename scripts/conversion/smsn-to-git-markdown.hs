@@ -6,6 +6,7 @@
   -- Notes with makrdown text content should begin with "[markdown]...", and notes with markdown code, "[markdown-code]".
   -- A note with markdown text content can include incomplete URLs like "see [something cool]() for more information". Such a note should have children, one for each incomplete URL. They will be filled in accordingly. If it has more children yet, the URLs must be first. Each should start with "[url-leaf]...".
 
+
 {-# LANGUAGE ViewPatterns #-}
 
 import Data.List (span, stripPrefix)
@@ -28,11 +29,11 @@ smsnLineToExpr (stripPrefix "[markdown]" -> Just restOfLine)
   = Text restOfLine -- these need to be prefixed with '\n'
 smsnLineToExpr (stripPrefix "[markdown-code]" -> Just restOfLine)
   = Code restOfLine
-smsnLineToExpr (stripPrefix "[target-filename]" -> Just restOfLine)
-  = File restOfLine
 smsnLineToExpr (stripPrefix "[url-leaf]" -> Just restOfLine)
   = Url restOfLine
-smsnLineToExpr s = Ignore
+smsnLineToExpr (stripPrefix "[target-filename]" -> Just restOfLine)
+  = File restOfLine
+smsnLineToExpr _ = Ignore
 
 buildMarkdownFile :: [Expr] -> String
 buildMarkdownFile es = unlines $ mapMaybe f es where
@@ -40,7 +41,7 @@ buildMarkdownFile es = unlines $ mapMaybe f es where
   f (File s) = Nothing
   f (Text s) = Just $ "\n" ++ s
   f (Code s) = Just s
-  f (Url u) = Just $ error $ "Un-substituted URL: <<<" ++ u ++ ">>>"
+  f (Url u) = Nothing
   f Ignore = Nothing
   -- In markdown, all ordinary text lines need to be preceded by a newline,
   -- but lines of code, including the bracketing ``` lines, do not.
