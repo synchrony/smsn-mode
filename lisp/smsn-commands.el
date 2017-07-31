@@ -51,26 +51,26 @@
                  (append (encode-coding-string str (or coding 'utf-8))
                          nil))))
 
-(defun smsn-atom-info (selector)
-  "display, in the minibuffer, information about an atom produced by SELECTOR"
+(defun smsn-note-info (selector)
+  "display, in the minibuffer, information about an note produced by SELECTOR"
   (lexical-let ((as selector))
     (lambda () (interactive)
-      (let ((atom (funcall as)))
-        (if atom
-            (smsn-data-show atom)
+      (let ((note (funcall as)))
+        (if note
+            (smsn-data-show note)
           (smsn-env-error-no-focus))))))
 
 ;; note: the id doesn't stay invisible when you paste it, although it stays light gray
 (defun smsn-copy-focus-reference-to-clipboard ()
-  "copy a reference to the atom at point to the system clipboard"
+  "copy a reference to the note at point to the system clipboard"
   (interactive)
-  (let ((id (smsn-data-atom-id-at-point)))
+  (let ((id (smsn-data-note-id-at-point)))
     (if id
         (copy-to-clipboard (concat "*" (smsn-view-create-id-infix id)))
       (smsn-env-error-no-focus))))
 
 (defun smsn-copy-focus-title-to-clipboard ()
-  "copy the title of the atom at point to the system clipboard"
+  "copy the title of the note at point to the system clipboard"
   (interactive)
   (let ((title (smsn-data-focus-title)))
     (if title
@@ -78,7 +78,7 @@
       (smsn-env-error-no-focus))))
 
 (defun smsn-copy-root-reference-to-clipboard ()
-  "copy a reference to the atom at point to the system clipboard"
+  "copy a reference to the note at point to the system clipboard"
   (interactive)
   (let ((id (smsn-data-root-id)))
     (if id
@@ -91,7 +91,7 @@
   (message (concat "current mode: " (smsn-env-context-get 'mode))))
 
 (defun smsn-duplicates ()
-  "retrieve a list of atoms with duplicate titles"
+  "retrieve a list of notes with duplicate titles"
   (interactive)
   (smsn-client-fetch-duplicates))
 
@@ -139,7 +139,7 @@
   (smsn-client-write-graph "LaTeX" file))
 
 (defun smsn-export-pagerank (file)
-  "export a tab-separated PageRank ranking of Semantic Synchrony atoms to the file system"
+  "export a tab-separated PageRank ranking of Semantic Synchrony notes to the file system"
   (interactive)
   (message "%s" (concat "computing and exporting PageRank to " file))
   (smsn-client-write-graph "PageRank" file))
@@ -151,7 +151,7 @@
   (smsn-client-write-graph "N-Triples" file))
 
 (defun smsn-export-vertices (file)
-  "export tab-separated dump of Semantic Synchrony vertices (atoms) to the file system"
+  "export tab-separated dump of Semantic Synchrony vertices (notes) to the file system"
   (interactive)
   (message "%s" (concat "exporting vertices to " file))
   (smsn-client-write-graph "Vertices" file))
@@ -180,23 +180,23 @@
   (message "%s" (concat "importing GraphML from " file))
   (smsn-client-read-graph "GraphML" file))
 
-(defun smsn-find-isolated-atoms ()
-  "retrieve a list of isolated atoms (i.e. atoms with neither parents nor children) in the knowledge base"
+(defun smsn-find-isolated-notes ()
+  "retrieve a list of isolated notes (i.e. notes with neither parents nor children) in the knowledge base"
   (interactive)
-  (smsn-client-fetch-find-isolated-atoms))
+  (smsn-client-fetch-find-isolated-notes))
 
-(defun smsn-remove-isolated-atoms ()
-  "remove all isolated atoms (i.e. atoms with neither parents nor children) from the knowledge base"
+(defun smsn-remove-isolated-notes ()
+  "remove all isolated notes (i.e. notes with neither parents nor children) from the knowledge base"
   (interactive)
-  (smsn-client-fetch-remove-isolated-atoms))
+  (smsn-client-fetch-remove-isolated-notes))
 
 (defun smsn-find-roots ()
-  "retrieve a list of roots (i.e. atoms with no parents) in the knowledge base"
+  "retrieve a list of roots (i.e. notes with no parents) in the knowledge base"
   (interactive)
   (smsn-client-find-roots))
 
 (defun smsn-history ()
-  "retrieve a list of the most recently viewed or updated atoms, in decreasing order of recency"
+  "retrieve a list of the most recently viewed or updated notes, in decreasing order of recency"
   (interactive)
   (smsn-client-fetch-history))
 
@@ -207,18 +207,18 @@
   (smsn-client-infer-types))
 
 (defun smsn-insert-attr-priority (expr)
-  "insert a line to set the priority of an atom to the value given by EXPR"
+  "insert a line to set the priority of a note to the value given by EXPR"
   (interactive)
   (let ((n (number-shorthand-to-number expr)))
     (if n (insert (concat "\n                @priority " (number-to-string (/ n 4.0)) "\n")))))
 
 (defun smsn-insert-attr-source (code)
-  "insert a line to set the source of an atom to the value given by CODE"
+  "insert a line to set the source of a note to the value given by CODE"
   (interactive)
   (insert (concat "\n                @source " (smsn-env-get-source-by-code code))))
 
 (defun smsn-insert-attr-weight (expr)
-  "insert a line to set the weight of an atom to the value given by EXPR"
+  "insert a line to set the weight of a note to the value given by EXPR"
   (interactive)
   (let ((n (number-shorthand-to-number expr)))
     (if n (insert (concat "\n                @weight " (number-to-string (/ n 4.0)) "\n")))))
@@ -260,14 +260,14 @@
   (smsn-client-ping-server))
 
 (defun smsn-preview-focus-latex-math ()
-  "create a graphical preview of the title of the atom at point, which must be a LaTeX mathematical expression"
+  "create a graphical preview of the title of the note at point, which must be a LaTeX mathematical expression"
   (interactive)
   (end-of-line)
   (backward-word)
   (latex-math-preview-expression))
 
 (defun smsn-priorities ()
-  "retrieve a list of atoms with nonzero priority values, ordered by decreasing priority"
+  "retrieve a list of notes with nonzero priority values, ordered by decreasing priority"
   (interactive)
   (smsn-client-fetch-priorities))
 
@@ -317,34 +317,34 @@
     (smsn-client-fetch-query query "Shortcut")))
 
 (defun smsn-query-on-focus-title ()
-  "evaluate a full-text query for the title of the atom at point"
+  "evaluate a full-text query for the title of the note at point"
   (interactive)
   (let ((title (smsn-data-focus-title)))
     (if title (smsn-title-query title))))
 
 (defun smsn-set-min-source (char)
-  "set the minimum source (for atoms visible in the current view) to the data source represented by CHAR"
+  "set the minimum source (for notes visible in the current view) to the data source represented by CHAR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((source (smsn-env-get-source-by-code (char-to-string char))))
       (if source (smsn-client-set-min-source (smsn-env-json-get 'name source))))))
 
 (defun smsn-set-min-weight (expr)
-  "set the minimum @weight (for atoms visible in the current view) to the number represented by EXPR"
+  "set the minimum @weight (for notes visible in the current view) to the number represented by EXPR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((n (number-shorthand-to-number expr)))
       (if n (smsn-client-set-min-weight (/ n 4.0))))))
 
 (defun smsn-set-focus-priority (expr)
-  "set the @priority of the atom at point to the number represented by EXPR"
+  "set the @priority of the note at point to the number represented by EXPR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((n (number-shorthand-to-number expr)))
       (if n (smsn-client-set-focus-priority (/ n 4.0))))))
 
 (defun smsn-set-focus-source (char)
-  "set the @source of the atom at point to the number represented by CHAR"
+  "set the @source of the note at point to the number represented by CHAR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((code (char-to-string char)))
@@ -352,7 +352,7 @@
          (smsn-env-json-get 'name (smsn-env-get-source-by-code code))))))
 
 (defun smsn-set-focus-weight (expr)
-  "set the @weight of the atom at point to the number represented by EXPR"
+  "set the @weight of the note at point to the number represented by EXPR"
   (interactive)
   (if (smsn-env-in-treeview-mode)
     (let ((n (number-shorthand-to-number expr)))
@@ -383,9 +383,9 @@ A value of -1 indicates that titles should not be truncated."
 
 (defun smsn-toggle-inference-viewstyle ()
   "toggle between the source view style and the type inference view style.
-In the source view style, colors are assigned to atoms based on the data source of each atom
-(for example, private atoms are red, while public atoms are green).
-However, in the type inference view style, an atom is either cyan or magenta depending on whether
+In the source view style, colors are assigned to notes based on the data source of each note
+(for example, private notes are red, while public notes are green).
+However, in the type inference view style, a note is either cyan or magenta depending on whether
 a type has been assigned to it by the inference engine."
   (interactive)
   (if (smsn-env-in-treeview-mode) (progn
@@ -394,7 +394,7 @@ a type has been assigned to it by the inference engine."
     (message (concat "switched to " (smsn-env-context-get 'view-style) " view style")))))
 
 (defun smsn-toggle-properties-view ()
-  "enable or disable the explicit display of atom properties as extra lines within views"
+  "enable or disable the explicit display of note properties as extra lines within views"
   (interactive)
   (if (smsn-env-in-treeview-mode) (progn
     (smsn-env-context-set 'view-properties (not (smsn-env-context-get 'view-properties)))
@@ -408,14 +408,14 @@ a type has been assigned to it by the inference engine."
   (toggle-truncate-lines))
 
 (defun smsn-update-to-backward-view ()
-  "switch to a 'backward' view, i.e. a view in which an atom's parents appear as list items beneath it"
+  "switch to a 'backward' view, i.e. a view in which a note's parents appear as list items beneath it"
   (interactive)
   (if (smsn-env-in-treeview-mode) (progn
       (smsn-env-context-set-backward-style)
       (smsn-client-refresh-treeview))))
 
 (defun smsn-update-to-forward-view ()
-  "switch to a 'forward' view (the default), i.e. a view in which an atom's children appear as list items beneath it"
+  "switch to a 'forward' view (the default), i.e. a view in which a note's children appear as list items beneath it"
   (interactive)
   (if (smsn-env-in-treeview-mode) (progn
       (smsn-env-context-set-forward-style)
@@ -440,29 +440,29 @@ a type has been assigned to it by the inference engine."
 (defun smsn-web-search-on-page-title (service-name base-url)
   (smsn-web-search 'smsn-data-page-title service-name base-url))
 
-(defun smsn-open-new-atom ()
-  "create a new atom and opening a new (empty) view of the atom"
+(defun smsn-open-new-note ()
+  "create a new note and opening a new (empty) view of the note"
   (interactive)
-  (smsn-client-open-atom "create-new-atom"))
+  (smsn-client-open-note "create-new-note"))
 
-(defun smsn-open-focus-atom ()
-  "opening a view of the atom at point"
+(defun smsn-open-focus-note ()
+  "opening a view of the note at point"
   (interactive)
-  (let ((id (smsn-data-atom-id-at-point)))
+  (let ((id (smsn-data-note-id-at-point)))
     (if id
-      (smsn-client-open-atom id)
+      (smsn-client-open-note id)
       (smsn-env-error-no-focus))))
 
 (defun smsn-focus-wikiview ()
-  "open an atom's text for editing in a separate buffer"
+  "open a note's text for editing in a separate buffer"
   (interactive)
-  (let ((id (smsn-data-atom-id-at-point)))
+  (let ((id (smsn-data-note-id-at-point)))
     (if id
       (smsn-client-wikiview id)
       (smsn-env-error-no-focus))))
 
 (defun smsn-navigate-to-focus-alias ()
-  "visit the @alias of the atom at point (normally a URL) in a browser"
+  "visit the @alias of the note at point (normally a URL) in a browser"
   (interactive)
   (let ((alias (smsn-data-focus-alias)))
     (if alias
@@ -619,9 +619,9 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-string 'smsn-title-query "title search for: "))
 
-(defun smsn-open-atom-prompt ()
+(defun smsn-open-note-prompt ()
   (interactive)
-  (prompt-for-string 'smsn-client-open-atom "open view for atom with id: "))
+  (prompt-for-string 'smsn-client-open-note "open view for note with id: "))
 
 (defun smsn-push-view-prompt ()
   (interactive)
@@ -677,7 +677,7 @@ a type has been assigned to it by the inference engine."
       address)))
 
 (defun color-at-min-source ()
-  "Returns the color for at atom at the minimum visible source"
+  "Returns the color for at note at the minimum visible source"
   "dim gray")
 
 (defun color-prompt-by-min-source (callback)
@@ -729,13 +729,13 @@ a type has been assigned to it by the inference engine."
     ("l" . forward-char)  ;; right
     ("L" . move-end-of-line)
     ("m" . smsn-set-minimal-font)
-    ("n" . smsn-open-focus-atom-and-kill-buffer)
-    ("o" . smsn-open-focus-atom-in-other-window)
+    ("n" . smsn-open-focus-note-and-kill-buffer)
+    ("o" . smsn-open-focus-note-in-other-window)
     ("O" . other-window)
     ("p" . smsn-set-priority-and-drop-cursor) ;; !! first use one-liner-view
     ("q" . kill-buffer)
     ("s" . smsn-set-source-and-drop-cursor) ;; !! first use one-liner-view
-    ("t" . smsn-open-focus-atom)
+    ("t" . smsn-open-focus-note)
     ("u" . undo)
     ("U" . smsn-navigate-to-focus-alias) ;; u as in url
     ("v" . yank)
@@ -750,41 +750,41 @@ a type has been assigned to it by the inference engine."
   "Drop line to bottom of buffer. Dangerous if the line is at depth > 1."
   (interactive)
   (move-beginning-of-line nil)
-  (let ((id (smsn-data-atom-id-at-point))
+  (let ((id (smsn-data-note-id-at-point))
         (line (count-lines 1 (point)))) ;; 1, 2, 10 have same effect, but 0 errs
     (kill-line)
     (end-of-buffer)
     (open-line 1) ;; insert one newline after point
     (yank)
     (goto-line (+ 1 line)) ;; why we have to add 1, I don't know
-    (message "atom %s buried; change not saved" id))
+    (message "note %s buried; change not saved" id))
   )
 
 (defun smsn-float-line ()
   "For comments, see float-line."
   (interactive)
   (move-beginning-of-line nil)
-  (let ((id (smsn-data-atom-id-at-point))
+  (let ((id (smsn-data-note-id-at-point))
         (line (count-lines 1 (point))))
     (kill-line)
     (beginning-of-buffer)
     (open-line 1)
     (yank)
     (goto-line (+ line 2))
-    (message "atom %s floated; change not saved" id))
+    (message "note %s floated; change not saved" id))
   )
 
-(defun smsn-open-focus-atom-in-other-window ()
-  "in another window, open a view of the atom at point"
+(defun smsn-open-focus-note-in-other-window ()
+  "in another window, open a view of the note at point"
   (interactive)
-  (let ((id (smsn-data-atom-id-at-point)))
+  (let ((id (smsn-data-note-id-at-point)))
     (progn
       (if (eq (count-windows) 1)
 	  (split-window-below)
         nil)
       (other-window 1)
       (if id
-	  (smsn-client-open-atom id)
+	  (smsn-client-open-note id)
 	(smsn-env-error-no-focus))
       )))
 
@@ -823,10 +823,10 @@ a type has been assigned to it by the inference engine."
     (kill-line)
     ))
 
-(defun smsn-open-focus-atom-and-kill-buffer ()
+(defun smsn-open-focus-note-and-kill-buffer ()
   (interactive)
   (let ((name (buffer-name)))
-    (progn (smsn-open-focus-atom)
+    (progn (smsn-open-focus-note)
 	   (kill-buffer name))))
 
 (defun my-filter (condp lst)
@@ -860,8 +860,8 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-b")         'smsn-visit-url-at-point)
     (define-key smsn-mode-map (kbd "C-c C-d")         'smsn-set-view-height-prompt)
     (define-key smsn-mode-map (kbd "C-c C-f")         'smsn-find-roots)
-    (define-key smsn-mode-map (kbd "C-c C-i f")       'smsn-find-isolated-atoms)
-    (define-key smsn-mode-map (kbd "C-c C-i r")       'smsn-remove-isolated-atoms)
+    (define-key smsn-mode-map (kbd "C-c C-i f")       'smsn-find-isolated-notes)
+    (define-key smsn-mode-map (kbd "C-c C-i r")       'smsn-remove-isolated-notes)
     (define-key smsn-mode-map (kbd "C-c C-r c")       'smsn-read-vcs-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r f")       'smsn-import-freeplane-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r g")       'smsn-import-graphml-prompt)
@@ -871,7 +871,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-t C-s")     'smsn-set-focus-source-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-w")     'smsn-set-focus-weight-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t a")       (smsn-visit-as-url 'smsn-data-focus-title))
-    (define-key smsn-mode-map (kbd "C-c C-t i")       (smsn-atom-info 'smsn-data-focus))
+    (define-key smsn-mode-map (kbd "C-c C-t i")       (smsn-note-info 'smsn-data-focus))
     (define-key smsn-mode-map (kbd "C-c C-t l")       'smsn-preview-focus-latex-math)
     (define-key smsn-mode-map (kbd "C-c C-t s")       'smsn-query-on-focus-title)
     (define-key smsn-mode-map (kbd "C-c C-v ;")       'smsn-toggle-truncate-lines)
@@ -902,13 +902,13 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c j")           'smsn-action-dujour)
     (define-key smsn-mode-map (kbd "C-c l")           'smsn-view-log-prompt)
     (define-key smsn-mode-map (kbd "C-c m")           'smsn-toggle-move-or-edit-submode)
-    (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-atom)
-    (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-atom-prompt)
+    (define-key smsn-mode-map (kbd "C-c n")           'smsn-open-new-note)
+    (define-key smsn-mode-map (kbd "C-c o")           'smsn-open-note-prompt)
     (define-key smsn-mode-map (kbd "C-c p")           'smsn-push-view)
     (define-key smsn-mode-map (kbd "C-c q")           'smsn-ripple-query-prompt)
     (define-key smsn-mode-map (kbd "C-c r")           'smsn-copy-focus-reference-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c s")           'smsn-title-query-prompt)
-    (define-key smsn-mode-map (kbd "C-c t")           'smsn-open-focus-atom)
+    (define-key smsn-mode-map (kbd "C-c t")           'smsn-open-focus-note)
     (define-key smsn-mode-map (kbd "C-c u")           'smsn-update-view)
     (define-key smsn-mode-map (kbd "C-c v")           'smsn-copy-focus-title-to-clipboard)
     (define-key smsn-mode-map (kbd "C-c w")           'smsn-focus-wikiview)
@@ -920,6 +920,6 @@ a type has been assigned to it by the inference engine."
 )))
 
 ;; special mappings reserved for use through emacsclient
-;; C-c c  --  smsn-data-atom-id-at-point
+;; C-c c  --  smsn-data-note-id-at-point
 
 (provide 'smsn-commands)
