@@ -212,10 +212,12 @@
   (let ((n (number-shorthand-to-number expr)))
     (if n (insert (concat "\n                @priority " (number-to-string (/ n 4.0)) "\n")))))
 
-(defun smsn-insert-attr-source (code)
+(defun smsn-insert-attr-source (char)
   "insert a line to set the source of a note to the value given by CODE"
   (interactive)
-  (insert (concat "\n                @source " (smsn-env-get-source-by-code code))))
+  (if (smsn-env-in-treeview-mode)
+    (let ((code (char-to-string char)))
+      (insert (concat "\n                @source " (smsn-env-json-get 'name (smsn-env-get-source-by-code code)))))))
 
 (defun smsn-insert-attr-weight (expr)
   "insert a line to set the weight of a note to the value given by EXPR"
