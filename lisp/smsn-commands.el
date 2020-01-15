@@ -120,6 +120,12 @@
   (message "%s" (concat "exporting VCS dump to configured locations"))
   (smsn-client-write-graph "VCS"))
 
+(defun smsn-write-yaml ()
+  "export graph as in the YAML format"
+  (interactive)
+  (message "%s" (concat "exporting YAML dump to configured locations"))
+  (smsn-client-write-graph "YAML"))
+
 (defun smsn-export-edges (file)
   "export tab-separated dump of Semantic Synchrony parent-child edges to the file system"
   (interactive)
@@ -161,6 +167,12 @@
   (interactive)
   (message "importing graph from configured sources")
   (smsn-client-read-graph "VCS"))
+
+(defun smsn-read-yaml ()
+  "import a graph from configured data sources into the knowledge graph"
+  (interactive)
+  (message "importing graph from configured sources")
+  (smsn-client-read-graph "YAML"))
 
 (defun smsn-view-log (file)
   "create a view of Git history"
@@ -528,6 +540,10 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-confirmation 'smsn-write-vcs "export graph to VCS"))
 
+(defun smsn-write-yaml-prompt ()
+  (interactive)
+  (prompt-for-confirmation 'smsn-write-yaml "export graph to YAML"))
+
 (defun get-default (var &optional default)
   (if (boundp var) (symbol-value var) default))
 
@@ -564,6 +580,10 @@ a type has been assigned to it by the inference engine."
 (defun smsn-read-vcs-prompt ()
   (interactive)
   (prompt-for-confirmation 'smsn-read-vcs "import graph from VCS"))
+
+(defun smsn-read-yaml-prompt ()
+  (interactive)
+  (prompt-for-confirmation 'smsn-read-yaml "import graph from YAML"))
 
 (defun smsn-view-log-prompt ()
   (interactive)
@@ -867,6 +887,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-r c")       'smsn-read-vcs-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r f")       'smsn-import-freeplane-prompt)
     (define-key smsn-mode-map (kbd "C-c C-r g")       'smsn-import-graphml-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-r y")       'smsn-read-yaml-prompt)
     (define-key smsn-mode-map (kbd "C-c C-s C-m")     'smsn-set-min-source-prompt)
     (define-key smsn-mode-map (kbd "C-c C-t C-a b")   'smsn-navigate-to-focus-alias)
     (define-key smsn-mode-map (kbd "C-c C-t C-p")     'smsn-set-focus-priority-prompt)
@@ -892,6 +913,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-w p")       'smsn-export-pagerank-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w r")       'smsn-export-rdf-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w v")       'smsn-export-vertices-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-w y")       'smsn-write-yaml-prompt)
     (define-key smsn-mode-map (kbd "C-c P")           'smsn-priorities)
     (define-key smsn-mode-map (kbd "C-c a")           'smsn-acronym-query-prompt)
     (define-key smsn-mode-map (kbd "C-c b")           'smsn-update-to-backward-view)
