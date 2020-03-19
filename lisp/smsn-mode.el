@@ -71,6 +71,7 @@
   "Major mode for interacting with a Semantic Synchrony personal knowledge base"
   (interactive)
   (kill-all-local-variables)
+  (smsn-commands-define-keymap)
   (use-local-map smsn-mode-map)
   (smsn-env-define-buffer-local-variables)
   (setq local-abbrev-table smsn-mode-abbrev-table)
@@ -83,7 +84,7 @@
   (set-indent-guide-mode)
   (run-hooks 'smsn-hook))
 (defun smsn ()
-  "Major mode for interacting with a Semantic Synchrony personal knowledge base"
+  "Convenience function to start SmSn-mode"
   (interactive)
   (smsn-mode))
 
