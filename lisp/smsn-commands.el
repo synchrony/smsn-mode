@@ -769,11 +769,16 @@ a type has been assigned to it by the inference engine."
 )))
 
 (defun smsn-insert-delete-instruction ()
+  "This marks a node for deletion, by prefixing its title with [delete - x], where `x` can be chosen from a menu of four common boilerplate values, or customized (by excaping the choice with `C-g`)."
   (interactive)
   (move-beginning-of-line 1)
   (forward-char 21)
   (insert "[delete - ] ")
-  (backward-char 2) )
+  (backward-char 2)
+  (let* ((choices '("done" "redundant" "stale" "useless"))
+	 (choice (ido-completing-read "Open bookmark:" choices )))
+    (insert choice)
+    ))
 
 (defun smsn-bury-line ()
   "Drop line to bottom of buffer. Dangerous if the line is at depth > 1."
