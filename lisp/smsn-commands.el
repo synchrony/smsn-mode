@@ -738,6 +738,7 @@ a type has been assigned to it by the inference engine."
     ("b" . smsn-update-to-backward-view)
     ("B" . smsn-bury-line)
     ("c" . kill-ring-save)
+    ("d" . smsn-insert-delete-instruction)
     ("f" . smsn-update-to-forward-view)
     ("F" . smsn-float-line)
     ("g" . smsn-update-view-prompt) ;; keyboard shortcut is effectively "g m"
@@ -766,6 +767,13 @@ a type has been assigned to it by the inference engine."
     ("y" . smsn-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
+
+(defun smsn-insert-delete-instruction ()
+  (interactive)
+  (move-beginning-of-line 1)
+  (forward-char 21)
+  (insert "[delete - ] ")
+  (backward-char 2) )
 
 (defun smsn-bury-line ()
   "Drop line to bottom of buffer. Dangerous if the line is at depth > 1."
