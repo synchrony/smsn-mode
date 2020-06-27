@@ -763,7 +763,6 @@ a type has been assigned to it by the inference engine."
     ("v" . yank)
     ("w" . smsn-set-weight-and-drop-cursor) ;; !! first use one-liner-view
     ("W" . smsn-focus-wikiview)
-    ("x" . kill-region)
     ("y" . smsn-push-view-prompt) ;; shortcut is effectively "y z"
     ("z" . set-mark-command)
 )))
