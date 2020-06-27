@@ -827,6 +827,7 @@ a type has been assigned to it by the inference engine."
     (move-end-of-line 1)
     (smsn-insert-attr-priority-prompt)
     (kill-line)
+    (backward-char)
     ))
 
 (defun smsn-set-source-and-drop-cursor ()
@@ -835,6 +836,7 @@ a type has been assigned to it by the inference engine."
     (move-end-of-line 1)
     (smsn-insert-attr-source-prompt)
     (kill-line)
+    (open-line 1)
     ))
 
 (defun smsn-set-weight-and-drop-cursor ()
@@ -843,6 +845,7 @@ a type has been assigned to it by the inference engine."
     (move-end-of-line 1)
     (smsn-insert-attr-weight-prompt)
     (kill-line)
+    (backward-char)
     ))
 
 (defun smsn-open-focus-note-and-kill-buffer ()
