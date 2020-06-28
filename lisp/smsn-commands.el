@@ -769,14 +769,15 @@ a type has been assigned to it by the inference engine."
 )))
 
 (defun smsn-insert-delete-instruction ()
-  "This marks a node for deletion, by prefixing its title with [delete - x], where `x` can be chosen from a menu of four common boilerplate values, or customized (by excaping the choice with `C-g`)."
+  "This marks a node for deletion, by prefixing its title with [delete - x], where `x` can be chosen from a menu of four common boilerplate values. Escape the choice with `C-g` to write a custom description)."
   (interactive)
   (move-beginning-of-line 1)
   (forward-char 21)
   (insert "[delete - ] ")
   (backward-char 2)
-  (let* ((choices '("done" "redundant" "stale" "useless"))
-	 (choice (ido-completing-read "Open bookmark:" choices )))
+  (let* ((choices '("done" "merged" "redundant"
+		    "premature" "stale" "useless"))
+	 (choice (ido-completing-read "Why?" choices )))
     (insert choice)
     ))
 
