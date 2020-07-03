@@ -202,6 +202,32 @@
   (interactive)
   (smsn-client-fetch-remove-isolated-notes))
 
+(defun smsn-flatten-tree ()
+  "Flattens the current tree view. Useful for deletion. PITFALL: Dangerous! If you push the graph after running this, you'll lose the structure of the tree."
+  (interactive)
+  (if (equal major-mode 'smsn-mode)
+      (progn
+	(y-or-n-p "Is this really a TREE?")
+	(replace-regexp "^ *" "") ;; delete leading whitespace
+	(smsn-divide-subtrees-and-leaves) )
+    (message "This command only makes sense in smsn-mode.")
+    ) )
+
+(defun smsn-divide-subtrees-and-leaves ()
+  "Puts the point between subtrees (above) and leaves (below). This is to call the user's attention to the fact that both exist.
+
+PITFALL: If there are no leaves, the regex search will fail, and an error message will be thrown. It's harmless."
+  (beginning-of-buffer)
+  (sort-lines nil 1 (buffer-size) ) ;; now the leaves are last (+ comes before Utf-middle-dot)
+  (goto-char (point-min)) ;; go to beginning of buffer
+  (search-forward-regexp "^[^ \+] :[[:alnum:]]\\{16\\}: ") ;; put mark just before title of first leaf
+  (beginning-of-line)
+  (insert "\nBEWARE! Above are (if anything) trees, not leaves.\n")
+  (open-line 1)
+  (previous-line)
+  (recenter)
+  )
+
 (defun smsn-find-roots ()
   "retrieve a list of roots (i.e. notes with no parents) in the knowledge base"
   (interactive)
@@ -775,7 +801,7 @@ a type has been assigned to it by the inference engine."
   (forward-char 21)
   (insert "[delete - ] ")
   (backward-char 2)
-  (let* ((choices '("done" "merged" "redundant"
+  (let* ((choices '("done" "merged" "obvious" "redundant"
 		    "premature" "stale" "useless"))
 	 (choice (ido-completing-read "Why?" choices )))
     (insert choice)
