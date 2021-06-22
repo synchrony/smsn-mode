@@ -785,7 +785,6 @@ a type has been assigned to it by the inference engine."
     ("q" . kill-buffer)
     ("s" . smsn-set-source-and-drop-cursor) ;; !! first use one-liner-view
     ("t" . smsn-open-focus-note)
-    ("u" . undo)
     ("U" . smsn-navigate-to-focus-alias) ;; u as in url
     ("v" . yank)
     ("w" . smsn-set-weight-and-drop-cursor) ;; !! first use one-liner-view
