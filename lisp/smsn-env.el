@@ -17,30 +17,30 @@
 (defconst smsn-const-treeview-mode "treeview-mode"
   "A state for viewing and editing tree views of graph data")
 (defconst smsn-const-wikiview-mode "wikiview-mode"
-  "A state for viewing and editing the text of an atom")
+  "A state for viewing and editing the text of a note")
 (defconst smsn-const-search-mode "search-mode"
   "A state for immutable search results")
 
 (defconst smsn-const-color-by-source "source"
-  "A color scheme based on atom weight and data source")
+  "A color scheme based on note weight and data source")
 (defconst smsn-const-color-by-class-inference "inference"
   "A color scheme based on type inference")
 
 (defconst smsn-const-forward-style "forward"
-  "A view style in which atom children are arranged below parents in a tree")
+  "A view style in which note children are arranged below parents in a tree")
 (defconst smsn-const-backward-style "backward"
-  "A view style in which atom parents are arranged below children in a tree")
+  "A view style in which note parents are arranged below children in a tree")
 
 (defconst smsn-const-weight-none 0.0
-  "A lower limit of atom weight")
+  "A lower limit of note weight")
 (defconst smsn-const-weight-weak 0.25
-  "A weight for less important atoms")
+  "A weight for less important notes")
 (defconst smsn-const-weight-default 0.5
-  "A weight for typical atoms")
+  "A weight for typical notes")
 (defconst smsn-const-weight-strong 0.75
-  "A weight for atoms of special importance")
+  "A weight for notes of special importance")
 (defconst smsn-const-weight-full 1.0
-  "A weight for the most important atoms")
+  "A weight for the most important notes")
 
 (defun smsn-env-get-context (&optional context)
   "Retrieves smsn-mode's buffer-local context"
@@ -56,12 +56,12 @@
   (defvar smsn-bufferlocal-context (default-context)))
 
 (defun smsn-env-error-no-focus ()
-  "Informs the user that a focus atom was not found"
-  (error "there is no atom associated with this line"))
+  "Informs the user that a focus note was not found"
+  (error "there is no note associated with this line"))
 
 (defun smsn-env-error-no-root ()
-  "Informs the user that a root atom was not found"
-  (error "there is no root atom associated with this view"))
+  "Informs the user that a root note was not found"
+  (error "there is no root note associated with this view"))
 
 (defun smsn-env-using-inference ()
   "Determines whether the current buffer is an inference-enabled view"
@@ -113,7 +113,7 @@
   (smsn-env-context-set 'style smsn-const-backward-style context))
 
 (defun smsn-env-in-setproperties-mode ()
-  "Determines whether atom properties can be set in the current buffer"
+  "Determines whether note properties can be set in the current buffer"
   (or
      (smsn-env-in-search-mode)
      (smsn-env-in-treeview-mode)))
@@ -217,7 +217,7 @@
 
 (defun default-context () (list
   (cons 'action 'nil)
-  (cons 'atoms-by-id 'nil)
+  (cons 'notes-by-id 'nil)
   (cons 'configuration 'nil)
   (cons 'sources-by-name 'nil)
   (cons 'sources-by-code 'nil)

@@ -26,7 +26,7 @@
 (defun smsn-data-page-title ()
   (smsn-env-context-get 'title))
 
-(defun smsn-data-atom-id-at-point ()
+(defun smsn-data-note-id-at-point ()
   (let ((line (current-line)))
     (if (string-match "^[0-9A-Za-z@&]*: " line)
         (let ((i3 (string-match ": " line)))
@@ -34,67 +34,67 @@
             (if (< 0 (length s2)) s2 nil)))
       (get-text-property (line-beginning-position) 'id))))
 
-(defun smsn-data-atom-id (atom)
-  (smsn-env-json-get 'id atom))
+(defun smsn-data-note-id (note)
+  (smsn-env-json-get 'id note))
 
-(defun smsn-data-atom-created (atom)
-  (smsn-env-json-get 'created atom))
+(defun smsn-data-note-created (note)
+  (smsn-env-json-get 'created note))
 
-(defun smsn-data-atom-title (atom)
-  (smsn-env-json-get 'title atom))
+(defun smsn-data-note-title (note)
+  (smsn-env-json-get 'title note))
 
-(defun smsn-data-atom-text (atom)
-  (smsn-env-json-get 'text atom))
+(defun smsn-data-note-text (note)
+  (smsn-env-json-get 'text note))
 
-(defun smsn-data-atom-priority (atom)
-  (smsn-env-json-get 'priority atom))
+(defun smsn-data-note-priority (note)
+  (smsn-env-json-get 'priority note))
 
-(defun smsn-data-atom-source (atom)
-  (smsn-env-json-get 'source atom (smsn-env-context-get 'default-source)))
+(defun smsn-data-note-source (note)
+  (smsn-env-json-get 'source note (smsn-env-context-get 'default-source)))
 
-(defun smsn-data-atom-weight (atom)
-  (smsn-env-json-get 'weight atom (smsn-env-context-get 'default-weight)))
+(defun smsn-data-note-weight (note)
+  (smsn-env-json-get 'weight note (smsn-env-context-get 'default-weight)))
 
-(defun smsn-data-atom-alias (atom)
-  (smsn-env-json-get 'alias atom))
+(defun smsn-data-note-alias (note)
+  (smsn-env-json-get 'alias note))
 
-(defun smsn-data-atom-shortcut (atom)
-  (smsn-env-json-get 'shortcut atom))
+(defun smsn-data-note-shortcut (note)
+  (smsn-env-json-get 'shortcut note))
 
-(defun smsn-data-atom-meta (atom)
-  (smsn-env-json-get 'meta atom))
+(defun smsn-data-note-meta (note)
+  (smsn-env-json-get 'meta note))
 
-(defun smsn-data-atom (id)
+(defun smsn-data-note (id)
   (if id
-      (let ((atoms (smsn-env-context-get 'atoms-by-id)))
-        (if atoms (gethash id atoms) nil))
+      (let ((notes (smsn-env-context-get 'notes-by-id)))
+        (if notes (gethash id notes) nil))
     nil))
 
 (defun smsn-data-focus ()
-  (smsn-data-atom (smsn-data-atom-id-at-point)))
+  (smsn-data-note (smsn-data-note-id-at-point)))
 
 (defun smsn-data-focus-title ()
   (let ((g (smsn-data-focus)))
-    (if g (smsn-data-atom-title g))))
+    (if g (smsn-data-note-title g))))
 
 (defun smsn-data-focus-alias ()
   (let ((g (smsn-data-focus)))
-    (if g (smsn-data-atom-alias g))))
+    (if g (smsn-data-note-alias g))))
 
 (defun smsn-data-focus-source ()
   (let ((g (smsn-data-focus)))
-    (if g (smsn-data-atom-source g))))
+    (if g (smsn-data-note-source g))))
 
-(defun smsn-data-show (atom)
+(defun smsn-data-show (note)
   (let (
-        (created (smsn-data-atom-created atom))
-        (title (smsn-data-atom-title atom))
-        (weight (smsn-data-atom-weight atom))
-        (source (smsn-data-atom-source atom))
-        (priority (smsn-data-atom-priority atom))
-        (alias (smsn-data-atom-alias atom))
-        (meta (smsn-data-atom-meta atom)))
-    ;;(type (smsn-env-context-get 'atom-type atom)))
+        (created (smsn-data-note-created note))
+        (title (smsn-data-note-title note))
+        (weight (smsn-data-note-weight note))
+        (source (smsn-data-note-source note))
+        (priority (smsn-data-note-priority note))
+        (alias (smsn-data-note-alias note))
+        (meta (smsn-data-note-meta note)))
+    ;;(type (smsn-env-context-get 'note-type note)))
     (message "%s" (concat
               ;;(if type (concat "type: " type ", "))
               (if meta (concat "[meta], "))

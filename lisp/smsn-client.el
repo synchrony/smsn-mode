@@ -25,7 +25,7 @@
 (defvar broadcast-rdf-request (create-request "BroadcastRDF"))
 (defvar action-dujour-request (create-request "ActionDuJour"))
 (defvar find-duplicates-request (create-request "FindDuplicates"))
-(defvar find-isolated-atoms-request (create-request "FindIsolatedAtoms"))
+(defvar find-isolated-notes-request (create-request "FindIsolatedNotes"))
 (defvar find-roots-request (add-to-request (create-request "FindRoots") (list :height 1)))
 (defvar get-configuration-request (create-request "GetConfiguration"))
 (defvar get-events-request (create-request "GetEvents"))
@@ -36,7 +36,7 @@
 (defvar ping-request (create-request "Ping"))
 (defvar push-event-request (create-request "PushEvent"))
 (defvar read-graph-request (create-request "ReadGraph"))
-(defvar remove-isolated-atoms-request (create-request "RemoveIsolatedAtoms"))
+(defvar remove-isolated-notes-request (create-request "RemoveIsolatedNotes"))
 (defvar search-request (create-request "Search"))
 (defvar set-properties-request (create-request "SetProperties"))
 (defvar update-view-request (create-request "UpdateView"))
@@ -151,8 +151,8 @@
 (defun ping-callback (payload context)
   (message "completed in %.0f ms" (smsn-env-response-time)))
 
-(defun remove-isolated-atoms-callback (payload context)
-  (message "removed isolated atoms in %.0f ms" (smsn-env-response-time)))
+(defun remove-isolated-notes-callback (payload context)
+  (message "removed isolated notes in %.0f ms" (smsn-env-response-time)))
 
 (defun treeview-callback (payload context)
   (smsn-env-to-treeview-mode context)
@@ -208,8 +208,8 @@
 (defun smsn-client-fetch-history ()
   (issue-request (to-filter-request get-history-request) 'search-view-callback))
 
-(defun smsn-client-fetch-find-isolated-atoms ()
-  (issue-request (to-filter-request find-isolated-atoms-request) 'search-view-callback))
+(defun smsn-client-fetch-find-isolated-notes ()
+  (issue-request (to-filter-request find-isolated-notes-request) 'search-view-callback))
 
 (defun smsn-client-fetch-priorities ()
   (issue-request (to-query-request get-priorities-request) 'search-view-callback))
@@ -217,8 +217,8 @@
 (defun smsn-client-fetch-query (query query-type)
   (do-search query-type query))
 
-(defun smsn-client-fetch-remove-isolated-atoms ()
-  (issue-request (to-filter-request remove-isolated-atoms-request) 'remove-isolated-atoms-callback))
+(defun smsn-client-fetch-remove-isolated-notes ()
+  (issue-request (to-filter-request remove-isolated-notes-request) 'remove-isolated-notes-callback))
 
 (defun smsn-client-fetch-ripple-response (query)
   (do-search "Ripple" query))
@@ -232,13 +232,13 @@
 (defun smsn-client-infer-types ()
   (issue-request infer-types-request 'inference-callback))
 
-(defun smsn-client-open-atom (atom-id)
+(defun smsn-client-open-note (note-id)
   (smsn-view-set-context-line 1)
-  (issue-request (create-new-treeview-request atom-id) 'treeview-callback))
+  (issue-request (create-new-treeview-request note-id) 'treeview-callback))
 
-(defun smsn-client-wikiview (atom-id)
+(defun smsn-client-wikiview (note-id)
   (smsn-view-set-context-line 1)
-  (issue-request (create-wikiview-request atom-id) 'wikiview-callback))
+  (issue-request (create-wikiview-request note-id) 'wikiview-callback))
 
 (defun smsn-client-action-dujour ()
   (issue-request action-dujour-request 'ping-callback))
@@ -264,7 +264,7 @@
       (let ((focus (smsn-data-focus)))
         (if focus
             (let (
-                  (id (smsn-data-atom-id focus)))
+                  (id (smsn-data-note-id focus)))
               (smsn-client-set-property id "priority" v))
           (smsn-env-error-no-focus)))
     (error 
@@ -273,7 +273,7 @@
 (defun smsn-client-set-focus-source (source)
   (let ((focus (smsn-data-focus)))
     (if focus
-        (let ((id (smsn-data-atom-id focus)))
+        (let ((id (smsn-data-note-id focus)))
           (smsn-client-set-property id "source" source))
       (smsn-env-error-no-focus))))
 
@@ -282,7 +282,7 @@
       (let ((focus (smsn-data-focus)))
         (if focus
             (let (
-                  (id (smsn-data-atom-id focus)))
+                  (id (smsn-data-note-id focus)))
               (smsn-client-set-property id "weight" v))
           (smsn-env-error-no-focus)))
     (error 

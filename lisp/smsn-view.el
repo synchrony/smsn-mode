@@ -66,19 +66,19 @@
   (mapcar (lambda (n)
     (fade n weight)) color-triple))
 
-(defun atom-color (weight source is-link)
+(defun note-color (weight source is-link)
   (color-triple-to-string (find-normal-color source weight is-link)))
 
 (defun colorize (text weight source priority-bg priority-fg bright has-meta)
   (let ((color (if smsn-view-full-colors-supported
-                   (atom-color weight source bright)
+                   (note-color weight source bright)
                  "black")))
     (setq l (list
              :foreground color
              :underline (if (and priority-fg (> priority-fg 0))
-                            (list :color (atom-color priority-fg source bright)) nil)
+                            (list :color (note-color priority-fg source bright)) nil)
              :box (if priority-bg
-               (list :color (atom-color priority-bg source bright)) nil)))
+               (list :color (note-color priority-bg source bright)) nil)))
     (propertize text 'face l)))
 
 (defun light-gray ()
@@ -163,21 +163,21 @@
         (let (
               (link (smsn-env-json-get 'link json))
               (children (smsn-env-json-get 'children json)))
-          (let ((focus-id (smsn-data-atom-id json))
+          (let ((focus-id (smsn-data-note-id json))
                 (focus-created (smsn-env-json-get 'created json))
-                (focus-title (let ((v (smsn-data-atom-title json))) (if v v "")))
+                (focus-title (let ((v (smsn-data-note-title json))) (if v v "")))
                 (focus-has-text (smsn-env-json-get 'text json))
-		        (focus-weight (smsn-data-atom-weight json))
-		        (focus-source (smsn-data-atom-source json))
-		        (focus-priority (smsn-data-atom-priority json))
+		        (focus-weight (smsn-data-note-weight json))
+		        (focus-source (smsn-data-note-source json))
+		        (focus-priority (smsn-data-note-priority json))
                 (focus-has-children (not (equal json-false (smsn-env-json-get 'hasChildren json))))
                 (focus-n-children (smsn-env-json-get 'numberOfChildren json))
                 (focus-n-parents (smsn-env-json-get 'numberOfParents json))
-		        (focus-alias (smsn-data-atom-alias json))
-		        (focus-shortcut (smsn-data-atom-shortcut json))
-		        (focus-meta (smsn-data-atom-meta json)))
+		        (focus-alias (smsn-data-note-alias json))
+		        (focus-shortcut (smsn-data-note-shortcut json))
+		        (focus-meta (smsn-data-note-meta json)))
             (if focus-id
-              (puthash focus-id json (smsn-env-context-get 'atoms-by-id))
+              (puthash focus-id json (smsn-env-context-get 'notes-by-id))
               (error "missing focus id"))
             (setq space "")
             (loop for i from 1 to tree-indent do (setq space (concat space " ")))
@@ -222,9 +222,9 @@
     (concat space "    " name " " value "\n"))))
 
 (defun write-wikiview (json)
-  (let ((text (let ((v (smsn-data-atom-text json))) (if v v "")))
-    (weight (smsn-data-atom-weight json))
-    (source (smsn-data-atom-source json)))
+  (let ((text (let ((v (smsn-data-note-text json))) (if v v "")))
+    (weight (smsn-data-note-weight json))
+    (source (smsn-data-note-source json)))
       (insert (colorize text weight source nil 0.0 nil nil))))
 
 (defun num-or-nil-to-string (n)
@@ -292,8 +292,8 @@
       (beginning-of-line line)
       (error "no line number"))))
 
-(defun create-atom-hashtable ()
-  (smsn-env-context-set 'atoms-by-id (make-hash-table :test 'equal)))
+(defun create-note-hashtable ()
+  (smsn-env-context-set 'notes-by-id (make-hash-table :test 'equal)))
 
 ;; always include line numbers in views
 (defun show-line-numbers ()
@@ -320,18 +320,18 @@
 (defun smsn-treeview-open (payload context)
   "Callback to receive and display the data of a view"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (smsn-data-atom-id (smsn-data-payload-view payload)) payload t) context)
+     (name-for-view-buffer (smsn-data-note-id (smsn-data-payload-view payload)) payload t) context)
   (configure-context payload)
-  (create-atom-hashtable)
+  (create-note-hashtable)
   (erase-buffer)
   (write-treeview-to-buffer payload)
   (configure-buffer)
   (message "view updated in %.0f ms" (smsn-env-response-time)))
 
 (defun smsn-wikiview-open (payload context)
-  "Callback to receive and display the text of an atom"
+  "Callback to receive and display the text of a note"
   (switch-to-buffer-with-context
-     (name-for-view-buffer (smsn-data-atom-id (smsn-data-payload-view payload)) payload nil) context)
+     (name-for-view-buffer (smsn-data-note-id (smsn-data-payload-view payload)) payload nil) context)
   (configure-context payload)
   (erase-buffer)
   (write-wikiview-to-buffer payload)
@@ -339,7 +339,7 @@
   (message "text updated in %.0f ms" (smsn-env-response-time)))
 
 (defun smsn-view-create-id-infix (id)
-  "Creates a string of the form :0000000:, where 000000 is the id of an atom"
+  "Creates a string of the form :0000000:, where 000000 is the id of a note"
   (propertize (concat " :" id ":") 'invisible t))
 
 
