@@ -147,7 +147,7 @@
 
 (defun inference-callback (payload context)
   (message "type inference completed successfully in %.0f ms" (smsn-env-response-time)))
-      
+
 (defun ping-callback (payload context)
   (message "completed in %.0f ms" (smsn-env-response-time)))
 
@@ -267,7 +267,7 @@
                   (id (smsn-data-note-id focus)))
               (smsn-client-set-property id "priority" v))
           (smsn-env-error-no-focus)))
-    (error 
+    (error
      (concat "priority " (number-to-string v) " is outside of range [0, 1]"))))
 
 (defun smsn-client-set-focus-source (source)
@@ -285,7 +285,7 @@
                   (id (smsn-data-note-id focus)))
               (smsn-client-set-property id "weight" v))
           (smsn-env-error-no-focus)))
-    (error 
+    (error
      (concat "weight " (number-to-string v) " is outside of range (0, 1]"))))
 
 (defun smsn-client-set-min-source (source)
@@ -299,7 +299,7 @@
     (let ()
       (smsn-env-context-set 'min-weight s)
       (smsn-client-refresh-treeview))
-    (error 
+    (error
      (concat "min weight " (number-to-string s) " is outside of range [0, 1]"))))
 
 (defun smsn-client-set-property (id name value)
