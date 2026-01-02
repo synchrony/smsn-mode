@@ -114,6 +114,12 @@
   (interactive)
   (smsn-client-fetch-events 2))
 
+(defun smsn-write-markdown ()
+  "export graph as Markdown directory"
+  (interactive)
+  (message "%s" (concat "exporting Markdown dump to configured locations"))
+  (smsn-client-write-graph "Markdown"))
+
 (defun smsn-write-vcs ()
   "export graph as version-controlled directory"
   (interactive)
@@ -562,6 +568,10 @@ a type has been assigned to it by the inference engine."
   (interactive)
   (prompt-for-char 'smsn-set-view-height "height = ?"))
 
+(defun smsn-write-markdown-prompt ()
+  (interactive)
+  (prompt-for-confirmation 'smsn-write-markdown "export graph to Markdown"))
+
 (defun smsn-write-vcs-prompt ()
   (interactive)
   (prompt-for-confirmation 'smsn-write-vcs "export graph to VCS"))
@@ -951,6 +961,7 @@ a type has been assigned to it by the inference engine."
     (define-key smsn-mode-map (kbd "C-c C-w e")       'smsn-export-edges-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w g")       'smsn-export-graphml-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w l")       'smsn-export-latex-prompt)
+    (define-key smsn-mode-map (kbd "C-c C-w m")       'smsn-write-markdown-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w p")       'smsn-export-pagerank-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w r")       'smsn-export-rdf-prompt)
     (define-key smsn-mode-map (kbd "C-c C-w v")       'smsn-export-vertices-prompt)

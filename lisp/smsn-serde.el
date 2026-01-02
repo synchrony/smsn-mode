@@ -1,5 +1,5 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; smsn-serde.el -- Serializers and deserializers for use with Gremlin Server
+;; smsn-serde.el -- Serializers and deserializers for use with SmSn Server
 ;;
 ;; Part of the SmSn-mode package for Emacs:
 ;;   https://github.com/synchrony/smsn-mode
