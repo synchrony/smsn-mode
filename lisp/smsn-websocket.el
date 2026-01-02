@@ -41,12 +41,13 @@
       (lambda (_websocket) (message "WebSocket connection closed"))))
 
 (defun websocket-connection-url (host port)
-  (concat "ws://" host ":" (number-to-string port) "/gremlin"))
+  (concat "ws://" host ":" (number-to-string port) "/smsn"))
 
 (defun smsn-websocket-send-and-receive (host port request callback)
   (let ((connection (get-websocket-connection host port)))
     (if (websocket-connection-is-open)
       (let ((payload (smsn-serde-format-request request)))
+        ;;(message "sending %s" payload)
         (setq websocket-response-handler
           (lexical-let (
             (callback callback)
